@@ -1,240 +1,248 @@
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #F5F5F5;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+const translations = {
+    en: {
+        congratulations: "Congratulations! You cracked the code!",
+        newGame: "NEW GAME",
+        submit: "SUBMIT",
+        check: "CHECK",
+        colours: "Colours",
+        positions: "Positions",
+        codemaker: "CODEMAKER",
+        codebreaker: "CODEBREAKER"
+    },
+    de: {
+        congratulations: "Gratuliere! Du hast den Code geknackt!",
+        newGame: "Neues Spiel",
+        submit: "Senden",
+        check: "Prüfen",
+        colours: "Farben",
+        positions: "Positionen",
+        codemaker: "Erstellen",
+        codebreaker: "Lösen"
+    }
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.translatable').forEach(element => {
+        const key = element.dataset.key;
+        element.textContent = translations[lang][key];
+    });
+
+    document.querySelectorAll('.lang-option').forEach(option => {
+        option.classList.toggle('active', option.dataset.lang === lang);
+    });
 }
 
-.container {
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-    padding: 1rem;
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // Language switcher event listeners
+    document.querySelectorAll('.lang-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const lang = option.dataset.lang;
+            setLanguage(lang);
+        });
+    });
 
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
+    // Initial language setup
+    setLanguage(currentLang);
+});
 
-h1 {
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    color: #212121;
-    margin: 0;
-}
+const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
+let secretCode = [];
+let currentRow = 1;
+let currentGuess = [null, null, null, null];
+let isCodemakerTurn = true;
+const maxRows = 10;
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 1rem;
-    margin-bottom: 0.5rem;
-}
+const board = document.getElementById("board");
+const guessArea = document.getElementById("guess-area");
+const colorPicker = document.getElementById("color-picker");
+const codemakerLabel = document.getElementById("codemaker-label");
+const codebreakerLabel = document.getElementById("codebreaker-label");
+const newGameBtn = document.getElementById("new-game-btn");
+const submitBtn = document.getElementById("submit-btn");
 
-.colors-header, .positions-header {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-}
+let checkButton = null;
 
-.colors-header span {
-    color: #1976D2;
-}
+function initGame() {
+    board.innerHTML = "";
+    guessArea.innerHTML = "";
+    secretCode = [];
+    currentRow = 1;
+    currentGuess = [null, null, null, null];
+    isCodemakerTurn = true;
+    codemakerLabel.classList.add("active");
+    codebreakerLabel.classList.remove("active");
+    submitBtn.disabled = true;
+    submitBtn.classList.remove("active");
 
-.positions-header span {
-    color: #D32F2F;
-}
-
-#board {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.row {
-    display: grid;
-    grid-template-columns: 1fr 1fr repeat(4, minmax(30px, 40px)) 1fr;
-    gap: 0.5rem;
-    align-items: center;
-    justify-items: center;
-    padding: 0.3rem 0.5rem;
-    position: relative;
-}
-
-.row-number {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #212121;
-    text-align: center;
-}
-
-.colors-feedback {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #1976D2;
-    text-align: center;
-}
-
-.circles {
-    display: contents;
-}
-
-.circle {
-    width: clamp(30px, 10vw, 40px);
-    height: clamp(30px, 10vw, 40px);
-    border-radius: 50%;
-    background-color: white;
-    border: 2px solid #B0BEC5;
-    cursor: pointer;
-}
-
-.position-feedback {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #D32F2F;
-    text-align: center;
-}
-
-.check-btn {
-    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-    padding: 0.3rem 0.6rem;
-    background-color: #B0BEC5;
-    color: white;
-    border: none;
-    cursor: pointer;
-    position: absolute;
-    right: 0;
-}
-
-.check-btn.active {
-    background-color: #6200EE;
-}
-
-.roles {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-}
-
-#codemaker-label, #codebreaker-label {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    font-weight: bold;
-    color: #B0BEC5;
-}
-
-#codemaker-label.active, #codebreaker-label.active {
-    color: #212121;
-}
-
-.controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1rem;
-}
-
-#new-game-btn {
-    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-    padding: 0.3rem 0.6rem;
-    background-color: #6200EE;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-#submit-btn {
-    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
-    padding: 0.3rem 0.6rem;
-    background-color: #B0BEC5;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-#submit-btn.active {
-    background-color: #6200EE;
-}
-
-#guess-area {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(30px, 40px));
-    gap: 0.5rem;
-    justify-content: center;
-    width: clamp(150px, 40vw, 200px);
-    margin: 0 1rem;
-}
-
-.color-picker {
-    position: absolute;
-    background-color: #DAE3F3;
-    width: clamp(200px, 60vw, 240px);
-    padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.colors {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-}
-
-.color-option {
-    width: clamp(30px, 8vw, 40px);
-    height: clamp(30px, 8vw, 40px);
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.triangle {
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid #DAE3F3;
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.hidden {
-    display: none;
-}
-
-/* Language Switcher Styles */
-.language-switcher {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.lang-option {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #B0BEC5;
-    cursor: pointer;
-}
-
-.lang-option.active {
-    color: #212121;
-    font-weight: bold;
-}
-
-.lang-separator {
-    color: #B0BEC5;
-}
-
-@media (max-width: 600px) {
-    .container {
-        padding: 0.5rem;
+    for (let row = maxRows; row >= 1; row--) {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "row";
+        rowDiv.innerHTML = `
+            <span class="row-number">${row}</span>
+            <span class="colors-feedback"></span>
+            <div class="circle" data-row="${row}" data-col="0"></div>
+            <div class="circle" data-row="${row}" data-col="1"></div>
+            <div class="circle" data-row="${row}" data-col="2"></div>
+            <div class="circle" data-row="${row}" data-col="3"></div>
+            <span class="position-feedback"></span>
+        `;
+        const circles = rowDiv.querySelectorAll(".circle");
+        circles.forEach(circle => {
+            const row = parseInt(circle.dataset.row);
+            const col = parseInt(circle.dataset.col);
+            circle.addEventListener("click", () => onCircleClick(row, col));
+        });
+        board.appendChild(rowDiv);
     }
 
-    .row {
-        padding: 0.2rem 0.3rem;
+    for (let col = 0; col < 4; col++) {
+        const circle = document.createElement("div");
+        circle.className = "circle";
+        circle.dataset.col = col;
+        circle.addEventListener("click", () => onGuessCircleClick(col));
+        guessArea.appendChild(circle);
     }
 
-    .color-picker {
-        padding: 0.3rem;
+    setLanguage(currentLang);
+}
+
+function onCircleClick(row, col) {
+    if (!isCodemakerTurn && row === currentRow) {
+        showColorPicker(row, col, false);
     }
+}
+
+function onGuessCircleClick(col) {
+    if (isCodemakerTurn) {
+        showColorPicker(0, col, true);
+    }
+}
+
+function showColorPicker(row, col, isGuess) {
+    colorPicker.classList.remove("hidden");
+    const circle = isGuess
+        ? guessArea.children[col]
+        : board.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    const rect = circle.getBoundingClientRect();
+    const pickerWidth = 240;
+    const circleWidth = rect.width;
+    const offsetX = (pickerWidth - circleWidth) / 2;
+    colorPicker.style.left = `${rect.left + window.scrollX - offsetX}px`;
+    colorPicker.style.top = `${rect.top + window.scrollY - 100}px`;
+
+    const options = colorPicker.querySelectorAll(".color-option");
+    options.forEach((option, index) => {
+        option.onclick = () => selectColor(row, col, colors[index], isGuess);
+    });
+}
+
+function selectColor(row, col, color, isGuess) {
+    currentGuess[col] = color;
+    if (isGuess) {
+        guessArea.children[col].style.backgroundColor = color;
+    } else {
+        const circle = board.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        circle.style.backgroundColor = color;
+    }
+    colorPicker.classList.add("hidden");
+    if (currentGuess.every(c => c !== null)) {
+        if (isCodemakerTurn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.add("active");
+        } else {
+            if (checkButton) {
+                checkButton.disabled = false;
+                checkButton.classList.add("active");
+            }
+        }
+    }
+}
+
+function submitCode() {
+    secretCode = [...currentGuess];
+    currentGuess = [null, null, null, null];
+    isCodemakerTurn = false;
+    codemakerLabel.classList.remove("active");
+    codebreakerLabel.classList.add("active");
+    submitBtn.disabled = true;
+    submitBtn.classList.remove("active");
+    for (let circle of guessArea.children) {
+        circle.style.backgroundColor = "white";
+    }
+    addCheckButton();
+}
+
+function addCheckButton() {
+    if (checkButton) {
+        checkButton.remove();
+    }
+    checkButton = document.createElement("button");
+    checkButton.className = "check-btn translatable";
+    checkButton.dataset.key = "check";
+    checkButton.textContent = translations[currentLang].check;
+    checkButton.disabled = true;
+    checkButton.onclick = checkGuess;
+    const row = board.children[maxRows - currentRow];
+    row.appendChild(checkButton);
+}
+
+function checkGuess() {
+    const { correctPositions, correctColors } = checkGuessLogic(secretCode, currentGuess);
+    const row = board.children[maxRows - currentRow];
+    row.querySelector(".colors-feedback").textContent = correctColors;
+    row.querySelector(".position-feedback").textContent = correctPositions;
+
+    currentGuess = [null, null, null, null];
+    for (let circle of guessArea.children) {
+        circle.style.backgroundColor = "white";
+    }
+    checkButton.disabled = true;
+    checkButton.classList.remove("active");
+    currentRow++;
+    if (currentRow <= maxRows) {
+        addCheckButton();
+    }
+    if (correctPositions === 4) {
+        alert(translations[currentLang].congratulations);
+        initGame();
+    } else if (currentRow > maxRows) {
+        alert(`Game Over! The code was ${secretCode}`);
+        initGame();
+    }
+}
+
+function checkGuessLogic(secret, guess) {
+    let correctPositions = 0;
+    let correctColors = 0;
+    const secretTemp = [...secret];
+    const guessTemp = [...guess];
+    for (let i = 0; i < 4; i++) {
+        if (guessTemp[i] === secretTemp[i]) {
+            correctPositions++;
+            secretTemp[i] = guessTemp[i] = null;
+        }
+    }
+    for (let i = 0; i < 4; i++) {
+        if (guessTemp[i] && secretTemp.includes(guessTemp[i])) {
+            correctColors++;
+            secretTemp[secretTemp.indexOf(guessTemp[i])] = null;
+        }
+    }
+    return { correctPositions, correctColors };
+}
+
+newGameBtn.addEventListener("click", initGame);
+submitBtn.addEventListener("click", submitCode);
+
+initGame();
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js')
+            .then(reg => console.log('Service worker registered!', reg))
+            .catch(err => console.log('Service worker registration failed:', err));
+    });
 }

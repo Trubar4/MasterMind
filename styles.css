@@ -52,6 +52,7 @@ h1 {
     grid-template-columns: 1fr 1fr repeat(4, minmax(30px, 40px)) 1fr 1fr;
     gap: 0.5rem;
     align-items: center;
+    justify-items: center;
     padding: 0.3rem 0.5rem;
 }
 
@@ -147,7 +148,6 @@ h1 {
 .color-picker {
     position: absolute;
     background-color: white;
-    border: 1px solid #000;
     width: clamp(200px, 60vw, 240px);
     padding: 0.5rem;
     display: flex;
@@ -178,16 +178,6 @@ h1 {
     bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
-}
-
-.triangle::before {
-    content: '';
-    position: absolute;
-    top: -12px;
-    left: -11px;
-    border-left: 11px solid transparent;
-    border-right: 11px solid transparent;
-    border-top: 11px solid black;
 }
 
 .hidden {

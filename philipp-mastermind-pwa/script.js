@@ -1,4 +1,54 @@
-const colors = ["red", "yellow", "orange", "pink", "blue", "green", "#555555", "black"];
+const translations = {
+    en: {
+        congratulations: "Congratulations! You cracked the code!",
+        newGame: "NEW GAME",
+        submit: "SUBMIT",
+        check: "CHECK",
+        colours: "Colours",
+        positions: "Positions",
+        codemaker: "CODEMAKER",
+        codebreaker: "CODEBREAKER"
+    },
+    de: {
+        congratulations: "Gratuliere! Du hast den Code geknackt!",
+        newGame: "Neues Spiel",
+        submit: "Senden",
+        check: "Prüfen",
+        colours: "Farben",
+        positions: "Positionen",
+        codemaker: "Erstellen",
+        codebreaker: "Lösen"
+    }
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.translatable').forEach(element => {
+        const key = element.dataset.key;
+        element.textContent = translations[lang][key];
+    });
+
+    document.querySelectorAll('.lang-option').forEach(option => {
+        option.classList.toggle('active', option.dataset.lang === lang);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Language switcher event listeners
+    document.querySelectorAll('.lang-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const lang = option.dataset.lang;
+            setLanguage(lang);
+        });
+    });
+
+    // Initial language setup
+    setLanguage(currentLang);
+});
+
+const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
 let secretCode = [];
 let currentRow = 1;
 let currentGuess = [null, null, null, null];
@@ -55,6 +105,8 @@ function initGame() {
         circle.addEventListener("click", () => onGuessCircleClick(col));
         guessArea.appendChild(circle);
     }
+
+    setLanguage(currentLang);
 }
 
 function onCircleClick(row, col) {
@@ -75,7 +127,7 @@ function showColorPicker(row, col, isGuess) {
         ? guessArea.children[col]
         : board.querySelector(`[data-row="${row}"][data-col="${col}"]`);
     const rect = circle.getBoundingClientRect();
-    const pickerWidth = 240; // Approximate width of the color picker
+    const pickerWidth = 240;
     const circleWidth = rect.width;
     const offsetX = (pickerWidth - circleWidth) / 2;
     colorPicker.style.left = `${rect.left + window.scrollX - offsetX}px`;
@@ -128,8 +180,9 @@ function addCheckButton() {
         checkButton.remove();
     }
     checkButton = document.createElement("button");
-    checkButton.className = "check-btn";
-    checkButton.textContent = "CHECK";
+    checkButton.className = "check-btn translatable";
+    checkButton.dataset.key = "check";
+    checkButton.textContent = translations[currentLang].check;
     checkButton.disabled = true;
     checkButton.onclick = checkGuess;
     const row = board.children[maxRows - currentRow];
@@ -153,7 +206,7 @@ function checkGuess() {
         addCheckButton();
     }
     if (correctPositions === 4) {
-        alert("Congratulations! You cracked the code!");
+        alert(translations[currentLang].congratulations);
         initGame();
     } else if (currentRow > maxRows) {
         alert(`Game Over! The code was ${secretCode}`);
@@ -188,7 +241,7 @@ initGame();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js')
             .then(reg => console.log('Service worker registered!', reg))
             .catch(err => console.log('Service worker registration failed:', err));
     });

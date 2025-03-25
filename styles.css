@@ -195,26 +195,26 @@ h1 {
 }
 
 /* Design Idea 1: Simple Text Toggle */
-.language-switcher {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
+/* .language-switcher { */
+    /* display: flex; */
+    /* align-items: center; */
+    /* gap: 0.3rem; */
+/* } */
 
-.lang-option {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #B0BEC5;
-    cursor: pointer;
-}
+/* .lang-option { */
+    /* font-size: clamp(0.8rem, 2vw, 1rem); */
+    /* color: #B0BEC5; */
+    /* cursor: pointer; */
+/* } */
 
-.lang-option.active {
-    color: #212121;
-    font-weight: bold;
-}
+/* .lang-option.active { */
+    /* color: #212121; */
+    /* font-weight: bold; */
+/* } */
 
-.lang-separator {
-    color: #B0BEC5;
-}
+/* .lang-separator { */
+    /* color: #B0BEC5; */
+/* } */
 
 /* Design Idea 2: Flag Icons with Dropdown (commented out, uncomment to use) */
 .language-dropdown {

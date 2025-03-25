@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philipp's Mastermind</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F5F5F5">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+    <div class="container">
+        <h1>Philipp's Mastermind</h1>
+        <div class="header">
+            <div class="colors-header">
+                <span>Colours</span>
+            </div>
+            <div class="positions-header">
+                <span>Positions</span>
+            </div>
+        </div>
+        <div id="board"></div>
+        <div class="roles">
+            <span id="codemaker-label" class="active">CODEMAKER</span>
+            <span id="codebreaker-label">CODEBREAKER</span>
+        </div>
+        <div class="controls">
+            <button id="new-game-btn">NEW GAME</button>
+            <div id="guess-area"></div>
+            <button id="submit-btn" disabled>SUBMIT</button>
+        </div>
+    </div>
+    <div id="color-picker" class="color-picker hidden">
+        <div class="colors">
+            <div class="color-option" style="background-color: #FF0000;"></div>
+            <div class="color-option" style="background-color: #FFFF00;"></div>
+            <div class="color-option" style="background-color: #FFC000;"></div>
+            <div class="color-option" style="background-color: #F36DED;"></div>
+            <div class="color-option" style="background-color: #0070C0;"></div>
+            <div class="color-option" style="background-color: #00B050;"></div>
+            <div class="color-option" style="background-color: #A6A6A6;"></div>
+            <div class="color-option" style="background-color: #000000;"></div>
+        </div>
+        <div class="triangle"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

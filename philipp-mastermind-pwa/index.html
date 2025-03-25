@@ -3,34 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="/philipp-mastermind-pwa/">
-
-    <!-- Your existing head content -->
-
     <title>Philipp's Mastermind</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <meta name="theme-color" content="#F5F5F5">
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
-    <link rel="icon" type="image/png" href="icons/icon-512.png">
-    <link rel="icon" type="image/x-icon" href="icons/icon-192.png">
-
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="preload" as="style">
-
-    <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="script.js" as="script">
-
-    <link rel="prefetch" href="manifest.json">
-    <link rel="prefetch" href="icons/icon-192.png">
-    <link rel="prefetch" href="icons/icon-512.png">
-
-    <link rel="modulepreload" href="script.js">
-
-    <script type="module" src="script.js"></script>
-    <link rel="styles" href="styles.css">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
-
 <body>
     <div class="container">
         <div class="top-bar">
@@ -41,7 +19,6 @@
                 <span class="lang-option" data-lang="de">DE</span>
             </div>
         </div>
-
         <div class="header">
             <div class="colors-header">
                 <span class="translatable" data-key="colours">Colours</span>
@@ -50,23 +27,18 @@
                 <span class="translatable" data-key="positions">Positions</span>
             </div>
         </div>
-
         <div id="board"></div>
-
         <div class="roles">
             <span id="codemaker-label" class="active translatable" data-key="codemaker">CODEMAKER</span>
-            <button id="modebtn" class="translatable" data-key="mode">MODE</button>
             <span id="codebreaker-label" class="translatable" data-key="codebreaker">CODEBREAKER</span>
         </div>
-
         <div class="controls">
-            <button id="new-gamebtn" class="translatable" data-key="newGame">NEW GAME</button>
+            <button id="new-game-btn" class="translatable" data-key="newGame">NEW GAME</button>
             <div id="guess-area"></div>
-            <button id="submitbtn" class="translatable" data-key="submit" disabled>SUBMIT</button>
+            <button id="submit-btn" class="translatable" data-key="submit" disabled>SUBMIT</button>
         </div>
     </div>
-
-    <div id="colorpicker" class="colorpicker hidden">
+    <div id="color-picker" class="color-picker hidden">
         <div class="colors">
             <div class="color-option" style="background-color: #FF0000;"></div>
             <div class="color-option" style="background-color: #FFFF00;"></div>
@@ -79,14 +51,6 @@
         </div>
         <div class="triangle"></div>
     </div>
-
-    <div id="modepicker" class="modepicker hidden">
-        <div class="mode-options">
-            <div class="mode-option active translatable" data-mode="both" data-key="both">BOTH</div>
-            <div class="mode-option translatable" data-mode="codemaker" data-key="codemaker">CODEMAKER</div>
-            <div class="mode-option translatable" data-mode="codebreaker" data-key="codebreaker">CODEBREAKER</div>
-        </div>
-        <div class="triangle"></div>
-    </div>
+    <script src="script.js"></script>
 </body>
 </html>

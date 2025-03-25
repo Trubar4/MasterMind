@@ -7,9 +7,7 @@ const translations = {
         colours: "Colours",
         positions: "Positions",
         codemaker: "CODEMAKER",
-        codebreaker: "CODEBREAKER",
-        both: "BOTH",
-        mode: "MODE"
+        codebreaker: "CODEBREAKER"
     },
     de: {
         congratulations: "Gratuliere! Du hast den Code geknackt!",
@@ -18,15 +16,12 @@ const translations = {
         check: "Prüfen",
         colours: "Farben",
         positions: "Positionen",
-        codemaker: "ERSTELLER",
-        codebreaker: "LÖSER",
-        both: "BEIDE",
-        mode: "MODUS"
+        codemaker: "Erstellen",
+        codebreaker: "Lösen"
     }
 };
 
 let currentLang = 'en';
-let currentMode = 'both'; // both, codemaker, codebreaker
 
 function setLanguage(lang) {
     currentLang = lang;
@@ -40,15 +35,6 @@ function setLanguage(lang) {
     });
 }
 
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-option').forEach(option => {
-        option.classList.toggle('active', option.dataset.mode === mode);
-    });
-    document.getElementById('mode-picker').classList.add('hidden');
-    initGame(); // Restart game with new mode
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     // Language switcher event listeners
     document.querySelectorAll('.lang-option').forEach(option => {
@@ -58,26 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Mode picker event listeners
-    document.getElementById('mode-btn').addEventListener('click', () => {
-        const modePicker = document.getElementById('mode-picker');
-        const modeBtn = document.getElementById('mode-btn');
-        const rect = modeBtn.getBoundingClientRect();
-        modePicker.style.left = `${rect.left + window.scrollX}px`;
-        modePicker.style.top = `${rect.top + window.scrollY - 100}px`;
-        modePicker.classList.toggle('hidden');
-    });
-
-    document.querySelectorAll('.mode-option').forEach(option => {
-        option.addEventListener('click', () => {
-            const mode = option.dataset.mode;
-            setMode(mode);
-        });
-    });
-
-    // Initial language and mode setup
+    // Initial language setup
     setLanguage(currentLang);
-    setMode(currentMode);
 });
 
 const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
@@ -134,36 +102,21 @@ function initGame() {
         const circle = document.createElement("div");
         circle.className = "circle";
         circle.dataset.col = col;
-        if (currentMode !== 'codebreaker') {
-            circle.addEventListener("click", () => onGuessCircleClick(col));
-        }
+        circle.addEventListener("click", () => onGuessCircleClick(col));
         guessArea.appendChild(circle);
     }
 
     setLanguage(currentLang);
-
-    // If Codemaker is computer, generate the code automatically
-    if (currentMode === 'codebreaker') {
-        secretCode = Array(4).fill().map(() => colors[Math.floor(Math.random() * colors.length)]);
-        currentGuess = [null, null, null, null];
-        isCodemakerTurn = false;
-        codemakerLabel.classList.remove("active");
-        codebreakerLabel.classList.add("active");
-        for (let circle of guessArea.children) {
-            circle.style.backgroundColor = "white";
-        }
-        addCheckButton();
-    }
 }
 
 function onCircleClick(row, col) {
-    if (!isCodemakerTurn && row === currentRow && currentMode !== 'codemaker') {
+    if (!isCodemakerTurn && row === currentRow) {
         showColorPicker(row, col, false);
     }
 }
 
 function onGuessCircleClick(col) {
-    if (isCodemakerTurn && currentMode !== 'codebreaker') {
+    if (isCodemakerTurn) {
         showColorPicker(0, col, true);
     }
 }
@@ -199,7 +152,7 @@ function selectColor(row, col, color, isGuess) {
         if (isCodemakerTurn) {
             submitBtn.disabled = false;
             submitBtn.classList.add("active");
-        } else if (currentMode !== 'codemaker') {
+        } else {
             if (checkButton) {
                 checkButton.disabled = false;
                 checkButton.classList.add("active");
@@ -220,11 +173,6 @@ function submitCode() {
         circle.style.backgroundColor = "white";
     }
     addCheckButton();
-
-    // If Codebreaker is computer, start computer guessing
-    if (currentMode === 'codemaker') {
-        computerGuess();
-    }
 }
 
 function addCheckButton() {
@@ -266,38 +214,6 @@ function checkGuess() {
     }
 }
 
-function computerGuess() {
-    // Simple computer guessing strategy: try random combinations
-    setTimeout(() => {
-        if (currentRow > maxRows || isCodemakerTurn) return;
-
-        // Generate a random guess
-        currentGuess = Array(4).fill().map(() => colors[Math.floor(Math.random() * colors.length)]);
-
-        // Display the guess on the board
-        const row = board.children[maxRows - currentRow];
-        const circles = row.querySelectorAll(".circle");
-        circles.forEach((circle, index) => {
-            circle.style.backgroundColor = currentGuess[index];
-        });
-
-        const { correctPositions, correctColors } = checkGuessLogic(secretCode, currentGuess);
-        row.querySelector(".colors-feedback").textContent = correctColors;
-        row.querySelector(".position-feedback").textContent = correctPositions;
-
-        currentRow++;
-        if (correctPositions === 4) {
-            alert(`Computer cracked the code in ${currentRow - 1} rounds!`);
-            initGame();
-        } else if (currentRow > maxRows) {
-            alert(`Game Over! Computer failed to crack the code. The code was ${secretCode}`);
-            initGame();
-        } else {
-            computerGuess();
-        }
-    }, 1000); // Delay for visibility
-}
-
 function checkGuessLogic(secret, guess) {
     let correctPositions = 0;
     let correctColors = 0;
@@ -325,7 +241,7 @@ initGame();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js', { scope: '/philipp-mastermind-pwa/' })
+        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js')
             .then(reg => console.log('Service worker registered!', reg))
             .catch(err => console.log('Service worker registration failed:', err));
     });

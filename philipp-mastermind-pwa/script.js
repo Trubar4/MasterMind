@@ -45,7 +45,7 @@ function setMode(mode) {
     document.querySelectorAll('.mode-option').forEach(option => {
         option.classList.toggle('active', option.dataset.mode === mode);
     });
-    document.getElementById('mode-picker').classList.add('hidden');
+    document.getElementById('modepicker').classList.add('hidden');
     initGame(); // Restart game with new mode
 }
 
@@ -59,13 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Mode picker event listeners
-    document.getElementById('mode-btn').addEventListener('click', () => {
-        const modePicker = document.getElementById('mode-picker');
-        const modeBtn = document.getElementById('mode-btn');
-        const rect = modeBtn.getBoundingClientRect();
-        modePicker.style.left = `${rect.left + window.scrollX}px`;
-        modePicker.style.top = `${rect.top + window.scrollY - 100}px`;
-        modePicker.classList.toggle('hidden');
+    document.getElementById('modebtn').addEventListener('click', () => {
+        const modepicker = document.getElementById('modepicker');
+        const modebtn = document.getElementById('modebtn');
+        const rect = modebtn.getBoundingClientRect();
+        modepicker.style.left = `${rect.left + window.scrollX}px`;
+        modepicker.style.top = `${rect.top + window.scrollY - 100}px`;
+        modepicker.classList.toggle('hidden');
     });
 
     document.querySelectorAll('.mode-option').forEach(option => {
@@ -92,8 +92,9 @@ const guessArea = document.getElementById("guess-area");
 const colorPicker = document.getElementById("color-picker");
 const codemakerLabel = document.getElementById("codemaker-label");
 const codebreakerLabel = document.getElementById("codebreaker-label");
-const newGameBtn = document.getElementById("new-game-btn");
-const submitBtn = document.getElementById("submit-btn");
+const newGamebtn = document.getElementById("new-gamebtn");
+const modebtn = document.getElementById("modebtn");
+const submitbtn = document.getElementById("submitbtn");
 
 let checkButton = null;
 
@@ -106,20 +107,20 @@ function initGame() {
     isCodemakerTurn = true;
     codemakerLabel.classList.add("active");
     codebreakerLabel.classList.remove("active");
-    submitBtn.disabled = true;
-    submitBtn.classList.remove("active");
+    submitbtn.disabled = true;
+    submitbtn.classList.remove("active");
 
     for (let row = maxRows; row >= 1; row--) {
         const rowDiv = document.createElement("div");
         rowDiv.className = "row";
         rowDiv.innerHTML = `
             <span class="row-number">${row}</span>
-            <span class="colors-feedback"></span>
+            <span class="colorsfeedback"></span>
             <div class="circle" data-row="${row}" data-col="0"></div>
             <div class="circle" data-row="${row}" data-col="1"></div>
             <div class="circle" data-row="${row}" data-col="2"></div>
             <div class="circle" data-row="${row}" data-col="3"></div>
-            <span class="position-feedback"></span>
+            <span class="positionfeedback"></span>
         `;
         const circles = rowDiv.querySelectorAll(".circle");
         circles.forEach(circle => {
@@ -149,8 +150,10 @@ function initGame() {
         isCodemakerTurn = false;
         codemakerLabel.classList.remove("active");
         codebreakerLabel.classList.add("active");
-        for (let circle of guessArea.children) {
-            circle.style.backgroundColor = "white";
+        // Set and hide the codemaker's code
+        for (let col = 0; col < 4; col++) {
+            guessArea.children[col].style.backgroundColor = secretCode[col];
+            guessArea.children[col].classList.add("hidden");
         }
         addCheckButton();
     }
@@ -197,8 +200,8 @@ function selectColor(row, col, color, isGuess) {
     colorPicker.classList.add("hidden");
     if (currentGuess.every(c => c !== null)) {
         if (isCodemakerTurn) {
-            submitBtn.disabled = false;
-            submitBtn.classList.add("active");
+            submitbtn.disabled = false;
+            submitbtn.classList.add("active");
         } else if (currentMode !== 'codemaker') {
             if (checkButton) {
                 checkButton.disabled = false;
@@ -212,121 +215,3 @@ function submitCode() {
     secretCode = [...currentGuess];
     currentGuess = [null, null, null, null];
     isCodemakerTurn = false;
-    codemakerLabel.classList.remove("active");
-    codebreakerLabel.classList.add("active");
-    submitBtn.disabled = true;
-    submitBtn.classList.remove("active");
-    for (let circle of guessArea.children) {
-        circle.style.backgroundColor = "white";
-    }
-    addCheckButton();
-
-    // If Codebreaker is computer, start computer guessing
-    if (currentMode === 'codemaker') {
-        computerGuess();
-    }
-}
-
-function addCheckButton() {
-    if (checkButton) {
-        checkButton.remove();
-    }
-    checkButton = document.createElement("button");
-    checkButton.className = "check-btn translatable";
-    checkButton.dataset.key = "check";
-    checkButton.textContent = translations[currentLang].check;
-    checkButton.disabled = true;
-    checkButton.onclick = checkGuess;
-    const row = board.children[maxRows - currentRow];
-    row.appendChild(checkButton);
-}
-
-function checkGuess() {
-    const { correctPositions, correctColors } = checkGuessLogic(secretCode, currentGuess);
-    const row = board.children[maxRows - currentRow];
-    row.querySelector(".colors-feedback").textContent = correctColors;
-    row.querySelector(".position-feedback").textContent = correctPositions;
-
-    currentGuess = [null, null, null, null];
-    for (let circle of guessArea.children) {
-        circle.style.backgroundColor = "white";
-    }
-    checkButton.disabled = true;
-    checkButton.classList.remove("active");
-    currentRow++;
-    if (currentRow <= maxRows) {
-        addCheckButton();
-    }
-    if (correctPositions === 4) {
-        alert(translations[currentLang].congratulations);
-        initGame();
-    } else if (currentRow > maxRows) {
-        alert(`Game Over! The code was ${secretCode}`);
-        initGame();
-    }
-}
-
-function computerGuess() {
-    // Simple computer guessing strategy: try random combinations
-    setTimeout(() => {
-        if (currentRow > maxRows || isCodemakerTurn) return;
-
-        // Generate a random guess
-        currentGuess = Array(4).fill().map(() => colors[Math.floor(Math.random() * colors.length)]);
-
-        // Display the guess on the board
-        const row = board.children[maxRows - currentRow];
-        const circles = row.querySelectorAll(".circle");
-        circles.forEach((circle, index) => {
-            circle.style.backgroundColor = currentGuess[index];
-        });
-
-        const { correctPositions, correctColors } = checkGuessLogic(secretCode, currentGuess);
-        row.querySelector(".colors-feedback").textContent = correctColors;
-        row.querySelector(".position-feedback").textContent = correctPositions;
-
-        currentRow++;
-        if (correctPositions === 4) {
-            alert(`Computer cracked the code in ${currentRow - 1} rounds!`);
-            initGame();
-        } else if (currentRow > maxRows) {
-            alert(`Game Over! Computer failed to crack the code. The code was ${secretCode}`);
-            initGame();
-        } else {
-            computerGuess();
-        }
-    }, 1000); // Delay for visibility
-}
-
-function checkGuessLogic(secret, guess) {
-    let correctPositions = 0;
-    let correctColors = 0;
-    const secretTemp = [...secret];
-    const guessTemp = [...guess];
-    for (let i = 0; i < 4; i++) {
-        if (guessTemp[i] === secretTemp[i]) {
-            correctPositions++;
-            secretTemp[i] = guessTemp[i] = null;
-        }
-    }
-    for (let i = 0; i < 4; i++) {
-        if (guessTemp[i] && secretTemp.includes(guessTemp[i])) {
-            correctColors++;
-            secretTemp[secretTemp.indexOf(guessTemp[i])] = null;
-        }
-    }
-    return { correctPositions, correctColors };
-}
-
-newGameBtn.addEventListener("click", initGame);
-submitBtn.addEventListener("click", submitCode);
-
-initGame();
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js', { scope: '/philipp-mastermind-pwa/' })
-            .then(reg => console.log('Service worker registered!', reg))
-            .catch(err => console.log('Service worker registration failed:', err));
-    });
-}

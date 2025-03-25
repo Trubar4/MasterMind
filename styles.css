@@ -16,10 +16,17 @@ body {
     padding: 1rem;
 }
 
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
 h1 {
     font-size: clamp(1.5rem, 5vw, 2rem);
     color: #212121;
-    margin-bottom: 0.5rem;
+    margin: 0;
 }
 
 .header {
@@ -185,6 +192,69 @@ h1 {
 
 .hidden {
     display: none;
+}
+
+/* Design Idea 1: Simple Text Toggle */
+.language-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.lang-option {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: #B0BEC5;
+    cursor: pointer;
+}
+
+.lang-option.active {
+    color: #212121;
+    font-weight: bold;
+}
+
+.lang-separator {
+    color: #B0BEC5;
+}
+
+/* Design Idea 2: Flag Icons with Dropdown (commented out, uncomment to use) */
+.language-dropdown {
+    position: relative;
+}
+
+.current-lang {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #B0BEC5;
+    border-radius: 4px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.dropdown-content .lang-option {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+}
+
+.flag {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+}
+
+.lang-name {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: #212121;
 }
 
 @media (max-width: 600px) {

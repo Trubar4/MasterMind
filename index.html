@@ -11,24 +11,50 @@
 </head>
 <body>
     <div class="container">
-        <h1>Philipp's Mastermind</h1>
+        <div class="top-bar">
+            <h1>Philipp's Mastermind</h1>
+            <!-- Design Idea 1: Simple Text Toggle -->
+            <!-- <div class="language-switcher"> -->
+                <!-- <span class="lang-option active" data-lang="en">EN</span> -->
+                <!-- <span class="lang-separator">|</span> -->
+                <!-- <span class="lang-option" data-lang="de">DE</span> -->
+            <!-- </div> -->
+
+            <!-- Design Idea 2: Flag Icons with Dropdown (commented out, uncomment to use) -->
+            <div class="language-dropdown">
+                <div class="current-lang">
+                    <span class="flag">🇬🇧</span>
+                    <span class="lang-name">English</span>
+                </div>
+                <div class="dropdown-content hidden">
+                    <div class="lang-option" data-lang="en">
+                        <span class="flag">🇬🇧</span>
+                        <span class="lang-name">English</span>
+                    </div>
+                    <div class="lang-option" data-lang="de">
+                        <span class="flag">🇩🇪</span>
+                        <span class="lang-name">German</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="header">
             <div class="colors-header">
-                <span>Colours</span>
+                <span class="translatable" data-key="colours">Colours</span>
             </div>
             <div class="positions-header">
-                <span>Positions</span>
+                <span class="translatable" data-key="positions">Positions</span>
             </div>
         </div>
         <div id="board"></div>
         <div class="roles">
-            <span id="codemaker-label" class="active">CODEMAKER</span>
-            <span id="codebreaker-label">CODEBREAKER</span>
+            <span id="codemaker-label" class="active translatable" data-key="codemaker">CODEMAKER</span>
+            <span id="codebreaker-label" class="translatable" data-key="codebreaker">CODEBREAKER</span>
         </div>
         <div class="controls">
-            <button id="new-game-btn">NEW GAME</button>
+            <button id="new-game-btn" class="translatable" data-key="newGame">NEW GAME</button>
             <div id="guess-area"></div>
-            <button id="submit-btn" disabled>SUBMIT</button>
+            <button id="submit-btn" class="translatable" data-key="submit" disabled>SUBMIT</button>
         </div>
     </div>
     <div id="color-picker" class="color-picker hidden">

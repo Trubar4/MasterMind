@@ -1,3 +1,73 @@
+const translations = {
+    en: {
+        congratulations: "Congratulations! You cracked the code!",
+        newGame: "NEW GAME",
+        submit: "SUBMIT",
+        check: "CHECK",
+        colours: "Colours",
+        positions: "Positions",
+        codemaker: "CODEMAKER",
+        codebreaker: "CODEBREAKER"
+    },
+    de: {
+        congratulations: "Gratuliere! Du hast den Code geknackt!",
+        newGame: "Neues Spiel",
+        submit: "Senden",
+        check: "Prüfen",
+        colours: "Farben",
+        positions: "Positionen",
+        codemaker: "Erstellen",
+        codebreaker: "Lösen"
+    }
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.translatable').forEach(element => {
+        const key = element.dataset.key;
+        element.textContent = translations[lang][key];
+    });
+
+    // Update language switcher active state (Design Idea 1)
+    // document.querySelectorAll('.lang-option').forEach(option => {
+        // option.classList.toggle('active', option.dataset.lang === lang);
+    // });
+
+    // Update dropdown (Design Idea 2, if used)
+    
+    const currentLangElement = document.querySelector('.current-lang');
+    if (currentLangElement) {
+        currentLangElement.querySelector('.flag').textContent = lang === 'en' ? '🇬🇧' : '🇩🇪';
+        currentLangElement.querySelector('.lang-name').textContent = lang === 'en' ? 'English' : 'German';
+    }
+    
+}
+
+// Language switcher event listeners (Design Idea 1)
+// document.querySelectorAll('.lang-option').forEach(option => {
+    // option.addEventListener('click', () => {
+        // const lang = option.dataset.lang;
+        // setLanguage(lang);
+    // });
+// });
+
+// Dropdown toggle (Design Idea 2, if used)
+
+document.querySelector('.current-lang').addEventListener('click', () => {
+    document.querySelector('.dropdown-content').classList.toggle('hidden');
+});
+
+document.querySelectorAll('.dropdown-content .lang-option').forEach(option => {
+    option.addEventListener('click', () => {
+        const lang = option.dataset.lang;
+        setLanguage(lang);
+        document.querySelector('.dropdown-content').classList.add('hidden');
+    });
+});
+
+
 const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
 let secretCode = [];
 let currentRow = 1;
@@ -55,6 +125,8 @@ function initGame() {
         circle.addEventListener("click", () => onGuessCircleClick(col));
         guessArea.appendChild(circle);
     }
+
+    setLanguage(currentLang);
 }
 
 function onCircleClick(row, col) {
@@ -128,8 +200,9 @@ function addCheckButton() {
         checkButton.remove();
     }
     checkButton = document.createElement("button");
-    checkButton.className = "check-btn";
-    checkButton.textContent = "CHECK";
+    checkButton.className = "check-btn translatable";
+    checkButton.dataset.key = "check";
+    checkButton.textContent = translations[currentLang].check;
     checkButton.disabled = true;
     checkButton.onclick = checkGuess;
     const row = board.children[maxRows - currentRow];
@@ -153,7 +226,7 @@ function checkGuess() {
         addCheckButton();
     }
     if (correctPositions === 4) {
-        alert("Congratulations! You cracked the code!");
+        alert(translations[currentLang].congratulations);
         initGame();
     } else if (currentRow > maxRows) {
         alert(`Game Over! The code was ${secretCode}`);

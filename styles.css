@@ -194,7 +194,7 @@ h1 {
     display: none;
 }
 
-/* Design Idea 1: Simple Text Toggle */
+/* Language Switcher Styles */
 .language-switcher {
     display: flex;
     align-items: center;
@@ -214,47 +214,6 @@ h1 {
 
 .lang-separator {
     color: #B0BEC5;
-}
-
-/* Design Idea 2: Flag Icons with Dropdown (commented out, uncomment to use) */
-.language-dropdown {
-    position: relative;
-}
-
-.current-lang {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    cursor: pointer;
-}
-
-.dropdown-content {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background-color: white;
-    border: 1px solid #B0BEC5;
-    border-radius: 4px;
-    padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-.dropdown-content .lang-option {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    cursor: pointer;
-}
-
-.flag {
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
-}
-
-.lang-name {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #212121;
 }
 
 @media (max-width: 600px) {

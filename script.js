@@ -30,43 +30,23 @@ function setLanguage(lang) {
         element.textContent = translations[lang][key];
     });
 
-    // Update language switcher active state (Design Idea 1)
     document.querySelectorAll('.lang-option').forEach(option => {
         option.classList.toggle('active', option.dataset.lang === lang);
     });
-
-    // Update dropdown (Design Idea 2, if used)
-    /*
-    const currentLangElement = document.querySelector('.current-lang');
-    if (currentLangElement) {
-        currentLangElement.querySelector('.flag').textContent = lang === 'en' ? '🇬🇧' : '🇩🇪';
-        currentLangElement.querySelector('.lang-name').textContent = lang === 'en' ? 'English' : 'German';
-    }
-    */
 }
 
-// Language switcher event listeners (Design Idea 1)
-document.querySelectorAll('.lang-option').forEach(option => {
-    option.addEventListener('click', () => {
-        const lang = option.dataset.lang;
-        setLanguage(lang);
+document.addEventListener('DOMContentLoaded', () => {
+    // Language switcher event listeners
+    document.querySelectorAll('.lang-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const lang = option.dataset.lang;
+            setLanguage(lang);
+        });
     });
-});
 
-// Dropdown toggle (Design Idea 2, if used)
-/*
-document.querySelector('.current-lang').addEventListener('click', () => {
-    document.querySelector('.dropdown-content').classList.toggle('hidden');
+    // Initial language setup
+    setLanguage(currentLang);
 });
-
-document.querySelectorAll('.dropdown-content .lang-option').forEach(option => {
-    option.addEventListener('click', () => {
-        const lang = option.dataset.lang;
-        setLanguage(lang);
-        document.querySelector('.dropdown-content').classList.add('hidden');
-    });
-});
-*/
 
 const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
 let secretCode = [];
@@ -261,7 +241,7 @@ initGame();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js')
             .then(reg => console.log('Service worker registered!', reg))
             .catch(err => console.log('Service worker registration failed:', err));
     });

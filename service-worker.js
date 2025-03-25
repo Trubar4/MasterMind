@@ -1,12 +1,12 @@
 const CACHE_NAME = 'philipp-mastermind-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/script.js',
-    '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/philipp-mastermind-pwa/',
+    '/philipp-mastermind-pwa/index.html',
+    '/philipp-mastermind-pwa/styles.css',
+    '/philipp-mastermind-pwa/script.js',
+    '/philipp-mastermind-pwa/manifest.json',
+    '/philipp-mastermind-pwa/icons/icon-192.png',
+    '/philipp-mastermind-pwa/icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {

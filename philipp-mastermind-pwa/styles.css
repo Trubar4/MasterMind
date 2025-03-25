@@ -146,7 +146,7 @@ h1 {
 #modebtn {
     font-size: clamp(0.7rem, 1.5vw, 0.8rem);
     padding: 0.3rem 0.6rem;
-    background-color: #6200EE;
+    background-color: #B0BEC5;
     color: white;
     border: none;
     cursor: pointer;
@@ -174,7 +174,7 @@ h1 {
     margin: 0 1rem;
 }
 
-.color-picker, .mode-picker {
+.colorpicker, .modepicker {
     position: absolute;
     background-color: #DAE3F3;
     width: clamp(200px, 60vw, 240px);
@@ -229,8 +229,7 @@ h1 {
 }
 
 .hidden {
-    opacity: 0;
-    pointer-events: none;
+    display: none;
 }
 
 /* Language Switcher Styles */
@@ -264,7 +263,7 @@ h1 {
         padding: 0.2rem 0.3rem;
     }
 
-    .color-picker, .mode-picker {
+    .colorpicker, .modepicker {
         padding: 0.3rem;
     }
 }

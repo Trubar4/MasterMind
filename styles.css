@@ -49,11 +49,12 @@ h1 {
 
 .row {
     display: grid;
-    grid-template-columns: 1fr 1fr repeat(4, minmax(30px, 40px)) 1fr 1fr;
+    grid-template-columns: 1fr 1fr repeat(4, minmax(30px, 40px)) 1fr;
     gap: 0.5rem;
     align-items: center;
     justify-items: center;
     padding: 0.3rem 0.5rem;
+    position: relative;
 }
 
 .row-number {
@@ -94,6 +95,8 @@ h1 {
     color: white;
     border: none;
     cursor: pointer;
+    position: absolute;
+    right: 0;
 }
 
 .check-btn.active {
@@ -147,7 +150,7 @@ h1 {
 
 .color-picker {
     position: absolute;
-    background-color: white;
+    background-color: #DAE3F3;
     width: clamp(200px, 60vw, 240px);
     padding: 0.5rem;
     display: flex;
@@ -173,7 +176,7 @@ h1 {
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 10px solid white;
+    border-top: 10px solid #DAE3F3;
     position: absolute;
     bottom: -10px;
     left: 50%;

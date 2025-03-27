@@ -3,6 +3,7 @@ const translations = {
         congratulations: "Congratulations! You cracked the code!",
         newGame: "NEW GAME",
         submit: "SUBMIT",
+        giveUp: "GIVE UP",
         check: "CHECK",
         colours: "Colours",
         positions: "Positions",
@@ -13,6 +14,7 @@ const translations = {
         congratulations: "Gratuliere! Du hast den Code geknackt!",
         newGame: "Neues Spiel",
         submit: "Senden",
+        giveUp: "AUFGEBEN",
         check: "Prüfen",
         colours: "Farben",
         positions: "Positionen",
@@ -27,7 +29,9 @@ function setLanguage(lang) {
     currentLang = lang;
     document.querySelectorAll('.translatable').forEach(element => {
         const key = element.dataset.key;
-        element.textContent = translations[lang][key];
+        if (key) {
+            element.textContent = translations[lang][key];
+        }
     });
 
     document.querySelectorAll('.lang-option').forEach(option => {
@@ -35,16 +39,18 @@ function setLanguage(lang) {
     });
 }
 
+function setButtonLabel(button, key) {
+    button.dataset.key = key;
+    button.textContent = translations[currentLang][key];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Language switcher event listeners
     document.querySelectorAll('.lang-option').forEach(option => {
         option.addEventListener('click', () => {
             const lang = option.dataset.lang;
             setLanguage(lang);
         });
     });
-
-    // Initial language setup
     setLanguage(currentLang);
 });
 
@@ -76,6 +82,8 @@ function initGame() {
     codebreakerLabel.classList.remove("active");
     submitBtn.disabled = true;
     submitBtn.classList.remove("active");
+    setButtonLabel(submitBtn, 'submit');
+    submitBtn.onclick = submitCode;
 
     for (let row = maxRows; row >= 1; row--) {
         const rowDiv = document.createElement("div");
@@ -167,12 +175,22 @@ function submitCode() {
     isCodemakerTurn = false;
     codemakerLabel.classList.remove("active");
     codebreakerLabel.classList.add("active");
-    submitBtn.disabled = true;
-    submitBtn.classList.remove("active");
+    setButtonLabel(submitBtn, 'giveUp');
+    submitBtn.onclick = revealCode;
+    submitBtn.disabled = false;
     for (let circle of guessArea.children) {
         circle.style.backgroundColor = "white";
     }
     addCheckButton();
+}
+
+function revealCode() {
+    for (let i = 0; i < 4; i++) {
+        guessArea.children[i].style.backgroundColor = secretCode[i];
+    }
+    alert(`The code was ${secretCode.join(', ')}`);
+    submitBtn.disabled = true;
+    if (checkButton) checkButton.disabled = true;
 }
 
 function addCheckButton() {
@@ -204,13 +222,18 @@ function checkGuess() {
     currentRow++;
     if (currentRow <= maxRows) {
         addCheckButton();
+    } else {
+        for (let i = 0; i < 4; i++) {
+            guessArea.children[i].style.backgroundColor = secretCode[i];
+        }
+        alert(`Game Over! The code was ${secretCode.join(', ')}`);
+        submitBtn.disabled = true;
+        if (checkButton) checkButton.disabled = true;
     }
     if (correctPositions === 4) {
         alert(translations[currentLang].congratulations);
-        initGame();
-    } else if (currentRow > maxRows) {
-        alert(`Game Over! The code was ${secretCode}`);
-        initGame();
+        submitBtn.disabled = true;
+        if (checkButton) checkButton.disabled = true;
     }
 }
 
@@ -235,13 +258,12 @@ function checkGuessLogic(secret, guess) {
 }
 
 newGameBtn.addEventListener("click", initGame);
-submitBtn.addEventListener("click", submitCode);
 
 initGame();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js')
+        navigator.serviceWorker.register('/philipp-mastermind-pwa/service-worker.js', { scope: '/philipp-mastermind-pwa/' })
             .then(reg => console.log('Service worker registered!', reg))
             .catch(err => console.log('Service worker registration failed:', err));
     });

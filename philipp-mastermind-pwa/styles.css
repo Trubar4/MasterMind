@@ -133,7 +133,7 @@ h1 {
     padding: 0.5rem 1rem;
 }
 
-#new-game-btn {
+#new-gamebtn {
     font-size: clamp(0.7rem, 1.5vw, 0.8rem);
     padding: 0.3rem 0.6rem;
     background-color: #6200EE;
@@ -142,7 +142,7 @@ h1 {
     cursor: pointer;
 }
 
-#submit-btn {
+#submitbtn {
     font-size: clamp(0.7rem, 1.5vw, 0.8rem);
     padding: 0.3rem 0.6rem;
     background-color: #B0BEC5;
@@ -151,7 +151,7 @@ h1 {
     cursor: pointer;
 }
 
-#submit-btn.active {
+#submitbtn.active {
     background-color: #6200EE;
 }
 
@@ -172,6 +172,7 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    z-index: 1000;
 }
 
 .colors {
@@ -203,6 +204,7 @@ h1 {
     display: none;
 }
 
+/* Language Switcher Styles */
 .language-switcher {
     display: flex;
     align-items: center;
@@ -224,6 +226,81 @@ h1 {
     color: #B0BEC5;
 }
 
+.mode-picker {
+    position: absolute;
+    background-color: #DAE3F3;
+    width: clamp(200px, 60vw, 240px);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+}
+#modepicker {
+    position: absolute;
+    background-color: #DAE3F3; /* Match the color picker background */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+#modepicker:after {
+    content: "";
+    position: absolute;
+    bottom: -10px; /* Position at the bottom */
+    left: 50%;
+    transform: translateX(-50%); /* Center horizontally */
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #f0f0f0; /* Same as background color */
+}
+
+#modepicker:before {
+    content: "";
+    position: absolute;
+    bottom: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 11px solid #ccc; /* Border color */
+}
+
+#modepicker.hidden {
+    display: none;
+}
+
+/* Style for mode options to match color options */
+.mode-option {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 2px 0;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.mode-option:hover {
+    background-color: #e0e0e0;
+}
+
+.mode-option {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: #B0BEC5;
+    cursor: pointer;
+    text-align: center;
+}
+
+.mode-option.active {
+    color: #212121;
+    font-weight: bold;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 0.5rem;
@@ -233,7 +310,7 @@ h1 {
         padding: 0.2rem 0.3rem;
     }
 
-    .color-picker {
+    .color-picker, .mode-picker {
         padding: 0.3rem;
     }
 }

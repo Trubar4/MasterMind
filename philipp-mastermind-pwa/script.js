@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.4';
 
 const translations = {
     en: {
@@ -39,6 +39,11 @@ const translations = {
 let currentLang = 'de';
 let currentMode = 'both';
 let gameOver = false; // Add this game state variable
+
+const heading = document.querySelector('h1');
+if (heading) {
+    heading.style.fontSize = '135%';
+}
 
 // Add CSS for mode options
 function addModeCss() {
@@ -232,6 +237,29 @@ document.addEventListener('DOMContentLoaded', function() {
         modePicker.style.zIndex = "1000";
         console.log('Mode picker positioned above mode button');
     });
+	
+	function showModePicker(button) {
+		console.log('Function called: showModePicker()');
+		// Make sure modePicker is visible for calculating dimensions
+		modePicker.classList.remove("hidden");
+		console.log('Mode picker made visible for positioning');
+		
+		// Ensure the mode picker is updated with current language and selection
+		updateModePicker();
+		
+		const rect = button.getBoundingClientRect();
+		console.log('Button position:', rect);
+		
+		// Position picker above button
+		modePicker.style.position = "absolute";
+		modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
+		
+		// Account for the triangle height (10px) and add a small gap (5px)
+		const triangleHeight = 15; // Height of triangle + small gap
+		modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - triangleHeight + "px";
+		modePicker.style.zIndex = "1000";
+		console.log('Mode picker positioned above button');
+	}
 
     // Add click event listener to the document to close the modePicker when clicking outside
     document.addEventListener('click', function(event) {

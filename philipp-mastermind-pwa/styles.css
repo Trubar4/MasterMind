@@ -11,8 +11,8 @@ body {
 
 .container {
     text-align: center;
-    width: 90%;
-    max-width: 400px;
+    width: 95%;
+    max-width: 500px;
     padding: 1rem;
 }
 
@@ -29,23 +29,27 @@ h1 {
     margin: 0;
 }
 
+/* New four-column header layout */
 .header {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 4fr 1fr;
+    gap: 0.5rem;
+    align-items: center;
     margin-bottom: 0.5rem;
 }
 
-.colors-header, .positions-header {
+.colors-header {
+    grid-column: 2;
     font-size: clamp(0.8rem, 2vw, 1rem);
-}
-
-.colors-header span {
     color: #1976D2;
+    text-align: center;
 }
 
-.positions-header span {
+.positions-header {
+    grid-column: 4;
+    font-size: clamp(0.8rem, 2vw, 1rem);
     color: #D32F2F;
+    text-align: center;
 }
 
 #board {
@@ -54,45 +58,53 @@ h1 {
     gap: 0.5rem;
 }
 
+/* Four-column row layout */
 .row {
     display: grid;
-    grid-template-columns: 1fr 1fr repeat(4, minmax(30px, 40px)) 1fr;
+    grid-template-columns: 1fr 1fr 4fr 1fr;
     gap: 0.5rem;
     align-items: center;
-    justify-items: center;
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem 0;
     position: relative;
 }
 
 .row-number {
+    grid-column: 1;
     font-size: clamp(0.8rem, 2vw, 1rem);
     color: #212121;
     text-align: center;
 }
 
 .colors-feedback {
+    grid-column: 2;
     font-size: clamp(0.8rem, 2vw, 1rem);
     color: #1976D2;
     text-align: center;
 }
 
-.circles {
-    display: contents;
+.position-feedback {
+    grid-column: 4;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: #D32F2F;
+    text-align: center;
+}
+
+/* Circles container for center column */
+.circles-container {
+    grid-column: 3;
+    display: flex;
+    justify-content: center;
+    gap: 5px; /* Reduced space between circles to 1/3 */
+    width: 100%;
 }
 
 .circle {
-    width: clamp(30px, 10vw, 40px);
-    height: clamp(30px, 10vw, 40px);
+    width: clamp(30px, 8vw, 40px);
+    height: clamp(30px, 8vw, 40px);
     border-radius: 50%;
     background-color: white;
     border: 2px solid #B0BEC5;
     cursor: pointer;
-}
-
-.position-feedback {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #D32F2F;
-    text-align: center;
 }
 
 .check-btn {
@@ -101,67 +113,110 @@ h1 {
     background-color: #B0BEC5;
     color: white;
     border: none;
+    border-radius: 4px;
     cursor: pointer;
     position: absolute;
-    right: 0;
+    right: -20px;
+    transform: translateX(100%);
 }
 
 .check-btn.active {
     background-color: #6200EE;
 }
 
-.roles {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
+.check-btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-#codemaker-label, #codebreaker-label {
+/* Four-column roles layout */
+.roles {
+    display: grid;
+    grid-template-columns: 1fr 1fr 4fr 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0;
+    margin-top: 1rem;
+}
+
+#codemaker-label {
+    grid-column: 1 / span 2;
     font-size: clamp(0.8rem, 2vw, 1rem);
     font-weight: bold;
     color: #B0BEC5;
+    text-align: center;
+}
+
+#mode-btn {
+    grid-column: 3;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+    padding: 0.3rem 0.6rem;
+    background-color: #6200EE;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 auto;
+}
+
+#codebreaker-label {
+    grid-column: 4;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-weight: bold;
+    color: #B0BEC5;
+    text-align: center;
 }
 
 #codemaker-label.active, #codebreaker-label.active {
     color: #212121;
 }
 
+/* Four-column controls layout */
 .controls {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr 4fr 1fr;
+    gap: 0.5rem;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0;
+    position: relative;
 }
 
 #new-gamebtn {
+    grid-column: 1 / span 2;
     font-size: clamp(0.7rem, 1.5vw, 0.8rem);
     padding: 0.3rem 0.6rem;
     background-color: #6200EE;
     color: white;
     border: none;
+    border-radius: 4px;
     cursor: pointer;
+    width: 70px;
+    margin: 0 auto;
+}
+
+#guess-area {
+    grid-column: 3;
+    display: flex;
+    justify-content: center;
+    gap: 5px; /* Reduced space between circles to 1/3 */
+    width: 100%;
 }
 
 #submitbtn {
+    grid-column: 4;
     font-size: clamp(0.7rem, 1.5vw, 0.8rem);
     padding: 0.3rem 0.6rem;
     background-color: #B0BEC5;
     color: white;
     border: none;
+    border-radius: 4px;
     cursor: pointer;
+    width: 70px;
+    margin: 0 auto;
 }
 
 #submitbtn.active {
     background-color: #6200EE;
-}
-
-#guess-area {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(30px, 40px));
-    gap: 0.5rem;
-    justify-content: center;
-    width: clamp(150px, 40vw, 200px);
-    margin: 0 1rem;
 }
 
 .color-picker {
@@ -173,6 +228,8 @@ h1 {
     flex-direction: column;
     align-items: center;
     z-index: 1000;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .colors {
@@ -186,6 +243,7 @@ h1 {
     height: clamp(30px, 8vw, 40px);
     border-radius: 50%;
     cursor: pointer;
+    border: 1px solid #ccc;
 }
 
 .triangle {
@@ -226,19 +284,10 @@ h1 {
     color: #B0BEC5;
 }
 
-.mode-picker {
-    position: absolute;
-    background-color: #DAE3F3;
-    width: clamp(200px, 60vw, 240px);
-    padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 1000;
-}
+/* Mode picker styles */
 #modepicker {
     position: absolute;
-    background-color: #DAE3F3; /* Match the color picker background */
+    background-color: #DAE3F3;
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 10px;
@@ -249,14 +298,14 @@ h1 {
 #modepicker:after {
     content: "";
     position: absolute;
-    bottom: -10px; /* Position at the bottom */
+    bottom: -10px;
     left: 50%;
-    transform: translateX(-50%); /* Center horizontally */
+    transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 10px solid #f0f0f0; /* Same as background color */
+    border-top: 10px solid #DAE3F3;
 }
 
 #modepicker:before {
@@ -269,35 +318,40 @@ h1 {
     height: 0;
     border-left: 11px solid transparent;
     border-right: 11px solid transparent;
-    border-top: 11px solid #ccc; /* Border color */
+    border-top: 11px solid #ccc;
 }
 
 #modepicker.hidden {
     display: none;
 }
 
-/* Style for mode options to match color options */
 .mode-option {
     cursor: pointer;
     padding: 5px 10px;
     margin: 2px 0;
     border-radius: 4px;
     transition: background-color 0.2s;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: #B0BEC5;
+    text-align: center;
 }
 
 .mode-option:hover {
     background-color: #e0e0e0;
 }
 
-.mode-option {
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #B0BEC5;
-    cursor: pointer;
-    text-align: center;
+.mode-option.active, .mode-option.selected {
+    color: #212121;
+    font-weight: bold;
 }
 
-.mode-option.active {
-    color: #212121;
+/* Find code message styling */
+.find-code-message {
+    text-align: center;
+    margin: 10px 0;
+    padding: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
     font-weight: bold;
 }
 
@@ -307,10 +361,21 @@ h1 {
     }
 
     .row {
-        padding: 0.2rem 0.3rem;
+        padding: 0.2rem 0;
     }
 
-    .color-picker, .mode-picker {
+    .color-picker {
         padding: 0.3rem;
+    }
+    
+    .circle {
+        width: clamp(25px, 7vw, 35px);
+        height: clamp(25px, 7vw, 35px);
+    }
+    
+    .check-btn {
+        font-size: clamp(0.6rem, 1.2vw, 0.7rem);
+        padding: 0.2rem 0.4rem;
+        right: -15px;
     }
 }

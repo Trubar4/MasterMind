@@ -8,10 +8,10 @@ const translations = {
         colours: "Colours",
         positions: "Positions",
         codemaker: "Codemaker",
-        codebreaker: "Coderbreaker",
+        codebreaker: "Codebreaker",
         mode: "Mode",
         both: "2 Player",
-        codemakerMode: "Computer breakes Code",
+        codemakerMode: "Computer breaks Code",
         codebreakerMode: "Computer creates Code",
         findCode: "Please try to find the right code."
     },
@@ -155,31 +155,6 @@ function setLanguage(lang) {
     console.log(`Language set to: ${lang}`);
 }
 
-
-// Update showModePicker function
-function showModePicker(button) {
-    console.log('Function called: showModePicker()');
-    // Make sure modePicker is visible for calculating dimensions
-    modePicker.classList.remove("hidden");
-    console.log('Mode picker made visible for positioning');
-    
-    // Ensure the mode picker is updated with current language and selection
-    updateModePicker();
-    
-    const rect = button.getBoundingClientRect();
-    console.log('Button position:', rect);
-    
-    // Position picker above button
-    modePicker.style.position = "absolute";
-    modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
-    
-    // Account for the triangle height (10px) and add a small gap (5px)
-    const triangleHeight = 15; // Height of triangle + small gap
-    modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - triangleHeight + "px";
-    modePicker.style.zIndex = "1000";
-    console.log('Mode picker positioned above button');
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing game...');
     setLanguage(currentLang);
@@ -195,13 +170,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const board = document.getElementById("board");
     const guessArea = document.getElementById("guess-area");
-    const colorPicker = document.getElementById("color-picker"); // Corrected ID
+    const colorPicker = document.getElementById("color-picker");
     const modePicker = document.getElementById("modepicker");
     const codemakerLabel = document.getElementById("codemaker-label");
     const codebreakerLabel = document.getElementById("codebreaker-label");
     const newGameBtn = document.getElementById("new-gamebtn");
     const submitBtn = document.getElementById("submitbtn");
-    let modeBtn = document.getElementById("mode-btn");
+    const modeBtn = document.getElementById("mode-btn");
     let checkButton = null;
 
     console.log('Game elements initialized');
@@ -212,67 +187,33 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRow
     });
 
-    // Insert Mode button between Codemaker and Codebreaker labels
-    if (!modeBtn) {
-        console.log('Mode button not found, creating new one');
-        const newModeBtn = document.createElement("button");
-        newModeBtn.id = "mode-btn";
-        newModeBtn.classList.add("translatable");
-        newModeBtn.dataset.key = "mode";
-        newModeBtn.textContent = translations[currentLang].mode;
-        newModeBtn.addEventListener("click", function(event) {
-            console.log('Mode button clicked');
-            // Prevent the default button behavior
-            event.stopPropagation();
-            
-            // First make sure the modePicker is visible (not hidden) so we can get its dimensions
-            modePicker.classList.remove("hidden");
-            console.log('Mode picker made visible after button click');
-            
-            // Get the button's position
-            const rect = this.getBoundingClientRect();
-            console.log('Mode button position:', rect);
-            
-            // Position the picker above the button
-            // Add page scroll offsets to ensure correct positioning
-            modePicker.style.position = "absolute";
-            modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
-            modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - 10 + "px"; // 10px gap
-            modePicker.style.zIndex = "1000";
-            console.log('Mode picker positioned above mode button');
-        });
-        const rolesDiv = document.querySelector(".roles");
-        rolesDiv.insertBefore(newModeBtn, codebreakerLabel); // Insert between labels
-        console.log('New mode button inserted into DOM');
-    } else {
-        console.log('Mode button found, adding event listener');
-        modeBtn.addEventListener("click", function(event) {
-            console.log('Mode button clicked');
-            // Prevent the default button behavior
-            event.stopPropagation();
-            
-            // First make sure the modePicker is visible (not hidden) so we can get its dimensions
-            modePicker.classList.remove("hidden");
-            console.log('Mode picker made visible after button click');
-            
-            // Get the button's position
-            const rect = this.getBoundingClientRect();
-            console.log('Mode button position:', rect);
-            
-            // Position the picker above the button
-            // Add page scroll offsets to ensure correct positioning
-            modePicker.style.position = "absolute";
-            modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
-            modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - 10 + "px"; // 10px gap
-            modePicker.style.zIndex = "1000";
-            console.log('Mode picker positioned above mode button');
-        });
-    }
+    // Set up mode button event listener
+    modeBtn.addEventListener("click", function(event) {
+        console.log('Mode button clicked');
+        // Prevent the default button behavior
+        event.stopPropagation();
+        
+        // First make sure the modePicker is visible (not hidden) so we can get its dimensions
+        modePicker.classList.remove("hidden");
+        console.log('Mode picker made visible after button click');
+        
+        // Get the button's position
+        const rect = this.getBoundingClientRect();
+        console.log('Mode button position:', rect);
+        
+        // Position the picker above the button
+        // Add page scroll offsets to ensure correct positioning
+        modePicker.style.position = "absolute";
+        modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
+        modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - 10 + "px"; // 10px gap
+        modePicker.style.zIndex = "1000";
+        console.log('Mode picker positioned above mode button');
+    });
 
-    // Also add a click event listener to the document to close the modePicker when clicking outside
+    // Add click event listener to the document to close the modePicker when clicking outside
     document.addEventListener('click', function(event) {
         if (!modePicker.contains(event.target) && 
-            !event.target.id === 'mode-btn' && 
+            event.target.id !== 'mode-btn' && 
             !modePicker.classList.contains('hidden')) {
             console.log('Click outside mode picker detected, hiding picker');
             modePicker.classList.add("hidden");
@@ -298,886 +239,896 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-
     function initGame() {
-		console.log('Function called: initGame()');
-		console.log('Current game mode:', currentMode);
-		
-		board.innerHTML = "";
-		guessArea.innerHTML = "";
-		secretCode = [];
-		currentRow = 1;
-		currentGuess = [null, null, null, null];
-		isCodemakerTurn = true;
-		gameOver = false; // Reset game over state
-		
-		// Set up UI for the different modes
-		if (currentMode === 'codebreakerMode') {
-			console.log('Setting up codebreakerMode');
-			isCodemakerTurn = false; // Force codebreaker turn since computer creates the code
-			codemakerLabel.classList.remove("active");
-			codebreakerLabel.classList.add("active");
-		} else {
-			// Default behavior for 'both' and 'codemakerMode'
-			codemakerLabel.classList.add("active");
-			codebreakerLabel.classList.remove("active");
-		}
-		
-		submitBtn.setAttribute("disabled", "true");
-		submitBtn.classList.remove("active");
-		
-		console.log('Game state reset');
-		console.log('Building game board with rows:', maxRows);
-
-		for (let row = maxRows; row >= 1; row--) {
-			const rowDiv = document.createElement("div");
-			rowDiv.className = "row";
-			rowDiv.innerHTML = `
-				<span class="row-number">${row}</span>
-				<span class="colors-feedback"></span>
-				<div class="circles" data-row="${row}"></div>
-				<span class="position-feedback"></span>
-			`;
-			const circlesDiv = rowDiv.querySelector(".circles");
-			for (let col = 0; col < 4; col++) {
-				const circle = document.createElement("div");
-				circle.className = "circle";
-				circle.dataset.row = row;
-				circle.dataset.col = col;
-				circle.addEventListener("click", () => onCircleClick(row, col));
-				circlesDiv.appendChild(circle);
-			}
-			board.appendChild(rowDiv);
-		}
-		console.log('Game board created with all rows');
-
-		console.log('Creating guess area circles');
-		for (let col = 0; col < 4; col++) {
-			const circle = document.createElement("div");
-			circle.className = "circle";
-			circle.dataset.col = col;
-			circle.addEventListener("click", () => onGuessCircleClick(col));
-			guessArea.appendChild(circle);
-		}
-		console.log('Guess area circles created');
-
-		initializeButtons();
-		
-		// Handle computer code creation in codebreakerMode
-		if (currentMode === 'codebreakerMode') {
-			generateComputerCode();
-			
-			// Display message to user
-			showFindCodeMessage();
-		}
-	}
-
-	// Function to generate a random code for the computer
-	function generateComputerCode() {
-		console.log('Function called: generateComputerCode()');
-		const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
-		
-		// Generate 4 random colors for the secret code
-		for (let i = 0; i < 4; i++) {
-			const randomIndex = Math.floor(Math.random() * colors.length);
-			secretCode[i] = colors[randomIndex];
-		}
-		
-		console.log('Computer generated secret code:', secretCode);
-		
-		// Update game state to codebreaker turn
-		isCodemakerTurn = false;
-		
-		// Add check button for the first row
-		addCheckButton();
-	}
-
-	// Function to show the message to find the code
-	function showFindCodeMessage() {
-		console.log('Function called: showFindCodeMessage()');
-		
-		// Create a message element if it doesn't exist
-		let messageElement = document.getElementById('find-code-message');
-		if (!messageElement) {
-			messageElement = document.createElement('div');
-			messageElement.id = 'find-code-message';
-			messageElement.className = 'find-code-message';
-			messageElement.style.textAlign = 'center';
-			messageElement.style.margin = '10px 0';
-			messageElement.style.padding = '8px';
-			messageElement.style.backgroundColor = '#f0f0f0';
-			messageElement.style.borderRadius = '4px';
-			messageElement.style.fontWeight = 'bold';
-			
-			// Insert before the board
-			const boardParent = board.parentNode;
-			boardParent.insertBefore(messageElement, board);
-		}
-		
-		// Set the message text based on current language
-		messageElement.textContent = translations[currentLang].findCode;
-		console.log('Find code message displayed');
-	}
-
-	function onCircleClick(row, col) {
-		console.log(`Function called: onCircleClick(${row}, ${col})`);
-		console.log('Current state:', {
-			currentMode,
-			isCodemakerTurn,
-			currentRow,
-			gameOver
-		});
-		
-		// Ignore clicks if game is over
-		if (gameOver) {
-			console.log('Game is over, ignoring circle click');
-			return;
-		}
+        console.log('Function called: initGame()');
+        console.log('Current game mode:', currentMode);
         
-        // Show color picker for codebreaker turn in 'both' mode or in 'codebreakerMode'
-        if ((currentMode === 'both' && !isCodemakerTurn && row === currentRow) ||
-            (currentMode === 'codebreakerMode' && row === currentRow)) {
-            console.log('Valid circle click for codebreaker, showing color picker');
-            showColorPicker(row, col, false);
-            
-            // Add check button when clicking on a codebreaker row
-            // Only add if it doesn't exist yet for this row
-            if (!checkButton || parseInt(checkButton.dataset.row) !== row) {
-                console.log('Adding check button for this row');
-                addCheckButton();
-            }
-        } else {
-            console.log('Circle click ignored: not allowed in current game state');
-        }
-    }
-
-    function onGuessCircleClick(col) {
-        console.log(`Function called: onGuessCircleClick(${col})`);
-        console.log('Current state:', {
-            currentMode,
-            isCodemakerTurn
-        });
+        board.innerHTML = "";
+        guessArea.innerHTML = "";
+        secretCode = [];
+        currentRow = 1;
+        currentGuess = [null, null, null, null];
+        isCodemakerTurn = true;
+        gameOver = false; // Reset game over state
         
-        // Show color picker for codemaker turn in 'both' mode or in 'codemakerMode'
-        if ((currentMode === 'both' && isCodemakerTurn) || currentMode === 'codemakerMode') {
-            console.log('Valid circle click for codemaker, showing color picker');
-            showColorPicker(0, col, true);
-        } else {
-            console.log('Guess circle click ignored: not allowed in current game state');
-        }
-    }
-
-    // Updated showColorPicker function
-    function showColorPicker(row, col, isGuess) {
-        console.log(`Function called: showColorPicker(${row}, ${col}, ${isGuess})`);
-        
-        colorPicker.classList.remove("hidden");
-        const circle = isGuess
-            ? guessArea.children[col]
-            : board.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            
-        console.log('Target circle found:', circle);
-        
-        const rect = circle.getBoundingClientRect();
-        console.log('Circle position:', rect);
-        
-        // Force the color picker to be visible to get its dimensions
-        colorPicker.style.visibility = 'hidden';
-        colorPicker.style.display = 'flex';
-        
-        // Get the actual dimensions after making it visible
-        const pickerRect = colorPicker.getBoundingClientRect();
-        const pickerWidth = pickerRect.width || 240;
-        const pickerHeight = pickerRect.height || 130;
-        console.log('Color picker dimensions:', { width: pickerWidth, height: pickerHeight });
-        
-        // Reset visibility
-        colorPicker.style.visibility = '';
-        
-        // Calculate center position for the circle
-        const circleCenter = rect.left + (rect.width / 2);
-        
-        // Position the picker so the triangle points to the circle's center
-        colorPicker.style.left = `${circleCenter - (pickerWidth / 2) + window.scrollX}px`;
-        
-        // Position the picker above the circle with enough space
-        const triangleHeight = 10; // Height of the triangle
-        const spacing = 5; // Additional spacing
-        colorPicker.style.top = `${rect.top - pickerHeight - triangleHeight - spacing + window.scrollY}px`;
-        
-        // Make sure the triangle is centered
-        const triangle = colorPicker.querySelector('.triangle');
-        if (triangle) {
-            triangle.style.left = '50%';
-            triangle.style.transform = 'translateX(-50%)';
-        }
-        
-        colorPicker.style.zIndex = "1000";
-        console.log('Color picker positioned and displayed');
-
-        // Clear previous event listeners (to prevent duplicates)
-        const colorOptions = document.querySelectorAll(".color-option");
-        colorOptions.forEach(option => {
-            // Clone and replace to remove old event listeners
-            const newOption = option.cloneNode(true);
-            option.parentNode.replaceChild(newOption, option);
-        });
-        console.log('Previous color option event listeners cleared');
-
-        // Add fresh click listeners to color options
-        document.querySelectorAll(".color-option").forEach(option => {
-            option.onclick = () => selectColor(row, col, option.style.backgroundColor, isGuess);
-        });
-        console.log('New color option event listeners added');
-    }
-
-	function selectColor(row, col, color, isGuess) {
-		console.log(`Function called: selectColor(${row}, ${col}, ${color}, ${isGuess})`);
-		
-		if (isGuess) {
-			console.log('Setting color for codemaker (guess area)');
-			// This is for the codemaker (guessArea)
-			guessArea.children[col].style.backgroundColor = color;
-			currentGuess[col] = color;
-			console.log('Current guess updated:', currentGuess);
-			
-			// Enable submit button if all codemaker circles are filled
-			if (currentGuess.every(c => c !== null)) {
-				console.log('All guess circles filled, enabling submit button');
-				submitBtn.removeAttribute("disabled");
-				submitBtn.classList.add("active");
-			}
-		} else {
-			console.log('Setting color for codebreaker (board row)');
-			// This is for the codebreaker (board rows)
-			const circle = board.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-			circle.style.backgroundColor = color;
-			
-			// In codebreaker mode, make sure currentGuess is updated correctly
-			// Find all circles in the current row and get their colors
-			const currentRowCircles = Array.from(board.querySelectorAll(`.circles[data-row="${row}"] .circle`));
-			currentGuess = currentRowCircles.map(circle => circle.style.backgroundColor);
-			
-			console.log('Current guess updated from all circles:', currentGuess);
-			
-			// Enable check button if all circles in this row are filled
-			const allFilled = currentGuess.every(c => c && c !== '');
-			if (allFilled && checkButton) {
-				console.log('All row circles filled, enabling check button');
-				checkButton.disabled = false;
-				checkButton.removeAttribute("disabled");
-				checkButton.classList.remove("disabled");
-				checkButton.classList.add("active");
-			}
-		}
-		
-		hideColorPicker();
-	}
-
-    // New function to properly hide the color picker
-    function hideColorPicker() {
-        console.log('Function called: hideColorPicker()');
-        
-        // Add the hidden class
-        colorPicker.classList.add("hidden");
-        
-        // Reset any inline styles that might override the hidden class
-        colorPicker.style.display = '';
-        colorPicker.style.visibility = '';
-        
-        console.log('Color picker hidden');
-    }
-
-    // Also add a click event listener to the document to close picker when clicking outside
-    document.addEventListener('click', function(event) {
-        // If click is outside the color picker and the picker is visible
-        if (!colorPicker.contains(event.target) && 
-            !event.target.classList.contains('circle') && 
-            !colorPicker.classList.contains('hidden')) {
-            console.log('Click outside color picker detected, hiding picker');
-            hideColorPicker();
-        }
-    });
-
-    function submitCode() {
-        console.log('Function called: submitCode()');
-        console.log("isCodemakerTurn=", isCodemakerTurn);
-        console.log("currentMode=", currentMode);
-        
-        if ((currentMode === 'both' || currentMode === 'codemakerMode') && isCodemakerTurn) {
-            console.log('Valid codemaker submission, setting secret code');
-            secretCode = [...currentGuess];
-            console.log('Secret code set:', secretCode);
-            
-            currentGuess = [null, null, null, null]; // Reset the current guess
-            isCodemakerTurn = false;
+        // Set up UI for the different modes
+        if (currentMode === 'codebreakerMode') {
+            console.log('Setting up codebreakerMode');
+            isCodemakerTurn = false; // Force codebreaker turn since computer creates the code
             codemakerLabel.classList.remove("active");
             codebreakerLabel.classList.add("active");
+        } else {
+            // Default behavior for 'both' and 'codemakerMode'
+            codemakerLabel.classList.add("active");
+            codebreakerLabel.classList.remove("active");
+        }
+        
+        submitBtn.setAttribute("disabled", "true");
+        submitBtn.classList.remove("active");
+        
+        console.log('Game state reset');
+        console.log('Building game board with rows:', maxRows);
+
+        for (let row = maxRows; row >= 1; row--) {
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "row";
             
-            submitBtn.disabled = false;
-            submitBtn.removeAttribute("disabled");
-            submitBtn.classList.add("active");
-            console.log('Game state changed to codebreaker turn');
+            // Row number (column 1)
+            const rowNumber = document.createElement("span");
+            rowNumber.className = "row-number";
+            rowNumber.textContent = row;
+            rowDiv.appendChild(rowNumber);
             
-            // DIRECT REPLACEMENT - Remove the entire loop and use a completely different approach
-            console.log('Replacing guess area circles');
-            // Create brand new circles to replace the existing ones
-            while (guessArea.firstChild) {
-                guessArea.removeChild(guessArea.firstChild);
-            }
+            // Colors feedback (column 2)
+            const colorsFeedback = document.createElement("span");
+            colorsFeedback.className = "colors-feedback";
+            rowDiv.appendChild(colorsFeedback);
             
-            // Recreate the circles from scratch
+            // Circles container (column 3)
+            const circlesContainer = document.createElement("div");
+            circlesContainer.className = "circles-container";
+            circlesContainer.dataset.row = row;
+            
+            // Create 4 circles
             for (let col = 0; col < 4; col++) {
                 const circle = document.createElement("div");
                 circle.className = "circle";
+                circle.dataset.row = row;
                 circle.dataset.col = col;
-                circle.style.backgroundColor = ""; // Reset to default
-                circle.style.backgroundColor = "white"; // Then set to white
-                circle.addEventListener("click", () => onGuessCircleClick(col));
-                guessArea.appendChild(circle);
+                circle.addEventListener("click", () => onCircleClick(row, col));
+                circlesContainer.appendChild(circle);
             }
-        
-            // Log to verify
-            console.log("Guess area children count:", guessArea.children.length);
-            Array.from(guessArea.children).forEach((c, i) => {
-                console.log(`New circle ${i} bg color:`, c.style.backgroundColor);
-            });
+            rowDiv.appendChild(circlesContainer);
             
-            if (currentMode === 'both') {
-                console.log('In "both" mode, updating button for GIVE UP functionality');
-                // Update button for "GIVE UP" functionality
-                submitBtn.textContent = translations[currentLang].giveUp;
-                submitBtn.addEventListener("click", revealCode);
+            // Position feedback (column 4)
+            const positionFeedback = document.createElement("span");
+            positionFeedback.className = "position-feedback";
+            rowDiv.appendChild(positionFeedback);
+            
+            board.appendChild(rowDiv);
+        }
+        console.log('Game board created with all rows');
 
-                // Add check button for the first row
-                addCheckButton();
-            } 
-            else if (currentMode === 'codemakerMode') {
-                console.log('In "codemakerMode", handling computer guess logic');
-                // Handle computer guess logic
-                computerGuess();
-            }
-        } else {
-            console.log('submitCode called but conditions not met');
-            if (currentMode === 'codebreakerMode') {
-                console.log('In "codebreakerMode" mode, no action needed');
-                // Add logic for codebreaker-only mode if needed
-            }
+        console.log('Creating guess area circles');
+        for (let col = 0; col < 4; col++) {
+            const circle = document.createElement("div");
+            circle.className = "circle";
+            circle.dataset.col = col;
+            circle.addEventListener("click", () => onGuessCircleClick(col));
+            guessArea.appendChild(circle);
+        }
+        console.log('Guess area circles created');
+
+        initializeButtons();
+        
+        // Handle computer code creation in codebreakerMode
+        if (currentMode === 'codebreakerMode') {
+            generateComputerCode();
+            
+            // Display message to user
+            showFindCodeMessage();
         }
     }
-    
-	function computerGuess() {
-		console.log('Function called: computerGuess()');
-		gameOver = false;
-		currentRow = 1;
-		
-		const guessDelay = 1500; // Delay between guesses for visual effect
-		const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
-		let possibleCodes = [];
-		
-		// Color conversion and normalization functions
-		function normalizeColor(color) {
-			if (!color) return null;
-			if (color.startsWith('#')) {
-				const r = parseInt(color.slice(1, 3), 16);
-				const g = parseInt(color.slice(3, 5), 16);
-				const b = parseInt(color.slice(5, 7), 16);
-				return `rgb(${r},${g},${b})`;
-			}
-			if (color.startsWith('rgb')) {
-				const rgbValues = color.match(/\d+/g);
-				if (rgbValues && rgbValues.length >= 3) {
-					return `rgb(${rgbValues[0]},${rgbValues[1]},${rgbValues[2]})`;
-				}
-			}
-			return color.toLowerCase().trim();
-		}
-		
-		function indicesToColors(indices) {
-			return indices.map(index => colors[index]);
-		}
-		
-		function colorsToIndices(colorArray) {
-			return colorArray.map(color => {
-				const normalizedColor = normalizeColor(color);
-				for (let i = 0; i < colors.length; i++) {
-					if (normalizeColor(colors[i]) === normalizedColor) {
-						return i;
-					}
-				}
-				return 0;
+
+    // Function to generate a random code for the computer
+    function generateComputerCode() {
+        console.log('Function called: generateComputerCode()');
+        const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
+        
+        // Generate 4 random colors for the secret code
+        for (let i = 0; i < 4; i++) {
+            const randomIndex = Math.floor(Math.random() * colors.length);
+            secretCode[i] = colors[randomIndex];
+        }
+        
+        console.log('Computer generated secret code:', secretCode);
+        
+        // Update game state to codebreaker turn
+        isCodemakerTurn = false;
+        
+        // Add check button for the first row
+        addCheckButton();
+    }
+
+    // Function to show the message to find the code
+    function showFindCodeMessage() {
+        console.log('Function called: showFindCodeMessage()');
+        
+        // Create a message element if it doesn't exist
+        let messageElement = document.getElementById('find-code-message');
+        if (!messageElement) {
+            messageElement = document.createElement('div');
+            messageElement.id = 'find-code-message';
+            messageElement.className = 'find-code-message';
+            
+            // Insert before the board
+            const boardParent = board.parentNode;
+            boardParent.insertBefore(messageElement, board);
+        }
+        
+        // Set the message text based on current language
+        messageElement.textContent = translations[currentLang].findCode;
+        console.log('Find code message displayed');
+    }
+
+
+	function onCircleClick(row, col) {
+			console.log(`Function called: onCircleClick(${row}, ${col})`);
+			console.log('Current state:', {
+				currentMode,
+				isCodemakerTurn,
+				currentRow,
+				gameOver
 			});
+			
+			// Ignore clicks if game is over
+			if (gameOver) {
+				console.log('Game is over, ignoring circle click');
+				return;
+			}
+			
+			// Show color picker for codebreaker turn in 'both' mode or in 'codebreakerMode'
+			if ((currentMode === 'both' && !isCodemakerTurn && row === currentRow) ||
+				(currentMode === 'codebreakerMode' && row === currentRow)) {
+				console.log('Valid circle click for codebreaker, showing color picker');
+				showColorPicker(row, col, false);
+				
+				// Add check button when clicking on a codebreaker row
+				// Only add if it doesn't exist yet for this row
+				if (!checkButton || parseInt(checkButton.dataset.row) !== row) {
+					console.log('Adding check button for this row');
+					addCheckButton();
+				}
+			} else {
+				console.log('Circle click ignored: not allowed in current game state');
+			}
 		}
-		
-		// Generate all possible codes (using indices for efficiency)
-		for (let i = 0; i < colors.length; i++) {
-			for (let j = 0; j < colors.length; j++) {
-				for (let k = 0; k < colors.length; k++) {
-					for (let l = 0; l < colors.length; l++) {
-						possibleCodes.push([i, j, k, l]);
-					}
+
+		function onGuessCircleClick(col) {
+			console.log(`Function called: onGuessCircleClick(${col})`);
+			console.log('Current state:', {
+				currentMode,
+				isCodemakerTurn
+			});
+			
+			// Show color picker for codemaker turn in 'both' mode or in 'codemakerMode'
+			if ((currentMode === 'both' && isCodemakerTurn) || currentMode === 'codemakerMode') {
+				console.log('Valid circle click for codemaker, showing color picker');
+				showColorPicker(0, col, true);
+			} else {
+				console.log('Guess circle click ignored: not allowed in current game state');
+			}
+		}
+
+		// Updated showColorPicker function
+		function showColorPicker(row, col, isGuess) {
+			console.log(`Function called: showColorPicker(${row}, ${col}, ${isGuess})`);
+			
+			colorPicker.classList.remove("hidden");
+			const circle = isGuess
+				? guessArea.children[col]
+				: document.querySelector(`.circles-container[data-row="${row}"] .circle[data-col="${col}"]`);
+				
+			console.log('Target circle found:', circle);
+			
+			const rect = circle.getBoundingClientRect();
+			console.log('Circle position:', rect);
+			
+			// Force the color picker to be visible to get its dimensions
+			colorPicker.style.visibility = 'hidden';
+			colorPicker.style.display = 'flex';
+			
+			// Get the actual dimensions after making it visible
+			const pickerRect = colorPicker.getBoundingClientRect();
+			const pickerWidth = pickerRect.width || 240;
+			const pickerHeight = pickerRect.height || 130;
+			console.log('Color picker dimensions:', { width: pickerWidth, height: pickerHeight });
+			
+			// Reset visibility
+			colorPicker.style.visibility = '';
+			
+			// Calculate center position for the circle
+			const circleCenter = rect.left + (rect.width / 2);
+			
+			// Position the picker so the triangle points to the circle's center
+			colorPicker.style.left = `${circleCenter - (pickerWidth / 2) + window.scrollX}px`;
+			
+			// Position the picker above the circle with enough space
+			const triangleHeight = 10; // Height of the triangle
+			const spacing = 5; // Additional spacing
+			colorPicker.style.top = `${rect.top - pickerHeight - triangleHeight - spacing + window.scrollY}px`;
+			
+			// Make sure the triangle is centered
+			const triangle = colorPicker.querySelector('.triangle');
+			if (triangle) {
+				triangle.style.left = '50%';
+				triangle.style.transform = 'translateX(-50%)';
+			}
+			
+			colorPicker.style.zIndex = "1000";
+			console.log('Color picker positioned and displayed');
+
+			// Clear previous event listeners (to prevent duplicates)
+			const colorOptions = document.querySelectorAll(".color-option");
+			colorOptions.forEach(option => {
+				// Clone and replace to remove old event listeners
+				const newOption = option.cloneNode(true);
+				option.parentNode.replaceChild(newOption, option);
+			});
+			console.log('Previous color option event listeners cleared');
+
+			// Add fresh click listeners to color options
+			document.querySelectorAll(".color-option").forEach(option => {
+				option.onclick = () => selectColor(row, col, option.style.backgroundColor, isGuess);
+			});
+			console.log('New color option event listeners added');
+		}
+
+		function selectColor(row, col, color, isGuess) {
+			console.log(`Function called: selectColor(${row}, ${col}, ${color}, ${isGuess})`);
+			
+			if (isGuess) {
+				console.log('Setting color for codemaker (guess area)');
+				// This is for the codemaker (guessArea)
+				guessArea.children[col].style.backgroundColor = color;
+				currentGuess[col] = color;
+				console.log('Current guess updated:', currentGuess);
+				
+				// Enable submit button if all codemaker circles are filled
+				if (currentGuess.every(c => c !== null)) {
+					console.log('All guess circles filled, enabling submit button');
+					submitBtn.removeAttribute("disabled");
+					submitBtn.classList.add("active");
+				}
+			} else {
+				console.log('Setting color for codebreaker (board row)');
+				// This is for the codebreaker (board rows)
+				const circle = document.querySelector(`.circles-container[data-row="${row}"] .circle[data-col="${col}"]`);
+				circle.style.backgroundColor = color;
+				
+				// In codebreaker mode, make sure currentGuess is updated correctly
+				// Find all circles in the current row and get their colors
+				const currentRowCircles = Array.from(document.querySelectorAll(`.circles-container[data-row="${row}"] .circle`));
+				currentGuess = currentRowCircles.map(circle => circle.style.backgroundColor);
+				
+				console.log('Current guess updated from all circles:', currentGuess);
+				
+				// Enable check button if all circles in this row are filled
+				const allFilled = currentGuess.every(c => c && c !== '');
+				if (allFilled && checkButton) {
+					console.log('All row circles filled, enabling check button');
+					checkButton.disabled = false;
+					checkButton.removeAttribute("disabled");
+					checkButton.classList.remove("disabled");
+					checkButton.classList.add("active");
+				}
+			}
+			
+			hideColorPicker();
+		}
+
+		// New function to properly hide the color picker
+		function hideColorPicker() {
+			console.log('Function called: hideColorPicker()');
+			
+			// Add the hidden class
+			colorPicker.classList.add("hidden");
+			
+			// Reset any inline styles that might override the hidden class
+			colorPicker.style.display = '';
+			colorPicker.style.visibility = '';
+			
+			console.log('Color picker hidden');
+		}
+
+		// Also add a click event listener to the document to close picker when clicking outside
+		document.addEventListener('click', function(event) {
+			// If click is outside the color picker and the picker is visible
+			if (!colorPicker.contains(event.target) && 
+				!event.target.classList.contains('circle') && 
+				!colorPicker.classList.contains('hidden')) {
+				console.log('Click outside color picker detected, hiding picker');
+				hideColorPicker();
+			}
+		});
+
+		function submitCode() {
+			console.log('Function called: submitCode()');
+			console.log("isCodemakerTurn=", isCodemakerTurn);
+			console.log("currentMode=", currentMode);
+			
+			if ((currentMode === 'both' || currentMode === 'codemakerMode') && isCodemakerTurn) {
+				console.log('Valid codemaker submission, setting secret code');
+				secretCode = [...currentGuess];
+				console.log('Secret code set:', secretCode);
+				
+				currentGuess = [null, null, null, null]; // Reset the current guess
+				isCodemakerTurn = false;
+				codemakerLabel.classList.remove("active");
+				codebreakerLabel.classList.add("active");
+				
+				submitBtn.disabled = false;
+				submitBtn.removeAttribute("disabled");
+				submitBtn.classList.add("active");
+				console.log('Game state changed to codebreaker turn');
+				
+				// Clear guess area circles
+				console.log('Replacing guess area circles');
+				// Create brand new circles to replace the existing ones
+				while (guessArea.firstChild) {
+					guessArea.removeChild(guessArea.firstChild);
+				}
+				
+				// Recreate the circles from scratch
+				for (let col = 0; col < 4; col++) {
+					const circle = document.createElement("div");
+					circle.className = "circle";
+					circle.dataset.col = col;
+					circle.style.backgroundColor = ""; // Reset to default
+					circle.style.backgroundColor = "white"; // Then set to white
+					circle.addEventListener("click", () => onGuessCircleClick(col));
+					guessArea.appendChild(circle);
+				}
+			
+				// Log to verify
+				console.log("Guess area children count:", guessArea.children.length);
+				Array.from(guessArea.children).forEach((c, i) => {
+					console.log(`New circle ${i} bg color:`, c.style.backgroundColor);
+				});
+				
+				if (currentMode === 'both') {
+					console.log('In "both" mode, updating button for GIVE UP functionality');
+					// Update button for "GIVE UP" functionality
+					submitBtn.textContent = translations[currentLang].giveUp;
+					submitBtn.addEventListener("click", revealCode);
+
+					// Add check button for the first row
+					addCheckButton();
+				} 
+				else if (currentMode === 'codemakerMode') {
+					console.log('In "codemakerMode", handling computer guess logic');
+					// Handle computer guess logic
+					computerGuess();
+				}
+			} else {
+				console.log('submitCode called but conditions not met');
+				if (currentMode === 'codebreakerMode') {
+					console.log('In "codebreakerMode" mode, no action needed');
+					// Add logic for codebreaker-only mode if needed
 				}
 			}
 		}
-		console.log(`Generated ${possibleCodes.length} possible codes`);
 		
-		// Start with Knuth's recommended first guess: 1122
-		let currentGuessIndices = [0, 0, 1, 1]; // Equivalent to "1122"
-		let currentGuess = indicesToColors(currentGuessIndices);
+		function computerGuess() {
+			console.log('Function called: computerGuess()');
+			gameOver = false;
+			currentRow = 1;
+			
+			const guessDelay = 1500; // Delay between guesses for visual effect
+			const colors = ["#FF0000", "#FFFF00", "#FFC000", "#F36DED", "#0070C0", "#00B050", "#A6A6A6", "#000000"];
+			let possibleCodes = [];
+			
+			// Color conversion and normalization functions
+			function normalizeColor(color) {
+				if (!color) return null;
+				if (color.startsWith('#')) {
+					const r = parseInt(color.slice(1, 3), 16);
+					const g = parseInt(color.slice(3, 5), 16);
+					const b = parseInt(color.slice(5, 7), 16);
+					return `rgb(${r},${g},${b})`;
+				}
+				if (color.startsWith('rgb')) {
+					const rgbValues = color.match(/\d+/g);
+					if (rgbValues && rgbValues.length >= 3) {
+						return `rgb(${rgbValues[0]},${rgbValues[1]},${rgbValues[2]})`;
+					}
+				}
+				return color.toLowerCase().trim();
+			}
+			
+			function indicesToColors(indices) {
+				return indices.map(index => colors[index]);
+			}
+			
+			function colorsToIndices(colorArray) {
+				return colorArray.map(color => {
+					const normalizedColor = normalizeColor(color);
+					for (let i = 0; i < colors.length; i++) {
+						if (normalizeColor(colors[i]) === normalizedColor) {
+							return i;
+						}
+					}
+					return 0;
+				});
+			}
+			
+			// Generate all possible codes (using indices for efficiency)
+			for (let i = 0; i < colors.length; i++) {
+				for (let j = 0; j < colors.length; j++) {
+					for (let k = 0; k < colors.length; k++) {
+						for (let l = 0; l < colors.length; l++) {
+							possibleCodes.push([i, j, k, l]);
+						}
+					}
+				}
+			}
+			console.log(`Generated ${possibleCodes.length} possible codes`);
+			
+			// Start with Knuth's recommended first guess: 1122
+			let currentGuessIndices = [0, 0, 1, 1]; // Equivalent to "1122"
+			let currentGuess = indicesToColors(currentGuessIndices);
+			
+			// Evaluate a guess (using indices)
+			function evaluateGuess(secretIndices, guessIndices) {
+				let correctPositions = 0;
+				let correctColors = 0;
+				const secretCopy = [...secretIndices];
+				const guessCopy = [...guessIndices];
+				
+				// Check correct positions
+				for (let i = 0; i < 4; i++) {
+					if (guessCopy[i] === secretCopy[i]) {
+						correctPositions++;
+						secretCopy[i] = -1;
+						guessCopy[i] = -2;
+					}
+				}
+				
+				// Check correct colors in wrong positions
+				for (let i = 0; i < 4; i++) {
+					if (guessCopy[i] >= 0) {
+						for (let j = 0; j < 4; j++) {
+							if (secretCopy[j] >= 0 && guessCopy[i] === secretCopy[j]) {
+								correctColors++;
+								secretCopy[j] = -1;
+								break;
+							}
+						}
+					}
+				}
+				
+				return { correctPositions, correctColors };
+			}
+			
+			// Filter codes based on feedback
+			function filterCodes(codes, guessIndices, correctPositions, correctColors) {
+				return codes.filter(codeIndices => {
+					const result = evaluateGuess(codeIndices, guessIndices);
+					return result.correctPositions === correctPositions && 
+						  result.correctColors === correctColors;
+				});
+			}
+			
+			// Choose next guess using minimax (with sampling for efficiency)
+			function chooseNextGuess() {
+				if (possibleCodes.length === 1) return possibleCodes[0];
+				
+				let bestGuess = null;
+				let minMaxScore = Infinity;
+				
+				// Sample candidate codes for efficiency
+				const candidateCodes = possibleCodes.length <= 50 ? 
+					possibleCodes : sampleCodes(possibleCodes, 50);
+				
+				for (const candidate of candidateCodes) {
+					const scoreDistribution = {};
+					
+					// Sample evaluation codes for efficiency
+					const evaluationCodes = possibleCodes.length <= 80 ? 
+						possibleCodes : sampleCodes(possibleCodes, 80);
+					
+					for (const code of evaluationCodes) {
+						const result = evaluateGuess(code, candidate);
+						const key = `${result.correctPositions},${result.correctColors}`;
+						scoreDistribution[key] = (scoreDistribution[key] || 0) + 1;
+					}
+					
+					// Find max score (worst case)
+					let maxScore = Math.max(...Object.values(scoreDistribution));
+					
+					if (maxScore < minMaxScore) {
+						minMaxScore = maxScore;
+						bestGuess = candidate;
+					} else if (maxScore === minMaxScore && possibleCodes.some(c => 
+						c[0] === candidate[0] && c[1] === candidate[1] && 
+						c[2] === candidate[2] && c[3] === candidate[3])) {
+						bestGuess = candidate;
+					}
+				}
+				
+				return bestGuess || possibleCodes[0];
+			}
+			
+			// Sample codes for efficiency
+			function sampleCodes(codes, sampleSize) {
+				if (codes.length <= sampleSize) return [...codes];
+				
+				const sample = [];
+				const codesCopy = [...codes];
+				
+				for (let i = 0; i < sampleSize; i++) {
+					const randomIndex = Math.floor(Math.random() * codesCopy.length);
+					sample.push(codesCopy[randomIndex]);
+					codesCopy.splice(randomIndex, 1);
+				}
+				
+				return sample;
+			}
+			
+			// Display functions
+			function displayComputerGuess(colorGuess, row) {
+				const circles = document.querySelectorAll(`.circles-container[data-row="${row}"] .circle`);
+				for (let i = 0; i < 4; i++) {
+					circles[i].style.backgroundColor = colorGuess[i];
+				}
+			}
+			
+			function displayFeedback(correctPositions, correctColors, row) {
+				const rowElement = document.querySelector(`.circles-container[data-row="${row}"]`).closest('.row');
+				rowElement.querySelector(".colors-feedback").textContent = correctColors;
+				rowElement.querySelector(".position-feedback").textContent = correctPositions;
+			}
+			
+			// Main guess function
+			function makeGuess() {
+				if (currentRow > maxRows || gameOver) return;
+				
+				// Display the computer's guess
+				displayComputerGuess(currentGuess, currentRow);
+				
+				// Evaluate the guess
+				const secretIndices = colorsToIndices(secretCode);
+				const { correctPositions, correctColors } = evaluateGuess(secretIndices, currentGuessIndices);
+				
+				// Display feedback
+				displayFeedback(correctPositions, correctColors, currentRow);
+				
+				// Check if won
+				if (correctPositions === 4) {
+					setTimeout(() => {
+						alert(`${translations[currentLang].congratulations.replace("Du", "Computer")}\n${currentRow} ${currentLang === 'en' ? 'attempts' : 'Versuche'}`);
+						gameOver = true;
+					}, 500);
+					return;
+				}
+				
+				// Next row
+				currentRow++;
+				
+				// Check if max rows reached
+				if (currentRow > maxRows) {
+					setTimeout(() => {
+						alert(currentLang === 'en' ? 
+							  "Computer couldn't crack the code within the maximum number of attempts." : 
+							  "Der Computer konnte den Code nicht innerhalb der maximalen Anzahl von Versuchen knacken.");
+						gameOver = true;
+						// Show secret code
+						for (let i = 0; i < 4; i++) {
+							guessArea.children[i].style.backgroundColor = secretCode[i];
+						}
+					}, 500);
+					return;
+				}
+				
+				// Filter and choose next guess
+				possibleCodes = filterCodes(possibleCodes, currentGuessIndices, correctPositions, correctColors);
+				console.log(`Remaining possible codes: ${possibleCodes.length}`);
+				currentGuessIndices = chooseNextGuess();
+				currentGuess = indicesToColors(currentGuessIndices);
+				
+				// Schedule next guess
+				setTimeout(makeGuess, guessDelay);
+			}
+			
+			// Start the process
+			setTimeout(makeGuess, guessDelay);
+		}
+
+		function setButtonLabel(button, key) {
+			console.log(`Function called: setButtonLabel(button, ${key})`);
+			if (button && translations[currentLang][key]) {
+				button.textContent = translations[currentLang][key];
+				console.log(`Button label set to: ${translations[currentLang][key]}`);
+			} else {
+				console.log('Button or translation key not found');
+			}
+		}
+
+		function revealCode() {
+			console.log('Function called: revealCode()');
+			console.log('Secret code to reveal:', secretCode);
+			
+			// Reveal the secret code
+			for (let i = 0; i < 4; i++) {
+				guessArea.children[i].style.backgroundColor = secretCode[i];
+			}
+			console.log('Secret code revealed in guess area');
+			
+			// Disable the submit button
+			submitBtn.disabled = true;
+			submitBtn.setAttribute("disabled", "true");
+			submitBtn.classList.remove("active");
+			
+			// Remove the check button if it exists
+			if (checkButton) {
+				console.log('Removing check button after give up');
+				checkButton.remove();
+				checkButton = null;
+			}
+			
+			// Set game over state
+			gameOver = true;
+			console.log('Game over state set to:', gameOver);
+			
+			// Optional: Display game over message
+			alert(`Game Over! The code was revealed.`);
+			
+			// Remove click handlers from all circles in the current and future rows
+			for (let row = currentRow; row <= maxRows; row++) {
+				const circles = document.querySelectorAll(`.circles-container[data-row="${row}"] .circle`);
+				circles.forEach(circle => {
+					// Clone and replace to remove event listeners
+					const newCircle = circle.cloneNode(true);
+					circle.parentNode.replaceChild(newCircle, circle);
+				});
+			}
+			
+			console.log('Game ended after user gave up');
+		}
+
+		function initializeButtons() {
+			console.log('Function called: initializeButtons()');
+			
+			// Make sure the new game button is always active
+			newGameBtn.classList.add("active");
+			
+			// Set the submit button to its initial state
+			submitBtn.textContent = translations[currentLang].submit;
+			console.log(`Submit button label set to: ${translations[currentLang].submit}`);
+			
+			if (currentMode === 'codebreakerMode') {
+				console.log('In codebreakerMode, setting submit button for "give up"');
+				// In codebreaker mode, the submit button is for "give up"
+				submitBtn.textContent = translations[currentLang].giveUp;
+				submitBtn.disabled = false;
+				submitBtn.removeAttribute("disabled");
+				submitBtn.classList.add("active");
+				submitBtn.onclick = function() {
+					revealCode();
+				};
+			} else if (isCodemakerTurn) {
+				console.log('In codemaker turn, setting submit button to disabled initially');
+				// In codemaker turn, button starts disabled until code is complete
+				submitBtn.disabled = true;
+				submitBtn.setAttribute("disabled", "true");
+				submitBtn.classList.remove("active");
+				
+				// Reset the onclick handler to submitCode
+				submitBtn.onclick = submitCode;
+			} else {
+				console.log('In codebreaker turn, setting submit button for "give up"');
+				// In codebreaker mode, the submit button is for "give up"
+				submitBtn.textContent = translations[currentLang].giveUp;
+				submitBtn.disabled = false;
+				submitBtn.removeAttribute("disabled");
+				submitBtn.classList.add("active");
+				submitBtn.onclick = function() {
+					revealCode();
+				};
+			}
+			console.log('Buttons initialized for current game state');
+		}
 		
-		// Evaluate a guess (using indices)
-		function evaluateGuess(secretIndices, guessIndices) {
+		function addCheckButton() {
+			console.log(`Function called: addCheckButton() for row ${currentRow}`);
+			
+			if (checkButton) {
+				console.log('Removing existing check button');
+				checkButton.remove();
+			}
+			
+			checkButton = document.createElement("button");
+			checkButton.className = "check-btn translatable";
+			checkButton.dataset.key = "check";
+			checkButton.dataset.row = currentRow; // Track which row this button belongs to
+			checkButton.textContent = translations[currentLang].check;
+			checkButton.disabled = true;
+			checkButton.classList.add("disabled"); // Add disabled class
+			checkButton.onclick = checkGuess;
+			
+			// Find the current row and append the button
+			const row = document.querySelector(`.circles-container[data-row="${currentRow}"]`).closest('.row');
+			if (row) {
+				row.appendChild(checkButton);
+				console.log(`Check button added to row ${currentRow}`);
+			} else {
+				console.log(`Failed to find row ${currentRow} to add check button`);
+			}
+		}
+
+		function checkGuess() {
+			console.log('Function called: checkGuess()');
+			console.log('Current guess to check:', currentGuess);
+			console.log('Secret code to compare against:', secretCode);
+			
+			// Get the current row's circles to ensure we have the correct colors
+			const currentRowCircles = Array.from(document.querySelectorAll(`.circles-container[data-row="${currentRow}"] .circle`));
+			
+			// Make sure currentGuess is updated with the actual circle colors
+			// Use getComputedStyle for more reliable color extraction
+			currentGuess = currentRowCircles.map(circle => {
+				const backgroundColor = window.getComputedStyle(circle).backgroundColor;
+				return backgroundColor || null;
+			});
+			
+			console.log('Updated current guess from DOM:', currentGuess);
+			
+			// Check if all colors are set
+			if (currentGuess.some(color => !color)) {
+				console.warn('Not all colors are selected in the current row');
+				return; // Don't proceed if some colors are missing
+			}
+			
+			const { correctPositions, correctColors } = checkGuessLogic(secretCode, currentGuess);
+			console.log('Check results:', { correctPositions, correctColors });
+			
+			const row = document.querySelector(`.circles-container[data-row="${currentRow}"]`).closest('.row');
+			row.querySelector(".colors-feedback").textContent = correctColors;
+			row.querySelector(".position-feedback").textContent = correctPositions;
+			console.log(`Feedback displayed for row ${currentRow}`);
+
+			// Reset current guess for next row
+			currentGuess = [null, null, null, null];
+			console.log('Current guess reset');
+			
+			// Disable the check button
+			checkButton.setAttribute("disabled", "true");
+			checkButton.disabled = true;
+			checkButton.classList.remove("active");
+			console.log('Check button disabled');
+			
+			currentRow++;
+			console.log(`Current row advanced to ${currentRow}`);
+			
+			if (currentRow <= maxRows) {
+				console.log(`Row ${currentRow} is within maximum rows, adding new check button`);
+				addCheckButton();
+			} else {
+				console.log('Maximum rows reached, game over');
+				for (let i = 0; i < 4; i++) {
+					guessArea.children[i].style.backgroundColor = secretCode[i];
+				}
+				console.log('Secret code revealed in guess area');
+				alert(`Game Over! You didn't find the code.`);
+				submitBtn.setAttribute("disabled", "true");
+				if (checkButton) checkButton.disabled = true;
+				gameOver = true;
+				console.log('Game buttons disabled after max rows reached');
+			}
+			
+			if (correctPositions === 4) {
+				console.log('All positions correct! Game won');
+				alert(translations[currentLang].congratulations);
+				submitBtn.setAttribute("disabled", "true");
+				if (checkButton) checkButton.disabled = true;
+				gameOver = true;
+				console.log('Game buttons disabled after win');
+			}
+		}
+
+		function checkGuessLogic(secret, guess) {
+			console.log('Function called: checkGuessLogic()');
+			console.log('Checking secret:', secret, 'against guess:', guess);
+			
 			let correctPositions = 0;
 			let correctColors = 0;
-			const secretCopy = [...secretIndices];
-			const guessCopy = [...guessIndices];
 			
-			// Check correct positions
+			if (!secret || !guess || secret.length !== 4 || guess.length !== 4) {
+				console.error('Invalid secret or guess:', { secret, guess });
+				return { correctPositions: 0, correctColors: 0 };
+			}
+			
+			// Create copies of the arrays to avoid modifying the originals
+			const secretTemp = [...secret];
+			const guessTemp = [...guess];
+			
+			// Improved color normalization function
+			function normalizeColor(color) {
+				if (!color) return null;
+				
+				// If empty, return null
+				if (color === '') return null;
+				
+				// If already in hex format (#RRGGBB)
+				if (color.startsWith('#')) {
+					// Convert hex to RGB values for consistent comparison
+					const r = parseInt(color.slice(1, 3), 16);
+					const g = parseInt(color.slice(3, 5), 16);
+					const b = parseInt(color.slice(5, 7), 16);
+					return `rgb(${r},${g},${b})`;
+				}
+				
+				// If in rgb format, standardize it
+				if (color.startsWith('rgb')) {
+					// Extract RGB values using regex to be more robust
+					const rgbValues = color.match(/\d+/g);
+					if (rgbValues && rgbValues.length >= 3) {
+						return `rgb(${rgbValues[0]},${rgbValues[1]},${rgbValues[2]})`;
+					}
+				}
+				
+				return color.toLowerCase().trim();
+			}
+			
+			// Normalize all colors for comparison
+			const normalizedSecret = secretTemp.map(normalizeColor);
+			const normalizedGuess = guessTemp.map(normalizeColor);
+			
+			console.log('Normalized secret:', normalizedSecret);
+			console.log('Normalized guess:', normalizedGuess);
+			
+			// Create working copies for our algorithm
+			const secretCopy = [...normalizedSecret];
+			const guessCopy = [...normalizedGuess];
+			
+			// First pass: check for correct positions
 			for (let i = 0; i < 4; i++) {
 				if (guessCopy[i] === secretCopy[i]) {
+					console.log(`Position ${i} correct! Color: ${guessCopy[i]}`);
 					correctPositions++;
-					secretCopy[i] = -1;
-					guessCopy[i] = -2;
+					// Mark as counted by setting to special value
+					secretCopy[i] = null;
+					guessCopy[i] = null;
 				}
 			}
 			
-			// Check correct colors in wrong positions
+			// Second pass: check for correct colors in wrong positions
 			for (let i = 0; i < 4; i++) {
-				if (guessCopy[i] >= 0) {
+				if (guessCopy[i] !== null) {
 					for (let j = 0; j < 4; j++) {
-						if (secretCopy[j] >= 0 && guessCopy[i] === secretCopy[j]) {
+						if (secretCopy[j] !== null && guessCopy[i] === secretCopy[j]) {
+							console.log(`Color ${guessCopy[i]} is in the code but wrong position`);
 							correctColors++;
-							secretCopy[j] = -1;
+							// Mark as counted
+							secretCopy[j] = null;
+							guessCopy[i] = null;
 							break;
 						}
 					}
 				}
 			}
 			
+			console.log('Check result:', { correctPositions, correctColors });
 			return { correctPositions, correctColors };
 		}
-		
-		// Filter codes based on feedback
-		function filterCodes(codes, guessIndices, correctPositions, correctColors) {
-			return codes.filter(codeIndices => {
-				const result = evaluateGuess(codeIndices, guessIndices);
-				return result.correctPositions === correctPositions && 
-					   result.correctColors === correctColors;
-			});
-		}
-		
-		// Choose next guess using minimax (with sampling for efficiency)
-		function chooseNextGuess() {
-			if (possibleCodes.length === 1) return possibleCodes[0];
-			
-			let bestGuess = null;
-			let minMaxScore = Infinity;
-			
-			// Sample candidate codes for efficiency
-			const candidateCodes = possibleCodes.length <= 50 ? 
-				possibleCodes : sampleCodes(possibleCodes, 50);
-			
-			for (const candidate of candidateCodes) {
-				const scoreDistribution = {};
-				
-				// Sample evaluation codes for efficiency
-				const evaluationCodes = possibleCodes.length <= 80 ? 
-					possibleCodes : sampleCodes(possibleCodes, 80);
-				
-				for (const code of evaluationCodes) {
-					const result = evaluateGuess(code, candidate);
-					const key = `${result.correctPositions},${result.correctColors}`;
-					scoreDistribution[key] = (scoreDistribution[key] || 0) + 1;
-				}
-				
-				// Find max score (worst case)
-				let maxScore = Math.max(...Object.values(scoreDistribution));
-				
-				if (maxScore < minMaxScore) {
-					minMaxScore = maxScore;
-					bestGuess = candidate;
-				} else if (maxScore === minMaxScore && possibleCodes.some(c => 
-					c[0] === candidate[0] && c[1] === candidate[1] && 
-					c[2] === candidate[2] && c[3] === candidate[3])) {
-					bestGuess = candidate;
-				}
-			}
-			
-			return bestGuess || possibleCodes[0];
-		}
-		
-		// Sample codes for efficiency
-		function sampleCodes(codes, sampleSize) {
-			if (codes.length <= sampleSize) return [...codes];
-			
-			const sample = [];
-			const codesCopy = [...codes];
-			
-			for (let i = 0; i < sampleSize; i++) {
-				const randomIndex = Math.floor(Math.random() * codesCopy.length);
-				sample.push(codesCopy[randomIndex]);
-				codesCopy.splice(randomIndex, 1);
-			}
-			
-			return sample;
-		}
-		
-		// Display functions
-		function displayComputerGuess(colorGuess, row) {
-			const circles = board.querySelectorAll(`.circles[data-row="${row}"] .circle`);
-			for (let i = 0; i < 4; i++) {
-				circles[i].style.backgroundColor = colorGuess[i];
-			}
-		}
-		
-		function displayFeedback(correctPositions, correctColors, row) {
-			const rowElement = board.querySelector(`.row .circles[data-row="${row}"]`).closest('.row');
-			rowElement.querySelector(".colors-feedback").textContent = correctColors;
-			rowElement.querySelector(".position-feedback").textContent = correctPositions;
-		}
-		
-		// Main guess function
-		function makeGuess() {
-			if (currentRow > maxRows || gameOver) return;
-			
-			// Display the computer's guess
-			displayComputerGuess(currentGuess, currentRow);
-			
-			// Evaluate the guess
-			const secretIndices = colorsToIndices(secretCode);
-			const { correctPositions, correctColors } = evaluateGuess(secretIndices, currentGuessIndices);
-			
-			// Display feedback
-			displayFeedback(correctPositions, correctColors, currentRow);
-			
-			// Check if won
-			if (correctPositions === 4) {
-				setTimeout(() => {
-					alert(`${translations[currentLang].congratulations.replace("Du", "Computer")}\n${currentRow} ${currentLang === 'en' ? 'attempts' : 'Versuche'}`);
-					gameOver = true;
-				}, 500);
-				return;
-			}
-			
-			// Next row
-			currentRow++;
-			
-			// Check if max rows reached
-			if (currentRow > maxRows) {
-				setTimeout(() => {
-					alert(currentLang === 'en' ? 
-						  "Computer couldn't crack the code within the maximum number of attempts." : 
-						  "Der Computer konnte den Code nicht innerhalb der maximalen Anzahl von Versuchen knacken.");
-					gameOver = true;
-					// Show secret code
-					for (let i = 0; i < 4; i++) {
-						guessArea.children[i].style.backgroundColor = secretCode[i];
-					}
-				}, 500);
-				return;
-			}
-			
-			// Filter and choose next guess
-			possibleCodes = filterCodes(possibleCodes, currentGuessIndices, correctPositions, correctColors);
-			console.log(`Remaining possible codes: ${possibleCodes.length}`);
-			currentGuessIndices = chooseNextGuess();
-			currentGuess = indicesToColors(currentGuessIndices);
-			
-			// Schedule next guess
-			setTimeout(makeGuess, guessDelay);
-		}
-		
-		// Start the process
-		setTimeout(makeGuess, guessDelay);
-	}
 
-    function setButtonLabel(button, key) {
-        console.log(`Function called: setButtonLabel(button, ${key})`);
-        if (button && translations[currentLang][key]) {
-            button.textContent = translations[currentLang][key];
-            console.log(`Button label set to: ${translations[currentLang][key]}`);
-        } else {
-            console.log('Button or translation key not found');
-        }
-    }
+		newGameBtn.addEventListener("click", initGame);
+		submitBtn.addEventListener("click", submitCode);
 
-	function revealCode() {
-		console.log('Function called: revealCode()');
-		console.log('Secret code to reveal:', secretCode);
-		
-		// Reveal the secret code
-		for (let i = 0; i < 4; i++) {
-			guessArea.children[i].style.backgroundColor = secretCode[i];
-		}
-		console.log('Secret code revealed in guess area');
-		
-		// Disable the submit button
-		submitBtn.disabled = true;
-		submitBtn.setAttribute("disabled", "true");
-		submitBtn.classList.remove("active");
-		
-		// Remove the check button if it exists
-		if (checkButton) {
-			console.log('Removing check button after give up');
-			checkButton.remove();
-			checkButton = null;
-		}
-		
-		// Set game over state
-		const gameOverState = true;
-		console.log('Game over state set to:', gameOverState);
-		gameOver = true;
-		console.log('Game over state set to:', gameOver);
-		
-		// Optional: Display game over message
-		alert(`Game Over! The code was revealed.`);
-		
-		// Remove click handlers from all circles in the current and future rows
-		for (let row = currentRow; row <= maxRows; row++) {
-			const circles = board.querySelectorAll(`.circles[data-row="${row}"] .circle`);
-			circles.forEach(circle => {
-				// Clone and replace to remove event listeners
-				const newCircle = circle.cloneNode(true);
-				circle.parentNode.replaceChild(newCircle, circle);
-			});
-		}
-		
-		console.log('Game ended after user gave up');
-	}
+		initGame();
+		console.log('Game initialized successfully');
+	});
 
-	function initializeButtons() {
-		console.log('Function called: initializeButtons()');
-		
-		// Make sure the new game button is always active
-		newGameBtn.classList.add("active");
-		
-		// Set the submit button to its initial state
-		submitBtn.textContent = translations[currentLang].submit;
-		console.log(`Submit button label set to: ${translations[currentLang].submit}`);
-		
-		if (currentMode === 'codebreakerMode') {
-			console.log('In codebreakerMode, setting submit button for "give up"');
-			// In codebreaker mode, the submit button is for "give up"
-			submitBtn.textContent = translations[currentLang].giveUp;
-			submitBtn.disabled = false;
-			submitBtn.removeAttribute("disabled");
-			submitBtn.classList.add("active");
-			submitBtn.onclick = function() {
-				revealCode();
-			};
-		} else if (isCodemakerTurn) {
-			console.log('In codemaker turn, setting submit button to disabled initially');
-			// In codemaker turn, button starts disabled until code is complete
-			submitBtn.disabled = true;
-			submitBtn.setAttribute("disabled", "true");
-			submitBtn.classList.remove("active");
-			
-			// Reset the onclick handler to submitCode
-			submitBtn.onclick = submitCode;
-		} else {
-			console.log('In codebreaker turn, setting submit button for "give up"');
-			// In codebreaker mode, the submit button is for "give up"
-			submitBtn.textContent = translations[currentLang].giveUp;
-			submitBtn.disabled = false;
-			submitBtn.removeAttribute("disabled");
-			submitBtn.classList.add("active");
-			submitBtn.onclick = function() {
-				revealCode();
-			};
-		}
-		console.log('Buttons initialized for current game state');
-	}
-	
-
-    function addCheckButton() {
-        console.log(`Function called: addCheckButton() for row ${currentRow}`);
-        
-        if (checkButton) {
-            console.log('Removing existing check button');
-            checkButton.remove();
-        }
-        
-        checkButton = document.createElement("button");
-        checkButton.className = "check-btn translatable";
-        checkButton.dataset.key = "check";
-        checkButton.dataset.row = currentRow; // Track which row this button belongs to
-        checkButton.textContent = translations[currentLang].check;
-        checkButton.disabled = true;
-        checkButton.classList.add("disabled"); // Add disabled class
-        checkButton.onclick = checkGuess;
-        
-        // Find the current row and append the button
-        const row = board.querySelector(`.row .circles[data-row="${currentRow}"]`).closest('.row');
-        if (row) {
-            row.appendChild(checkButton);
-            console.log(`Check button added to row ${currentRow}`);
-        } else {
-            console.log(`Failed to find row ${currentRow} to add check button`);
-        }
-    }
-
-	function checkGuess() {
-		console.log('Function called: checkGuess()');
-		console.log('Current guess to check:', currentGuess);
-		console.log('Secret code to compare against:', secretCode);
-		
-		// Get the current row's circles to ensure we have the correct colors
-		const currentRowCircles = Array.from(board.querySelectorAll(`.circles[data-row="${currentRow}"] .circle`));
-		
-		// Make sure currentGuess is updated with the actual circle colors
-		// Use getComputedStyle for more reliable color extraction
-		currentGuess = currentRowCircles.map(circle => {
-			const backgroundColor = window.getComputedStyle(circle).backgroundColor;
-			return backgroundColor || null;
-		});
-		
-		console.log('Updated current guess from DOM:', currentGuess);
-		
-		// Check if all colors are set
-		if (currentGuess.some(color => !color)) {
-			console.warn('Not all colors are selected in the current row');
-			return; // Don't proceed if some colors are missing
-		}
-		
-		const { correctPositions, correctColors } = checkGuessLogic(secretCode, currentGuess);
-		console.log('Check results:', { correctPositions, correctColors });
-		
-		const row = board.querySelector(`.row .circles[data-row="${currentRow}"]`).closest('.row');
-		row.querySelector(".colors-feedback").textContent = correctColors;
-		row.querySelector(".position-feedback").textContent = correctPositions;
-		console.log(`Feedback displayed for row ${currentRow}`);
-
-		// Reset current guess for next row
-		currentGuess = [null, null, null, null];
-		console.log('Current guess reset');
-		
-		// Disable the check button
-		checkButton.setAttribute("disabled", "true");
-		checkButton.disabled = true;
-		checkButton.classList.remove("active");
-		console.log('Check button disabled');
-		
-		currentRow++;
-		console.log(`Current row advanced to ${currentRow}`);
-		
-		if (currentRow <= maxRows) {
-			console.log(`Row ${currentRow} is within maximum rows, adding new check button`);
-			addCheckButton();
-		} else {
-			console.log('Maximum rows reached, game over');
-			for (let i = 0; i < 4; i++) {
-				guessArea.children[i].style.backgroundColor = secretCode[i];
-			}
-			console.log('Secret code revealed in guess area');
-			alert(`Game Over! You didn't find the code.`);
-			submitBtn.setAttribute("disabled", "true");
-			if (checkButton) checkButton.disabled = true;
-			gameOver = true;
-			console.log('Game buttons disabled after max rows reached');
-		}
-		
-		if (correctPositions === 4) {
-			console.log('All positions correct! Game won');
-			alert(translations[currentLang].congratulations);
-			submitBtn.setAttribute("disabled", "true");
-			if (checkButton) checkButton.disabled = true;
-			gameOver = true;
-			console.log('Game buttons disabled after win');
-		}
-	}
-
-	function checkGuessLogic(secret, guess) {
-		console.log('Function called: checkGuessLogic()');
-		console.log('Checking secret:', secret, 'against guess:', guess);
-		
-		let correctPositions = 0;
-		let correctColors = 0;
-		
-		if (!secret || !guess || secret.length !== 4 || guess.length !== 4) {
-			console.error('Invalid secret or guess:', { secret, guess });
-			return { correctPositions: 0, correctColors: 0 };
-		}
-		
-		// Create copies of the arrays to avoid modifying the originals
-		const secretTemp = [...secret];
-		const guessTemp = [...guess];
-		
-		// Improved color normalization function
-		function normalizeColor(color) {
-			if (!color) return null;
-			
-			// If empty, return null
-			if (color === '') return null;
-			
-			// If already in hex format (#RRGGBB)
-			if (color.startsWith('#')) {
-				// Convert hex to RGB values for consistent comparison
-				const r = parseInt(color.slice(1, 3), 16);
-				const g = parseInt(color.slice(3, 5), 16);
-				const b = parseInt(color.slice(5, 7), 16);
-				return `rgb(${r},${g},${b})`;
-			}
-			
-			// If in rgb format, standardize it
-			if (color.startsWith('rgb')) {
-				// Extract RGB values using regex to be more robust
-				const rgbValues = color.match(/\d+/g);
-				if (rgbValues && rgbValues.length >= 3) {
-					return `rgb(${rgbValues[0]},${rgbValues[1]},${rgbValues[2]})`;
-				}
-			}
-			
-			return color.toLowerCase().trim();
-		}
-		
-		// Normalize all colors for comparison
-		const normalizedSecret = secretTemp.map(normalizeColor);
-		const normalizedGuess = guessTemp.map(normalizeColor);
-		
-		console.log('Normalized secret:', normalizedSecret);
-		console.log('Normalized guess:', normalizedGuess);
-		
-		// Create working copies for our algorithm
-		const secretCopy = [...normalizedSecret];
-		const guessCopy = [...normalizedGuess];
-		
-		// First pass: check for correct positions
-		for (let i = 0; i < 4; i++) {
-			if (guessCopy[i] === secretCopy[i]) {
-				console.log(`Position ${i} correct! Color: ${guessCopy[i]}`);
-				correctPositions++;
-				// Mark as counted by setting to special value
-				secretCopy[i] = null;
-				guessCopy[i] = null;
-			}
-		}
-		
-		// Second pass: check for correct colors in wrong positions
-		for (let i = 0; i < 4; i++) {
-			if (guessCopy[i] !== null) {
-				for (let j = 0; j < 4; j++) {
-					if (secretCopy[j] !== null && guessCopy[i] === secretCopy[j]) {
-						console.log(`Color ${guessCopy[i]} is in the code but wrong position`);
-						correctColors++;
-						// Mark as counted
-						secretCopy[j] = null;
-						guessCopy[i] = null;
-						break;
-					}
-				}
-			}
-		}
-		
-		console.log('Check result:', { correctPositions, correctColors });
-		return { correctPositions, correctColors };
-	}
-
-    newGameBtn.addEventListener("click", initGame);
-    submitBtn.addEventListener("click", submitCode);
-
-    initGame();
-    console.log('Game initialized successfully');
-});
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {

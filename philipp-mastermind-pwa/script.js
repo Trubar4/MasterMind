@@ -19,7 +19,7 @@ const translations = {
         congratulations: "Code geknackt",
         newGame: "Neues Spiel",
         submit: "Senden",
-        giveUp: "AUFGEBEN",
+        giveUp: "Aufgeben",
         check: "Prüfen",
         colours: "Farben",
         positions: "Positionen",

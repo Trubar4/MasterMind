@@ -165,17 +165,16 @@ h1 {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 80px;
+    width: 100%;
     height: 36px;
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     display: flex;
     justify-content: center;
     align-items: center;
+    position: static; /* Remove absolute positioning */
+    transform: none; /* Remove transform */
+    grid-column: 4; /* Explicitly place in column 4 */
 }
 
 .check-btn.active {
@@ -350,15 +349,14 @@ h1 {
     color: #B0BEC5;
     font-size: 1.2rem;
 
-
-/* Mode picker styles */
 #modepicker {
     position: absolute;
-    background-color: #DAE3F3;
+    background-color: #DAE3F3 !important; /* Force solid light blue background */
     border-radius: 12px;
     padding: 10px 15px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     z-index: 1000;
+    opacity: 1 !important; /* Force full opacity */
 }
 
 #modepicker:after {
@@ -371,24 +369,12 @@ h1 {
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 10px solid #DAE3F3;
+    border-top: 10px solid #DAE3F3 !important; /* Force same color as background */
+    opacity: 1 !important;
 }
 
 #modepicker:before {
-    content: "";
-    position: absolute;
-    bottom: -11px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 11px solid transparent;
-    border-right: 11px solid transparent;
-    border-top: 11px solid #ccc;
-}
-
-#modepicker.hidden {
-    display: none;
+    content: none !important; /* Remove completely */
 }
 
 .mode-option {
@@ -401,27 +387,31 @@ h1 {
     color: #616161;
     text-align: center;
     font-weight: normal;
+    background-color: #DAE3F3 !important; /* Same solid background */
 }
 
 .mode-option:hover {
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: #B0C4E8 !important; /* Solid color, no transparency */
 }
 
-.mode-option.active, .mode-option.selected {
+.mode-option.selected, .mode-option.active {
     color: #212121;
     font-weight: bold;
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: #A0B8E0 !important; /* Solid color, no transparency */
 }
 
 /* Find code message styling */
 .find-code-message {
     text-align: center;
     margin: 4px 0;
-    padding: 3px;
+    padding: 5px;
     background-color: #f0f0f0;
     border-radius: 4px;
     font-weight: bold;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    grid-column: 1 / span 4;
+    width: 100%;
 }
 
 

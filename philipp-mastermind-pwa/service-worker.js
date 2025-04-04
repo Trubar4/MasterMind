@@ -1,5 +1,5 @@
 const CACHE_NAME = 'philipp-mastermind-v3';
-const APP_VERSION = '1.0.4'; // Add a version number that you can increment with each change
+const APP_VERSION = '1.0.7'; // Add a version number that you can increment with each change
 const urlsToCache = [
     './',
     `./index.html?v=${APP_VERSION}`,

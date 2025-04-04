@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.7';
 
 const translations = {
     en: {
@@ -402,25 +402,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to show the message to find the code
-    function showFindCodeMessage() {
-        console.log('Function called: showFindCodeMessage()');
-        
-        // Create a message element if it doesn't exist
-        let messageElement = document.getElementById('find-code-message');
-        if (!messageElement) {
-            messageElement = document.createElement('div');
-            messageElement.id = 'find-code-message';
-            messageElement.className = 'find-code-message';
-            
-            // Insert before the board
-            const boardParent = board.parentNode;
-            boardParent.insertBefore(messageElement, board);
-        }
-        
-        // Set the message text based on current language
-        messageElement.textContent = translations[currentLang].findCode;
-        console.log('Find code message displayed');
-    }
+	function showFindCodeMessage() {
+		console.log('Function called: showFindCodeMessage()');
+		
+		let messageElement = document.getElementById('find-code-message');
+		if (!messageElement) {
+			messageElement = document.createElement('div');
+			messageElement.id = 'find-code-message';
+			messageElement.className = 'find-code-message';
+			
+			const boardParent = board.parentNode;
+			boardParent.insertBefore(messageElement, board);
+		}
+		
+		messageElement.textContent = translations[currentLang].findCode;
+		console.log('Find code message displayed');
+	}
 
 
 	function onCircleClick(row, col) {
@@ -1007,9 +1004,17 @@ document.addEventListener('DOMContentLoaded', function() {
 			checkButton.classList.add("disabled"); // Add disabled class
 			checkButton.onclick = checkGuess;
 			
-			// Find the current row and append the button
+			// Find the current row
 			const row = document.querySelector(`.circles-container[data-row="${currentRow}"]`).closest('.row');
 			if (row) {
+				const positionFeedback = row.querySelector(".position-feedback");
+				if (positionFeedback) {
+					// Store existing content as data attribute
+					positionFeedback.dataset.original = positionFeedback.textContent;
+					positionFeedback.textContent = "";
+				}
+				
+				// Add check button directly as a child of the row
 				row.appendChild(checkButton);
 				console.log(`Check button added to row ${currentRow}`);
 			} else {
@@ -1017,6 +1022,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		}
 
+		// Also update the checkGuess function to restore position feedback
 		function checkGuess() {
 			console.log('Function called: checkGuess()');
 			console.log('Current guess to check:', currentGuess);
@@ -1044,6 +1050,14 @@ document.addEventListener('DOMContentLoaded', function() {
 			console.log('Check results:', { correctPositions, correctColors });
 			
 			const row = document.querySelector(`.circles-container[data-row="${currentRow}"]`).closest('.row');
+			
+			// Remove check button from the position-feedback element
+			if (checkButton) {
+				checkButton.remove();
+				checkButton = null;
+			}
+			
+			// Set the feedback values
 			row.querySelector(".colors-feedback").textContent = correctColors;
 			row.querySelector(".position-feedback").textContent = correctPositions;
 			console.log(`Feedback displayed for row ${currentRow}`);
@@ -1051,12 +1065,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			// Reset current guess for next row
 			currentGuess = [null, null, null, null];
 			console.log('Current guess reset');
-			
-			// Disable the check button
-			checkButton.setAttribute("disabled", "true");
-			checkButton.disabled = true;
-			checkButton.classList.remove("active");
-			console.log('Check button disabled');
 			
 			currentRow++;
 			console.log(`Current row advanced to ${currentRow}`);

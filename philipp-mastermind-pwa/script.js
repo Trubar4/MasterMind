@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 const translations = {
     en: {
@@ -10,8 +10,8 @@ const translations = {
         check: "Check",
         colours: "Color",
         positions: "Position",
-        codemaker: "Codemaker",
-        codebreaker: "Codebreaker",
+        codemaker: "Maker",
+        codebreaker: "Breaker",
         mode: "Mode",
         both: "2 Player",
         codemakerMode: "Computer breaks Code",
@@ -155,6 +155,8 @@ function setLanguage(lang) {
     console.log('Updating mode picker with new language');
     // Update mode picker with new language
     updateModePicker();
+    // Re-colorize the heading after language update
+    setTimeout(colorizeHeading, 0);
     console.log(`Language set to: ${lang}`);
 }
 
@@ -177,6 +179,7 @@ function updateResourceLinks() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing game...');
 	updateResourceLinks();
+	colorizeHeading(); // Colorize the heading
     setLanguage(currentLang);
     addModeCss();
     setupLanguageSwitcher();
@@ -1148,6 +1151,37 @@ document.addEventListener('DOMContentLoaded', function() {
 		initGame();
 		console.log('Game initialized successfully');
 	});
+
+// Function to colorize the heading with game colors
+function colorizeHeading() {
+    console.log('Function called: colorizeHeading()');
+    const heading = document.querySelector('h1');
+    if (!heading) {
+        console.log('Heading element not found');
+        return;
+    }
+    
+    const text = heading.textContent;
+    const colors = [
+        "#FF0000", // Red
+        "#FFC000", // Orange/Gold
+        "#F36DED", // Pink
+        "#0070C0", // Blue
+        "#00B050", // Green
+        "#A6A6A6", // Gray
+        "#000000"  // Black
+    ];
+    
+    // Create spans for each character with alternating colors
+    let coloredText = '';
+    for (let i = 0; i < text.length; i++) {
+        const color = colors[i % colors.length];
+        coloredText += `<span style="color: ${color}">${text[i]}</span>`;
+    }
+    
+    heading.innerHTML = coloredText;
+    console.log('Heading colorized successfully');
+}
 
 
 if ('serviceWorker' in navigator) {

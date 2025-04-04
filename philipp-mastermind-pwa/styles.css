@@ -34,22 +34,33 @@ body {
 .container {
     text-align: center;
     width: 100%;
-    max-width: 90%; /* Use much more of the screen width */
+    max-width: 500px; /* Fixed maximum width to maintain aspect ratio */
     padding: 0;
     margin: 0 auto;
 }
 
 .top-bar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 40px 40px 240px 80px; /* Match the main grid layout */
     align-items: center;
     margin-bottom: 2px;
 }
 
 h1 {
-    font-size: clamp(0.9rem, 2.5vw, 1.1rem); /* Reduced by ~30% as requested */
+    grid-column: 1 / span 3; /* Span the first 3 columns */
+    font-size: clamp(1.1rem, 2.75vw, 1.32rem); /* 10% larger than language picker */
     color: #212121;
     margin: 0;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.language-switcher {
+    grid-column: 4; /* Fourth column - position column */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .header {
@@ -83,7 +94,7 @@ h1 {
 
 .header, .row, .roles, .controls {
     display: grid;
-    grid-template-columns: 8% 8% 64% 20%; /* Proportional columns using percentages */
+    grid-template-columns: 40px 40px 240px 80px; /* Fixed pixel values that scale proportionally */
     gap: 0;
     column-gap: 0;
     align-items: center;
@@ -99,7 +110,7 @@ h1 {
     color: #212121;
     text-align: center;
     padding: 0;
-    width: 100%; /* Full width of grid cell */
+    width: 40px; /* Fixed width to match column */
 }
 
 .colors-feedback {
@@ -109,7 +120,7 @@ h1 {
     text-align: center;
     padding: 0;
     margin: 0;
-    width: 100%; /* Full width of grid cell */
+    width: 40px; /* Fixed width to match column */
     font-weight: bold;
 }
 
@@ -120,7 +131,7 @@ h1 {
     text-align: center;
     padding: 0;
     margin: 0;
-    width: 100%; /* Full width of grid cell */
+    width: 80px; /* Fixed width to match column */
     font-weight: bold;
 }
 
@@ -128,22 +139,22 @@ h1 {
     grid-column: 3;
     display: flex;
     justify-content: center;
-    gap: 0px;
-    width: 100%;
+    gap: 8px; /* Even spacing between circles */
+    width: 240px; /* Fixed width to match grid column */
     padding: 0;
     margin: 0 auto;
     height: 40px; /* Increased height to match larger circles */
 }
 
 .circle {
-    width: 36px; /* Larger circles */
-    height: 36px;
+    width: 40px; /* Larger circles with exact size */
+    height: 40px; /* Keep height equal to width for perfect circle */
     border-radius: 50%;
     background-color: white;
     border: 2px solid #B0BEC5; /* Thicker border */
     cursor: pointer;
     box-sizing: border-box;
-    margin: 0 2px; /* Add some space between circles */
+    margin: 0; /* Remove margin, using gap on container instead */
 }
 
 .check-btn {
@@ -162,6 +173,9 @@ h1 {
     height: 36px;
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .check-btn.active {
@@ -187,8 +201,22 @@ h1 {
     font-weight: bold;
     color: #B0BEC5;
     text-align: center;
-    border-right: 2px solid #ddd;
     padding: 8px 0;
+    border-right: none; /* Remove border */
+}
+
+#codebreaker-label {
+    grid-column: 4;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #B0BEC5;
+    text-align: center;
+    padding: 8px 0;
+    border-left: none; /* Remove border */
+}
+
+#codemaker-label.active, #codebreaker-label.active {
+    color: #212121;
 }
 
 #mode-btn {
@@ -205,20 +233,9 @@ h1 {
     margin: 0 auto;
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-#codebreaker-label {
-    grid-column: 4;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #B0BEC5;
-    text-align: center;
-    border-left: 2px solid #ddd;
-    padding: 8px 0;
-}
-
-#codemaker-label.active, #codebreaker-label.active {
-    color: #212121;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Four-column controls layout */
@@ -239,18 +256,21 @@ h1 {
     margin: 0 auto;
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #guess-area {
     grid-column: 3;
     display: flex;
     justify-content: center;
-    gap: 0px;
-    width: 88px;
+    gap: 8px; /* Even spacing between circles */
+    width: 240px; /* Fixed width to match grid column */
     padding: 0;
     margin: 0 auto;
-    border-right: 1px solid #ddd;
-    border-left: 1px solid #ddd;
+    border-right: none; /* Remove border */
+    border-left: none; /* Remove border */
 }
 
 #submitbtn {
@@ -277,13 +297,13 @@ h1 {
 
 .colors {
     display: grid;
-    grid-template-columns: repeat(4, 36px);
+    grid-template-columns: repeat(4, 40px);
     gap: 0.5rem;
 }
 
 .color-option {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid #ccc;
@@ -312,12 +332,6 @@ h1 {
     display: none;
 }
 
-.language-switcher {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
 .lang-option {
     font-size: clamp(1rem, 2.5vw, 1.2rem);
     color: #B0BEC5;
@@ -341,10 +355,9 @@ h1 {
 #modepicker {
     position: absolute;
     background-color: #DAE3F3;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 10px 15px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     z-index: 1000;
 }
 
@@ -380,22 +393,24 @@ h1 {
 
 .mode-option {
     cursor: pointer;
-    padding: 5px 10px;
-    margin: 2px 0;
-    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
     transition: background-color 0.2s;
     font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #B0BEC5;
+    color: #616161;
     text-align: center;
+    font-weight: normal;
 }
 
 .mode-option:hover {
-    background-color: #e0e0e0;
+    background-color: rgba(255, 255, 255, 0.6);
 }
 
 .mode-option.active, .mode-option.selected {
     color: #212121;
     font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Find code message styling */
@@ -410,17 +425,71 @@ h1 {
 }
 
 
-
 /* Style adjustments for mobile */
-@media (max-width: 480px) {
+@media (max-width: 500px) {
     .container {
-        max-width: 98%;
-        padding: 0 5px;
+        max-width: 400px;
+    }
+    
+    .header, .row, .roles, .controls {
+        grid-template-columns: 30px 30px 200px 70px;
+    }
+    
+    .circles-container, #guess-area {
+        width: 200px;
+        gap: 6px;
     }
     
     .circle {
-        width: 28px;
-        height: 28px;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .row-number {
+        width: 30px;
+    }
+    
+    .colors-feedback {
+        width: 30px;
+    }
+    
+    .position-feedback {
+        width: 70px;
+    }
+}
+
+@media (max-width: 400px) {
+    .container {
+        max-width: 320px;
+    }
+    
+    .header, .row, .roles, .controls {
+        grid-template-columns: 25px 25px 160px 60px;
+    }
+    
+    .circles-container, #guess-area {
+        width: 160px;
+        gap: 4px;
+    }
+    
+    .circle {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .row-number {
+        width: 25px;
+        font-size: 0.9rem;
+    }
+    
+    .colors-feedback {
+        width: 25px;
+        font-size: 0.9rem;
+    }
+    
+    .position-feedback {
+        width: 60px;
+        font-size: 0.9rem;
     }
     
     h1 {
@@ -428,44 +497,66 @@ h1 {
     }
     
     #new-gamebtn, #submitbtn, #mode-btn {
-        font-size: 0.75rem;
-        padding: 0.2rem;
+        font-size: 0.8rem;
+        padding: 0.3rem;
         height: 32px;
     }
     
-    .colors-header, .positions-header, 
-    .row-number, .colors-feedback, .position-feedback,
     #codemaker-label, #codebreaker-label {
         font-size: 0.9rem;
     }
     
     .check-btn {
         font-size: 0.8rem;
-        width: 60px;
+        width: 70px;
         height: 32px;
+        right: 5px;
     }
     
     /* Adjust color picker for mobile */
     .colors {
-        grid-template-columns: repeat(4, 28px);
+        grid-template-columns: repeat(4, 32px);
     }
     
     .color-option {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
     }
 }
 
 /* For very small screens */
 @media (max-width: 320px) {
-    .circle {
-        width: 24px;
-        height: 24px;
-        margin: 0 1px;
+    .container {
+        max-width: 280px;
     }
     
-    .colors-header, .positions-header, 
-    .row-number, .colors-feedback, .position-feedback {
+    .header, .row, .roles, .controls {
+        grid-template-columns: 20px 20px 140px 50px;
+    }
+    
+    .circles-container, #guess-area {
+        width: 140px;
+        gap: 2px;
+    }
+    
+    .circle {
+        width: 28px;
+        height: 28px;
+        border-width: 1px;
+    }
+    
+    .row-number {
+        width: 20px;
+        font-size: 0.8rem;
+    }
+    
+    .colors-feedback {
+        width: 20px;
+        font-size: 0.8rem;
+    }
+    
+    .position-feedback {
+        width: 50px;
         font-size: 0.8rem;
     }
     
@@ -474,7 +565,22 @@ h1 {
     }
     
     #new-gamebtn, #submitbtn, #mode-btn {
-        font-size: 0.65rem;
-        width: 70%;
+        font-size: 0.7rem;
+        width: 80%;
+    }
+    
+    .check-btn {
+        font-size: 0.7rem;
+        width: 55px;
+    }
+    
+    /* Adjust color picker for tiny mobile */
+    .colors {
+        grid-template-columns: repeat(4, 28px);
+    }
+    
+    .color-option {
+        width: 28px;
+        height: 28px;
     }
 }

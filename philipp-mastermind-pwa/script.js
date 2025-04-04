@@ -964,7 +964,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else {
 			console.log(`Failed to find row ${currentRow} to add check button`);
 		}
-	}
+	
 
 		function checkGuess() {
 			console.log('Function called: checkGuess()');

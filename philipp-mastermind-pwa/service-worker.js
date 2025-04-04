@@ -1,10 +1,11 @@
-const CACHE_NAME = 'philipp-mastermind-v2';
+const CACHE_NAME = 'philipp-mastermind-v3';
+const APP_VERSION = '1.0.1'; // Add a version number that you can increment with each change
 const urlsToCache = [
     './',
-    './index.html',
-    './styles.css',
-    './script.js',
-    './manifest.json',
+    `./index.html?v=${APP_VERSION}`,
+    `./styles.css?v=${APP_VERSION}`,
+    `./script.js?v=${APP_VERSION}`,
+    `./manifest.json?v=${APP_VERSION}`,
     './icons/icon-192.png',
     './icons/icon-512.png'
 ];
@@ -64,15 +65,27 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('activate', event => {
     const cacheWhitelist = [CACHE_NAME];
+    
+    // This will ensure the service worker takes control immediately
+    self.clients.claim();
+    
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
                     if (!cacheWhitelist.includes(cacheName)) {
+                        console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
         })
     );
+});
+
+// Skip waiting ensures the service worker activates immediately
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });

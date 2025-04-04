@@ -1,3 +1,6 @@
+// App version - increment this when making changes
+const APP_VERSION = '1.0.1';
+
 const translations = {
     en: {
         congratulations: "Code cracked",
@@ -155,8 +158,25 @@ function setLanguage(lang) {
     console.log(`Language set to: ${lang}`);
 }
 
+function updateResourceLinks() {
+    console.log('Updating resource links with version:', APP_VERSION);
+    
+    // Update CSS link
+    const stylesLink = document.getElementById('styles-link');
+    if (stylesLink) {
+        stylesLink.href = `styles.css?v=${APP_VERSION}`;
+    }
+    
+    // Update manifest link
+    const manifestLink = document.getElementById('manifest-link');
+    if (manifestLink) {
+        manifestLink.href = `manifest.json?v=${APP_VERSION}`;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing game...');
+	updateResourceLinks();
     setLanguage(currentLang);
     addModeCss();
     setupLanguageSwitcher();
@@ -1133,8 +1153,58 @@ document.addEventListener('DOMContentLoaded', function() {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         console.log('Checking for service worker support');
-        navigator.serviceWorker.register('./service-worker.js')
-            .then(reg => console.log('Service worker registered!', reg))
+        // Add version to service worker registration
+        navigator.serviceWorker.register(`./service-worker.js?v=${APP_VERSION}`)
+            .then(reg => {
+                console.log('Service worker registered!', reg);
+                
+                // Check for updates
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    console.log('Service Worker update found!');
+                    
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('New service worker installed and ready for use!');
+                            // You could show a notification here that an update is available
+                            if (confirm('New version available! Reload to update?')) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            })
             .catch(err => console.log('Service worker registration failed:', err));
+            
+        // Add function to force a refresh
+        window.forceRefresh = function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (let registration of registrations) {
+                        console.log('Unregistering service worker:', registration);
+                        registration.unregister();
+                    }
+                    console.log('All service workers unregistered, reloading page');
+                    window.location.reload(true);
+                });
+            }
+        };
+        
+        // Add a debug button to allow manual refreshing (only in development)
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            const refreshBtn = document.createElement('button');
+            refreshBtn.textContent = 'Force Refresh';
+            refreshBtn.style.position = 'fixed';
+            refreshBtn.style.bottom = '10px';
+            refreshBtn.style.right = '10px';
+            refreshBtn.style.zIndex = '9999';
+            refreshBtn.style.padding = '8px';
+            refreshBtn.style.background = '#D32F2F';
+            refreshBtn.style.color = 'white';
+            refreshBtn.style.border = 'none';
+            refreshBtn.style.borderRadius = '4px';
+            refreshBtn.onclick = window.forceRefresh;
+            document.body.appendChild(refreshBtn);
+        }
     });
 }

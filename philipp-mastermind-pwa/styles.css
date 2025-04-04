@@ -1,4 +1,17 @@
-body {
+.guess-circle-cell {
+    grid-column: 3;
+}
+
+.circle-cell {
+    text-align: center;
+    position: relative;
+}#new-gamebtn {
+    grid-column: 1 / span 2;
+}.row-number {
+    color: #212121;
+}.row {
+    display: grid;
+}body {
     font-family: 'Roboto', sans-serif;
     background-color: #F5F5F5;
     margin: 0;
@@ -12,8 +25,8 @@ body {
 .container {
     text-align: center;
     width: 95%;
-    max-width: 380px;
-    padding: 0.5rem;
+    max-width: 340px;
+    padding: 0.2rem;
 }
 
 .top-bar {
@@ -24,7 +37,7 @@ body {
 }
 
 h1 {
-    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-size: clamp(1rem, 3.5vw, 1.3rem);
     color: #212121;
     margin: 0;
 }
@@ -32,10 +45,7 @@ h1 {
 /* New four-column header layout */
 .header {
     display: grid;
-    grid-template-columns: 0.7fr 0.7fr 4fr 0.7fr;
-    gap: 0.3rem;
-    align-items: center;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.1rem;
 }
 
 .colors-header {
@@ -55,16 +65,15 @@ h1 {
 #board {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.1rem;
 }
 
 /* Four-column row layout */
-.row {
-    display: grid;
-    grid-template-columns: 0.7fr 0.7fr 4fr 0.7fr;
-    gap: 0.3rem;
+.row, .header, .roles, .controls {
+    grid-template-columns: 0.5fr 0fr 5fr 0fr;
+    gap: 0;
     align-items: center;
-    padding: 0.2rem 0;
+    padding: 0.1rem 0;
     position: relative;
 }
 
@@ -94,30 +103,32 @@ h1 {
     grid-column: 3;
     display: flex;
     justify-content: center;
-    gap: 5px; /* Reduced space between circles to 1/3 */
+    gap: 1px; /* Reduced space between circles to 1px */
     width: 100%;
 }
 
 .circle {
-    width: clamp(25px, 7vw, 35px);
-    height: clamp(25px, 7vw, 35px);
+    width: clamp(20px, 5vw, 28px);
+    height: clamp(20px, 5vw, 28px);
     border-radius: 50%;
     background-color: white;
-    border: 2px solid #B0BEC5;
+    border: 1px solid #B0BEC5;
     cursor: pointer;
 }
 
 .check-btn {
-    font-size: clamp(0.6rem, 1.2vw, 0.7rem);
-    padding: 0.2rem 0.4rem;
+    font-size: clamp(0.55rem, 1.1vw, 0.65rem);
+    padding: 0.15rem 0.3rem;
     background-color: #B0BEC5;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     position: absolute;
-    right: -15px;
-    transform: translateX(100%);
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 55px;
 }
 
 .check-btn.active {
@@ -132,11 +143,7 @@ h1 {
 /* Four-column roles layout */
 .roles {
     display: grid;
-    grid-template-columns: 0.7fr 0.7fr 4fr 0.7fr;
-    gap: 0.3rem;
-    align-items: center;
-    padding: 0.3rem 0;
-    margin-top: 0.6rem;
+    margin-top: 0.2rem;
 }
 
 #codemaker-label {
@@ -150,7 +157,7 @@ h1 {
 #mode-btn {
     grid-column: 3;
     font-size: clamp(0.6rem, 1.2vw, 0.7rem);
-    padding: 0.2rem 0.4rem;
+    padding: 0.15rem 0.3rem;
     background-color: #6200EE;
     color: white;
     border: none;
@@ -174,23 +181,17 @@ h1 {
 /* Four-column controls layout */
 .controls {
     display: grid;
-    grid-template-columns: 0.7fr 0.7fr 4fr 0.7fr;
-    gap: 0.3rem;
-    align-items: center;
-    padding: 0.3rem 0;
-    position: relative;
 }
 
-#new-gamebtn {
-    grid-column: 1 / span 2;
+#new-gamebtn, #submitbtn {
     font-size: clamp(0.6rem, 1.2vw, 0.7rem);
-    padding: 0.2rem 0.4rem;
+    padding: 0.15rem 0.3rem;
     background-color: #6200EE;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    width: 60px;
+    width: 55px;
     margin: 0 auto;
 }
 
@@ -198,21 +199,13 @@ h1 {
     grid-column: 3;
     display: flex;
     justify-content: center;
-    gap: 5px; /* Reduced space between circles to 1/3 */
+    gap: 1px; /* Reduced space between circles to 1px */
     width: 100%;
 }
 
 #submitbtn {
     grid-column: 4;
-    font-size: clamp(0.6rem, 1.2vw, 0.7rem);
-    padding: 0.2rem 0.4rem;
     background-color: #B0BEC5;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 60px;
-    margin: 0 auto;
 }
 
 #submitbtn.active {
@@ -239,8 +232,8 @@ h1 {
 }
 
 .color-option {
-    width: clamp(25px, 7vw, 35px);
-    height: clamp(25px, 7vw, 35px);
+    width: clamp(20px, 5vw, 28px);
+    height: clamp(20px, 5vw, 28px);
     border-radius: 50%;
     cursor: pointer;
     border: 1px solid #ccc;
@@ -348,35 +341,32 @@ h1 {
 /* Find code message styling */
 .find-code-message {
     text-align: center;
-    margin: 6px 0;
-    padding: 5px;
+    margin: 4px 0;
+    padding: 3px;
     background-color: #f0f0f0;
     border-radius: 4px;
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 390px) {
     .container {
-        padding: 0.5rem;
+        max-width: 100%;
+        padding: 0.2rem;
     }
-
-    .row {
-        padding: 0.2rem 0;
-    }
-
-    .color-picker {
-        padding: 0.3rem;
-    }
-    
     .circle {
-        width: clamp(25px, 7vw, 35px);
-        height: clamp(25px, 7vw, 35px);
+        width: 20px;
+        height: 20px;
     }
-    
-    .check-btn {
-        font-size: clamp(0.6rem, 1.2vw, 0.7rem);
-        padding: 0.2rem 0.4rem;
-        right: -15px;
+    .color-option {
+        width: 20px;
+        height: 20px;
+    }
+    h1 {
+        font-size: 1rem;
+    }
+    #new-gamebtn, #submitbtn, #mode-btn {
+        font-size: 0.6rem;
+        padding: 0.1rem 0.2rem;
     }
 }

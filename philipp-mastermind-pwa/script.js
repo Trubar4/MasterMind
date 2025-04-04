@@ -5,8 +5,8 @@ const translations = {
         submit: "Submit",
         giveUp: "Give-up",
         check: "Check",
-        colours: "Colours",
-        positions: "Positions",
+        colours: "Color",
+        positions: "Position",
         codemaker: "Codemaker",
         codebreaker: "Codebreaker",
         mode: "Mode",
@@ -21,8 +21,8 @@ const translations = {
         submit: "Senden",
         giveUp: "Aufgeben",
         check: "Prüfen",
-        colours: "Farben",
-        positions: "Positionen",
+        colours: "Farbe",
+        positions: "Position",
         codemaker: "Ersteller",
         codebreaker: "Löser",
         mode: "Modus",
@@ -939,32 +939,32 @@ document.addEventListener('DOMContentLoaded', function() {
 			console.log('Buttons initialized for current game state');
 		}
 		
-		function addCheckButton() {
-			console.log(`Function called: addCheckButton() for row ${currentRow}`);
-			
-			if (checkButton) {
-				console.log('Removing existing check button');
-				checkButton.remove();
-			}
-			
-			checkButton = document.createElement("button");
-			checkButton.className = "check-btn translatable";
-			checkButton.dataset.key = "check";
-			checkButton.dataset.row = currentRow; // Track which row this button belongs to
-			checkButton.textContent = translations[currentLang].check;
-			checkButton.disabled = true;
-			checkButton.classList.add("disabled"); // Add disabled class
-			checkButton.onclick = checkGuess;
-			
-			// Find the current row and append the button
-			const row = document.querySelector(`.circles-container[data-row="${currentRow}"]`).closest('.row');
-			if (row) {
-				row.appendChild(checkButton);
-				console.log(`Check button added to row ${currentRow}`);
-			} else {
-				console.log(`Failed to find row ${currentRow} to add check button`);
-			}
+	function addCheckButton() {
+		console.log(`Function called: addCheckButton() for row ${currentRow}`);
+		
+		if (checkButton) {
+			console.log('Removing existing check button');
+			checkButton.remove();
 		}
+		
+		checkButton = document.createElement("button");
+		checkButton.className = "check-btn translatable";
+		checkButton.dataset.key = "check";
+		checkButton.dataset.row = currentRow; // Track which row this button belongs to
+		checkButton.textContent = translations[currentLang].check;
+		checkButton.disabled = true;
+		checkButton.classList.add("disabled"); // Add disabled class
+		checkButton.onclick = checkGuess;
+		
+		// Find the current row
+		const row = document.querySelector(`.circles-container[data-row="${currentRow}"]`).closest('.row');
+		if (row) {
+			row.appendChild(checkButton);
+			console.log(`Check button added to row ${currentRow}`);
+		} else {
+			console.log(`Failed to find row ${currentRow} to add check button`);
+		}
+	}
 
 		function checkGuess() {
 			console.log('Function called: checkGuess()');

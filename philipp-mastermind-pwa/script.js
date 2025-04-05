@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.0.9';
 
 const translations = {
     en: {
@@ -102,7 +102,7 @@ function addModeCss() {
     console.log('Mode CSS added to document head');
 }
 
-// Function to update mode picker with correct translations and current selection
+// Updated mode option handling in updateModePicker function
 function updateModePicker() {
     console.log('Function called: updateModePicker()');
     const modePicker = document.getElementById('modepicker');
@@ -122,7 +122,8 @@ function updateModePicker() {
         { mode: 'codebreakerMode', key: 'codebreakerMode' }
     ];
     
-    console.log('Creating new mode options with current language:', currentLang);
+    console.log('Current mode before creating options:', currentMode);
+    
     modeOptions.forEach(option => {
         const div = document.createElement('div');
         div.className = 'mode-option';
@@ -135,20 +136,37 @@ function updateModePicker() {
             div.classList.add('selected');
         }
         
-        div.addEventListener('click', () => {
-            console.log(`Mode option clicked: ${option.mode}`);
-            currentMode = option.mode;
+        div.addEventListener('click', function(event) {
+            // Get the selected mode from the clicked option
+            const selectedMode = this.dataset.mode;
+            console.log(`Mode option clicked: ${selectedMode}, previous mode: ${currentMode}`);
             
-            // Hide the mode picker immediately
+            // Always update the mode, even if it's the same as the current mode
+            currentMode = selectedMode;
+            console.log('Mode updated to:', currentMode);
+            
+            // Force re-selection visual update
+            document.querySelectorAll('.mode-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.mode === currentMode);
+            });
+            
+            // Hide the mode picker
             modePicker.classList.add("hidden");
-            console.log('Mode picker hidden after selection');
+            modePicker.style.display = 'none';
             
-            // Start a new game with the selected mode
-            initGame();
+            // Call initGame with a slight delay to ensure UI updates first
+            setTimeout(() => {
+                console.log('Starting new game with mode:', currentMode);
+                initGame();
+            }, 50);
+            
+            // Prevent event bubbling
+            event.stopPropagation();
         });
         
         modePicker.appendChild(div);
     });
+    
     console.log('Mode picker updated successfully');
 }
 
@@ -251,31 +269,42 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Update newGameBtn click handler to show the mode picker
-    newGameBtn.addEventListener("click", function(event) {
-        console.log('New Game button clicked, showing mode picker');
-        
-        // First make sure the modePicker is visible (not hidden)
-        modePicker.classList.remove("hidden");
-        console.log('Mode picker made visible after button click');
-        
-        // Update mode picker with current language and selection
-        updateModePicker();
-        
-        // Stop propagation to prevent immediate hiding
-        event.stopPropagation();
-    });
+	newGameBtn.addEventListener("click", function(event) {
+		console.log('New Game button clicked, showing mode picker');
+		
+		// Remove any previous game initialization from this button
+		event.stopPropagation();
+		
+		// Make sure the modePicker is visible
+		const modePicker = document.getElementById('modepicker');
+		if (modePicker) {
+			// Update mode picker with current language and selection
+			updateModePicker();
+			
+			// Show the mode picker
+			modePicker.classList.remove("hidden");
+			modePicker.style.display = 'flex';
+		}
+	});
 
-    // Add click event listener to the document to close the modePicker when clicking outside
-    document.addEventListener('click', function(event) {
-        if (!modePicker.contains(event.target) && 
-            event.target.id !== 'new-gamebtn' && 
-            !modePicker.classList.contains('hidden')) {
-            console.log('Click outside mode picker detected, hiding picker');
-            modePicker.classList.add("hidden");
-            // Start a new game when picker is closed
-            initGame();
-        }
-    });
+	// And we need to update the document click handler:
+	document.addEventListener('click', function(event) {
+		const modePicker = document.getElementById('modepicker');
+		
+		// Only handle clicks outside the picker when it's visible
+		if (modePicker && 
+			!modePicker.contains(event.target) && 
+			event.target.id !== 'new-gamebtn' && 
+			!modePicker.classList.contains('hidden')) {
+			
+			console.log('Click outside mode picker detected, hiding picker');
+			modePicker.classList.add("hidden");
+			modePicker.style.display = 'none';
+			
+			// Don't start a new game when just clicking outside
+			// New games only start when a mode is explicitly selected
+		}
+	});
 
     // Language switcher
     document.querySelectorAll('.lang-option').forEach(option => {
@@ -319,41 +348,47 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
     function initGame() {
-        console.log('Function called: initGame()');
-        
-	    // Make sure the mode picker is hidden when starting a new game
+		console.log('Function called: initGame()');
+		console.log('Current game mode:', currentMode);
+		
+		// Make sure the mode picker is hidden when starting a new game
 		const modePicker = document.getElementById('modepicker');
 		if (modePicker) {
 			modePicker.classList.add("hidden");
 		}
 		
-		console.log('Current game mode:', currentMode);
-        
-        board.innerHTML = "";
-        guessArea.innerHTML = "";
-        secretCode = [];
-        currentRow = 1;
-        currentGuess = [null, null, null, null];
-        isCodemakerTurn = true;
-        gameOver = false; // Reset game over state
-        
-        // Set up UI for the different modes
-        if (currentMode === 'codebreakerMode') {
-            console.log('Setting up codebreakerMode');
-            isCodemakerTurn = false; // Force codebreaker turn since computer creates the code
-            codemakerLabel.classList.remove("active");
-            codebreakerLabel.classList.add("active");
-        } else {
-            // Default behavior for 'both' and 'codemakerMode'
-            codemakerLabel.classList.add("active");
-            codebreakerLabel.classList.remove("active");
-        }
-        
-        submitBtn.setAttribute("disabled", "true");
-        submitBtn.classList.remove("active");
-        
-        console.log('Game state reset');
-        console.log('Building game board with rows:', maxRows);
+		board.innerHTML = "";
+		guessArea.innerHTML = "";
+		secretCode = [];
+		currentRow = 1;
+		currentGuess = [null, null, null, null];
+		isCodemakerTurn = true;
+		gameOver = false; // Reset game over state
+		
+		// Always remove any existing message first to ensure clean state
+		removeFindCodeMessage();
+		
+		// Set up UI for the different modes
+		if (currentMode === 'codebreakerMode') {
+			console.log('Setting up codebreakerMode');
+			isCodemakerTurn = false; // Force codebreaker turn since computer creates the code
+			codemakerLabel.classList.remove("active");
+			codebreakerLabel.classList.add("active");
+			
+			// Show findCode message only in codebreakerMode
+			showFindCodeMessage();
+		} else {
+			// Default behavior for 'both' and 'codemakerMode'
+			codemakerLabel.classList.add("active");
+			codebreakerLabel.classList.remove("active");
+		}
+
+		
+		submitBtn.setAttribute("disabled", "true");
+		submitBtn.classList.remove("active");
+		
+		console.log('Game state reset');
+		console.log('Building game board with rows:', maxRows);
 
         for (let row = maxRows; row >= 1; row--) {
             const rowDiv = document.createElement("div");
@@ -436,73 +471,105 @@ document.addEventListener('DOMContentLoaded', function() {
         addCheckButton();
     }
 
-    // Function to show the message to find the code
+
+
+	// Update the mode selection check in showFindCodeMessage to be more explicit
 	function showFindCodeMessage() {
 		console.log('Function called: showFindCodeMessage()');
+		console.log('Current mode when showing message:', currentMode);
 		
-		let messageElement = document.getElementById('find-code-message');
-		if (!messageElement) {
-			messageElement = document.createElement('div');
-			messageElement.id = 'find-code-message';
-			messageElement.className = 'find-code-message';
-			
-			// Create a proper container for the message
-			const messageContainer = document.createElement('div');
-			messageContainer.className = 'message-container';
-			messageContainer.appendChild(messageElement);
-			
-			// Insert before the board
-			const boardParent = board.parentNode;
-			boardParent.insertBefore(messageContainer, board);
-			
-			// Add CSS for the message container
-			const style = document.createElement('style');
-			style.textContent = `
-				.message-container {
-					display: grid;
-					grid-template-columns: 40px 40px 240px 80px; /* Match the main grid layout */
-					margin-bottom: 10px;
-					width: 100%;
-				}
-				
-				@media (max-width: 500px) {
-					.message-container {
-						grid-template-columns: 30px 30px 200px 70px;
-					}
-				}
-				
-				@media (max-width: 400px) {
-					.message-container {
-						grid-template-columns: 25px 25px 160px 60px;
-					}
-				}
-				
-				@media (max-width: 320px) {
-					.message-container {
-						grid-template-columns: 20px 20px 140px 50px;
-					}
-				}
-				
-				.find-code-message {
-					grid-column: 1 / span 4;
-					text-align: center;
-					padding: 8px;
-					background-color: #f0f0f0;
-					border-radius: 4px;
-					font-weight: bold;
-					font-size: 0.9rem;
-					font-style: italic;
-					width: 100%;
-					box-sizing: border-box;
-				}
-			`;
-			document.head.appendChild(style);
+		// Always remove any existing message first
+		removeFindCodeMessage();
+		
+		// Only proceed to create the message if we're explicitly in codebreakerMode
+		if (currentMode !== 'codebreakerMode') {
+			console.log('Not in codebreakerMode, message will not be shown');
+			return;
 		}
 		
+		console.log('In codebreakerMode, creating find code message');
+		
+		// Create message container and element
+		const messageContainer = document.createElement('div');
+		messageContainer.className = 'message-container';
+		messageContainer.id = 'find-code-message-container';
+		
+		const messageElement = document.createElement('div');
+		messageElement.id = 'find-code-message';
+		messageElement.className = 'find-code-message';
 		messageElement.textContent = translations[currentLang].findCode;
-		console.log('Find code message displayed');
+		
+		messageContainer.appendChild(messageElement);
+		
+		// Insert before the board
+		const boardParent = board.parentNode;
+		boardParent.insertBefore(messageContainer, board);
+		
+		// Ensure CSS exists for the message container
+		ensureFindCodeMessageCSS();
+		
+		console.log('Find code message displayed successfully');
 	}
-
+	
+	// New function to explicitly remove the message
+	function removeFindCodeMessage() {
+		console.log('Removing any existing find code message');
+		const messageContainer = document.getElementById('find-code-message-container');
+		if (messageContainer) {
+			messageContainer.remove();
+			console.log('Find code message container removed');
+		}
+	}
+	
+	// New function to ensure the find code message CSS exists
+	function ensureFindCodeMessageCSS() {
+		if (document.getElementById('find-code-message-styles')) {
+			return; // CSS already exists
+		}
+		
+		const style = document.createElement('style');
+		style.id = 'find-code-message-styles';
+		style.textContent = `
+			.message-container {
+				display: grid;
+				grid-template-columns: 40px 40px 240px 80px; /* Match the main grid layout */
+				margin-bottom: 10px;
+				width: 100%;
+			}
+			
+			@media (max-width: 500px) {
+				.message-container {
+					grid-template-columns: 30px 30px 200px 70px;
+				}
+			}
+			
+			@media (max-width: 400px) {
+				.message-container {
+					grid-template-columns: 25px 25px 160px 60px;
+				}
+			}
+			
+			@media (max-width: 320px) {
+				.message-container {
+					grid-template-columns: 20px 20px 140px 50px;
+				}
+			}
+			
+			.find-code-message {
+				grid-column: 1 / span 4;
+				text-align: center;
+				padding: 8px;
+				background-color: #f0f0f0;
+				border-radius: 4px;
+				font-weight: bold;
+				font-size: 0.9rem;
+				font-style: italic;
+				width: 100%;
+				box-sizing: border-box;
+			}
+		`;
+		document.head.appendChild(style);
+	}
 
 	function onCircleClick(row, col) {
 			console.log(`Function called: onCircleClick(${row}, ${col})`);
@@ -1308,10 +1375,20 @@ function colorizeHeading() {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
         console.log('Checking for service worker support');
-        // Add version to service worker registration
+        
+        // Register service worker with version parameter
         navigator.serviceWorker.register(`./service-worker.js?v=${APP_VERSION}`)
             .then(reg => {
                 console.log('Service worker registered!', reg);
+                
+                // Force update check immediately
+                reg.update();
+                
+                // Setup regular update checks
+                setInterval(() => {
+                    console.log('Checking for service worker updates...');
+                    reg.update();
+                }, 60 * 60 * 1000); // Check hourly
                 
                 // Check for updates
                 reg.addEventListener('updatefound', () => {
@@ -1321,10 +1398,9 @@ if ('serviceWorker' in navigator) {
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                             console.log('New service worker installed and ready for use!');
-                            // You could show a notification here that an update is available
-                            if (confirm('New version available! Reload to update?')) {
-                                window.location.reload();
-                            }
+                            
+                            // Create a more visible update notification
+                            showUpdateNotification();
                         }
                     });
                 });
@@ -1339,27 +1415,65 @@ if ('serviceWorker' in navigator) {
                         console.log('Unregistering service worker:', registration);
                         registration.unregister();
                     }
-                    console.log('All service workers unregistered, reloading page');
+                    
+                    // Clear caches
+                    if (window.caches) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) {
+                                caches.delete(name);
+                            }
+                        });
+                    }
+                    
+                    console.log('All service workers unregistered and caches cleared, reloading page');
                     window.location.reload(true);
                 });
+            } else {
+                // Fallback for browsers without service worker support
+                window.location.reload(true);
             }
         };
         
-        // Add a debug button to allow manual refreshing (only in development)
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-            const refreshBtn = document.createElement('button');
-            refreshBtn.textContent = 'Force Refresh';
-            refreshBtn.style.position = 'fixed';
-            refreshBtn.style.bottom = '10px';
-            refreshBtn.style.right = '10px';
-            refreshBtn.style.zIndex = '9999';
-            refreshBtn.style.padding = '8px';
-            refreshBtn.style.background = '#D32F2F';
-            refreshBtn.style.color = 'white';
-            refreshBtn.style.border = 'none';
-            refreshBtn.style.borderRadius = '4px';
-            refreshBtn.onclick = window.forceRefresh;
-            document.body.appendChild(refreshBtn);
-        }
+        // Add a user-accessible refresh button
+        const refreshButton = document.createElement('button');
+        refreshButton.textContent = 'Update App';
+        refreshButton.style.position = 'fixed';
+        refreshButton.style.bottom = '10px';
+        refreshButton.style.right = '10px';
+        refreshButton.style.zIndex = '9999';
+        refreshButton.style.padding = '8px';
+        refreshButton.style.background = '#D32F2F';
+        refreshButton.style.color = 'white';
+        refreshButton.style.border = 'none';
+        refreshButton.style.borderRadius = '4px';
+        refreshButton.onclick = window.forceRefresh;
+        document.body.appendChild(refreshButton);
+    });
+}
+
+function showUpdateNotification() {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '0';
+    notification.style.left = '0';
+    notification.style.right = '0';
+    notification.style.backgroundColor = '#4CAF50';
+    notification.style.color = 'white';
+    notification.style.padding = '16px';
+    notification.style.textAlign = 'center';
+    notification.style.zIndex = '10000';
+    notification.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    
+    notification.innerHTML = `
+        <strong>New version available!</strong> 
+        <button id="update-button" style="margin-left:15px; padding:8px; background-color:white; color:#4CAF50; border:none; border-radius:4px; cursor:pointer;">
+            Update Now
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    document.getElementById('update-button').addEventListener('click', function() {
+        window.forceRefresh();
     });
 }

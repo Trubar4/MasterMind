@@ -351,12 +351,16 @@ h1 {
 
 #modepicker {
     position: absolute;
-    background-color: #DAE3F3 !important; /* Force solid light blue background */
-    border-radius: 12px;
-    padding: 10px 15px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    background-color: #DAE3F3; /* Light blue background */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    opacity: 1 !important; /* Force full opacity */
+    width: clamp(200px, 60vw, 240px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #modepicker:after {
@@ -369,35 +373,45 @@ h1 {
     height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 10px solid #DAE3F3 !important; /* Force same color as background */
-    opacity: 1 !important;
+    border-top: 10px solid #DAE3F3;
 }
 
 #modepicker:before {
-    content: none !important; /* Remove completely */
+    content: "";
+    position: absolute;
+    bottom: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 11px solid #ccc;
+}
+
+#modepicker.hidden {
+    display: none;
 }
 
 .mode-option {
     cursor: pointer;
-    padding: 8px 12px;
-    margin: 4px 0;
-    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 5px 0;
+    border-radius: 4px;
     transition: background-color 0.2s;
     font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #616161;
+    color: #B0BEC5;
     text-align: center;
-    font-weight: normal;
-    background-color: #DAE3F3 !important; /* Same solid background */
+    width: 100%;
 }
 
 .mode-option:hover {
-    background-color: #B0C4E8 !important; /* Solid color, no transparency */
+    background-color: #e0e0e0;
 }
 
 .mode-option.selected, .mode-option.active {
     color: #212121;
     font-weight: bold;
-    background-color: #A0B8E0 !important; /* Solid color, no transparency */
 }
 
 /* Find code message styling */

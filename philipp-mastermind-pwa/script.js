@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.8';
 
 const translations = {
     en: {
@@ -16,7 +16,7 @@ const translations = {
         both: "2 Player",
         codemakerMode: "Computer breaks Code",
         codebreakerMode: "Computer creates Code",
-        findCode: "Please try to find the right code."
+        findCode: "Try to find the right code."
     },
     de: {
         congratulations: "Code geknackt",
@@ -32,7 +32,7 @@ const translations = {
         both: "2-Spieler",
         codemakerMode: "Computer knackt Code",
         codebreakerMode: "Computer erstellt Code",
-        findCode: "Bitte versuche den richtigen Code zu finden."
+        findCode: "Versuche den richtigen Code zu finden."
     }
 };
 
@@ -76,6 +76,27 @@ function addModeCss() {
             color: #000; /* Black text for selected option */
             font-weight: bold;
         }
+        
+        #modepicker {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #DAE3F3;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Remove triangle pseudo-elements */
+        #modepicker:after, #modepicker:before {
+            display: none;
+        }
     `;
     document.head.appendChild(styleElement);
     console.log('Mode CSS added to document head');
@@ -117,10 +138,13 @@ function updateModePicker() {
         div.addEventListener('click', () => {
             console.log(`Mode option clicked: ${option.mode}`);
             currentMode = option.mode;
+            
+            // Hide the mode picker immediately
             modePicker.classList.add("hidden");
             console.log('Mode picker hidden after selection');
-            updateModePicker(); // Update the selection visually
-            initGame(); // Restart game with new mode
+            
+            // Start a new game with the selected mode
+            initGame();
         });
         
         modePicker.appendChild(div);
@@ -183,8 +207,8 @@ function updateResourceLinks() {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, initializing game...');
-	updateResourceLinks();
-	colorizeHeading(); // Colorize the heading
+    updateResourceLinks();
+    colorizeHeading(); // Colorize the heading
     setLanguage(currentLang);
     addModeCss();
     setupLanguageSwitcher();
@@ -204,8 +228,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const codebreakerLabel = document.getElementById("codebreaker-label");
     const newGameBtn = document.getElementById("new-gamebtn");
     const submitBtn = document.getElementById("submitbtn");
-    const modeBtn = document.getElementById("mode-btn");
+    let modeBtn = document.getElementById("mode-btn");
     let checkButton = null;
+    
+    // Remove the mode button and update layout
+    if (modeBtn) {
+        modeBtn.remove();
+        modeBtn = null;
+        
+        // Update codebreaker label to span the space
+        if (codebreakerLabel) {
+            codebreakerLabel.style.gridColumn = "3 / span 2";
+        }
+    }
 
     console.log('Game elements initialized');
     console.log('Current game state:', {
@@ -215,59 +250,30 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRow
     });
 
-    // Set up mode button event listener
-    modeBtn.addEventListener("click", function(event) {
-        console.log('Mode button clicked');
-        // Prevent the default button behavior
-        event.stopPropagation();
+    // Update newGameBtn click handler to show the mode picker
+    newGameBtn.addEventListener("click", function(event) {
+        console.log('New Game button clicked, showing mode picker');
         
-        // First make sure the modePicker is visible (not hidden) so we can get its dimensions
+        // First make sure the modePicker is visible (not hidden)
         modePicker.classList.remove("hidden");
         console.log('Mode picker made visible after button click');
         
-        // Get the button's position
-        const rect = this.getBoundingClientRect();
-        console.log('Mode button position:', rect);
+        // Update mode picker with current language and selection
+        updateModePicker();
         
-        // Position the picker above the button
-        // Add page scroll offsets to ensure correct positioning
-        modePicker.style.position = "absolute";
-        modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
-        modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - 10 + "px"; // 10px gap
-        modePicker.style.zIndex = "1000";
-        console.log('Mode picker positioned above mode button');
+        // Stop propagation to prevent immediate hiding
+        event.stopPropagation();
     });
-	
-	function showModePicker(button) {
-		console.log('Function called: showModePicker()');
-		// Make sure modePicker is visible for calculating dimensions
-		modePicker.classList.remove("hidden");
-		console.log('Mode picker made visible for positioning');
-		
-		// Ensure the mode picker is updated with current language and selection
-		updateModePicker();
-		
-		const rect = button.getBoundingClientRect();
-		console.log('Button position:', rect);
-		
-		// Position picker above button
-		modePicker.style.position = "absolute";
-		modePicker.style.left = rect.left + window.pageXOffset + (rect.width/2 - modePicker.offsetWidth/2) + "px";
-		
-		// Account for the triangle height (10px) and add a small gap (5px)
-		const triangleHeight = 15; // Height of triangle + small gap
-		modePicker.style.top = rect.top + window.pageYOffset - modePicker.offsetHeight - triangleHeight + "px";
-		modePicker.style.zIndex = "1000";
-		console.log('Mode picker positioned above button');
-	}
 
     // Add click event listener to the document to close the modePicker when clicking outside
     document.addEventListener('click', function(event) {
         if (!modePicker.contains(event.target) && 
-            event.target.id !== 'mode-btn' && 
+            event.target.id !== 'new-gamebtn' && 
             !modePicker.classList.contains('hidden')) {
             console.log('Click outside mode picker detected, hiding picker');
             modePicker.classList.add("hidden");
+            // Start a new game when picker is closed
+            initGame();
         }
     });
 
@@ -281,18 +287,47 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Mode picker options
-    document.querySelectorAll('.mode-option').forEach(option => {
-        option.addEventListener('click', () => {
-            console.log(`Mode option clicked: ${option.dataset.mode}`);
-            currentMode = option.dataset.mode;
-            modePicker.classList.add("hidden");
-            initGame();
-        });
-    });
+	document.querySelectorAll('.mode-option').forEach(option => {
+		const newOption = option.cloneNode(true);
+		if (option.parentNode) {
+			option.parentNode.replaceChild(newOption, option);
+		}
+	});
+	// Add new mode picker option handlers with direct hide-and-init approach
+	document.querySelectorAll('.mode-option').forEach(option => {
+		option.addEventListener('click', function() {
+			console.log(`Mode option clicked: ${this.dataset.mode}`);
+			
+			// Set the mode
+			currentMode = this.dataset.mode;
+			
+			// Hide the mode picker immediately (direct DOM manipulation)
+			const modePicker = document.getElementById('modepicker');
+			if (modePicker) {
+				modePicker.style.display = 'none';
+				modePicker.classList.add('hidden');
+			}
+			
+			// Slight delay before starting game to ensure picker is hidden
+			setTimeout(function() {
+				initGame();
+			}, 50);
+			
+			// Stop event propagation
+			event.stopPropagation();
+		});
+	});
 
     function initGame() {
         console.log('Function called: initGame()');
-        console.log('Current game mode:', currentMode);
+        
+	    // Make sure the mode picker is hidden when starting a new game
+		const modePicker = document.getElementById('modepicker');
+		if (modePicker) {
+			modePicker.classList.add("hidden");
+		}
+		
+		console.log('Current game mode:', currentMode);
         
         board.innerHTML = "";
         guessArea.innerHTML = "";
@@ -411,8 +446,57 @@ document.addEventListener('DOMContentLoaded', function() {
 			messageElement.id = 'find-code-message';
 			messageElement.className = 'find-code-message';
 			
+			// Create a proper container for the message
+			const messageContainer = document.createElement('div');
+			messageContainer.className = 'message-container';
+			messageContainer.appendChild(messageElement);
+			
+			// Insert before the board
 			const boardParent = board.parentNode;
-			boardParent.insertBefore(messageElement, board);
+			boardParent.insertBefore(messageContainer, board);
+			
+			// Add CSS for the message container
+			const style = document.createElement('style');
+			style.textContent = `
+				.message-container {
+					display: grid;
+					grid-template-columns: 40px 40px 240px 80px; /* Match the main grid layout */
+					margin-bottom: 10px;
+					width: 100%;
+				}
+				
+				@media (max-width: 500px) {
+					.message-container {
+						grid-template-columns: 30px 30px 200px 70px;
+					}
+				}
+				
+				@media (max-width: 400px) {
+					.message-container {
+						grid-template-columns: 25px 25px 160px 60px;
+					}
+				}
+				
+				@media (max-width: 320px) {
+					.message-container {
+						grid-template-columns: 20px 20px 140px 50px;
+					}
+				}
+				
+				.find-code-message {
+					grid-column: 1 / span 4;
+					text-align: center;
+					padding: 8px;
+					background-color: #f0f0f0;
+					border-radius: 4px;
+					font-weight: bold;
+					font-size: 0.9rem;
+					font-style: italic;
+					width: 100%;
+					box-sizing: border-box;
+				}
+			`;
+			document.head.appendChild(style);
 		}
 		
 		messageElement.textContent = translations[currentLang].findCode;
@@ -1011,11 +1095,12 @@ document.addEventListener('DOMContentLoaded', function() {
 				if (positionFeedback) {
 					// Store existing content as data attribute
 					positionFeedback.dataset.original = positionFeedback.textContent;
+					
+					// Clear the position feedback and add the button inside it
 					positionFeedback.textContent = "";
+					positionFeedback.appendChild(checkButton);
 				}
 				
-				// Add check button directly as a child of the row
-				row.appendChild(checkButton);
 				console.log(`Check button added to row ${currentRow}`);
 			} else {
 				console.log(`Failed to find row ${currentRow} to add check button`);

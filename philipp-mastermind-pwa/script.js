@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.2.2';
+const APP_VERSION = '1.2.3';
 
 const translations = {
     en: {
@@ -16,7 +16,7 @@ const translations = {
         both: "2 Player",
         codemakerMode: "Computer breaks Code",
         codebreakerMode: "Computer creates Code",
-        findCode: "Find the code."
+        findCode: " Find the code."
     },
     de: {
         congratulations: "Code geknackt",
@@ -32,7 +32,7 @@ const translations = {
         both: "2-Spieler",
         codemakerMode: "Computer knackt Code",
         codebreakerMode: "Computer erstellt Code",
-        findCode: "Finde den Code."
+        findCode: " Finde den Code."
     }
 };
 
@@ -587,7 +587,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				grid-column: 1 / span 4;
 				text-align: center;
 				padding: 8px;
-				background-color: #f0f0f0;
 				border-radius: 4px;
 				font-weight: bold;
 				font-size: 0.9rem;

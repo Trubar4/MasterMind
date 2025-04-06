@@ -93,11 +93,12 @@ h1 {
 
 
 .header, .row, .roles, .controls {
-    display: grid;
+    margin-top: 2px;
+	display: grid;
     grid-template-columns: 40px 40px 240px 80px; /* Fixed pixel values that scale proportionally */
     gap: 0;
     column-gap: 0;
-    align-items: center;
+    align-items: right;
     padding: 0;
     position: relative;
     border: none;
@@ -209,9 +210,13 @@ h1 {
     font-size: 1.1rem;
     font-weight: bold;
     color: #B0BEC5;
-    text-align: center;
-    padding: 8px 0;
-    border-left: none; /* Remove border */
+    text-align: right;
+    padding: 0; /* Remove padding */
+    border-left: none;
+    height: 36px; /* Match submit button height */
+    display: flex; /* Use flexbox like the button */
+    justify-content: center;
+    align-items: right; /* Center content vertically */
 }
 
 #codemaker-label.active, #codebreaker-label.active {
@@ -250,7 +255,7 @@ h1 {
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    width: 80%;
+    width: 100%;
     height: 36px;
     margin: 0 auto;
     font-weight: bold;
@@ -414,7 +419,6 @@ h1 {
     font-weight: bold;
 }
 
-/* Find code message styling */
 .find-code-message {
     text-align: center;
     margin: 4px 0;
@@ -459,6 +463,9 @@ h1 {
     
     .position-feedback {
         width: 70px;
+    }
+	#codebreaker-label {
+        height: 36px;
     }
 }
 
@@ -517,7 +524,6 @@ h1 {
         right: 5px;
     }
     
-    /* Adjust color picker for mobile */
     .colors {
         grid-template-columns: repeat(4, 32px);
     }
@@ -525,6 +531,9 @@ h1 {
     .color-option {
         width: 32px;
         height: 32px;
+    }
+	#codebreaker-label {
+        height: 32px; /* Match button height at this breakpoint */
     }
 }
 
@@ -571,6 +580,10 @@ h1 {
     #new-gamebtn, #submitbtn, #mode-btn {
         font-size: 0.7rem;
         width: 80%;
+    }
+	
+	#codebreaker-label {
+        height: 28px; /* Match reduced height at smallest breakpoint */
     }
     
     .check-btn {

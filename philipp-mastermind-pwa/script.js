@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '1.0.9';
+const APP_VERSION = '1.2.2';
 
 const translations = {
     en: {
@@ -16,7 +16,7 @@ const translations = {
         both: "2 Player",
         codemakerMode: "Computer breaks Code",
         codebreakerMode: "Computer creates Code",
-        findCode: "Try to find the right code."
+        findCode: "Find the code."
     },
     de: {
         congratulations: "Code geknackt",
@@ -32,7 +32,7 @@ const translations = {
         both: "2-Spieler",
         codemakerMode: "Computer knackt Code",
         codebreakerMode: "Computer erstellt Code",
-        findCode: "Versuche den richtigen Code zu finden."
+        findCode: "Finde den Code."
     }
 };
 
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update codebreaker label to span the space
         if (codebreakerLabel) {
-            codebreakerLabel.style.gridColumn = "3 / span 2";
+            codebreakerLabel.style.gridColumn = "4 / span 1";
         }
     }
 
@@ -472,8 +472,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-
-	// Update the mode selection check in showFindCodeMessage to be more explicit
 	function showFindCodeMessage() {
 		console.log('Function called: showFindCodeMessage()');
 		console.log('Current mode when showing message:', currentMode);
@@ -501,9 +499,39 @@ document.addEventListener('DOMContentLoaded', function() {
 		
 		messageContainer.appendChild(messageElement);
 		
-		// Insert before the board
-		const boardParent = board.parentNode;
-		boardParent.insertBefore(messageContainer, board);
+		// Insert directly above the game board instead of before it
+		// Find the container that holds the labels for "Color" and "Position"
+		const labels = document.querySelectorAll('.translatable');
+		let colorLabel = null;
+		
+		// Find the color label element
+		for (const label of labels) {
+			if (label.dataset.key === 'colours') {
+				colorLabel = label;
+				break;
+			}
+		}
+		
+		if (colorLabel) {
+			// Find the parent container that holds the labels
+			const labelContainer = colorLabel.closest('div') || colorLabel.parentNode;
+			
+			// Insert the message above this container
+			if (labelContainer && labelContainer.parentNode) {
+				labelContainer.parentNode.insertBefore(messageContainer, labelContainer);
+				console.log('Find code message positioned above color/position labels');
+			} else {
+				// Fallback to original implementation if we can't find the right spot
+				const boardParent = board.parentNode;
+				boardParent.insertBefore(messageContainer, board);
+				console.log('Fallback: Find code message inserted before board');
+			}
+		} else {
+			// Fallback to original implementation if we can't find the color label
+			const boardParent = board.parentNode;
+			boardParent.insertBefore(messageContainer, board);
+			console.log('Fallback: Color label not found, inserted before board');
+		}
 		
 		// Ensure CSS exists for the message container
 		ensureFindCodeMessageCSS();
@@ -1433,21 +1461,6 @@ if ('serviceWorker' in navigator) {
                 window.location.reload(true);
             }
         };
-        
-        // Add a user-accessible refresh button
-        const refreshButton = document.createElement('button');
-        refreshButton.textContent = 'Update App';
-        refreshButton.style.position = 'fixed';
-        refreshButton.style.bottom = '10px';
-        refreshButton.style.right = '10px';
-        refreshButton.style.zIndex = '9999';
-        refreshButton.style.padding = '8px';
-        refreshButton.style.background = '#D32F2F';
-        refreshButton.style.color = 'white';
-        refreshButton.style.border = 'none';
-        refreshButton.style.borderRadius = '4px';
-        refreshButton.onclick = window.forceRefresh;
-        document.body.appendChild(refreshButton);
     });
 }
 

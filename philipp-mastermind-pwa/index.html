@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Philipp's Mastermind</title>
-  <!-- App version is controlled by script.js - version parameter added to force cache refresh -->
   <link rel="stylesheet" href="styles.css" id="styles-link" />
   <link rel="manifest" href="manifest.json" id="manifest-link" />
   <meta name="theme-color" content="#F5F5F5" />
@@ -15,14 +14,12 @@
     <div class="top-bar">
       <h1>Philipp's Mastermind</h1>
       <div class="language-switcher">
-        <!-- Set DE active by default -->
         <span class="lang-option" data-lang="en">EN</span>
         <span class="lang-separator">|</span>
         <span class="lang-option active" data-lang="de">DE</span>
       </div>
     </div>
     
-    <!-- New 4-column header layout -->
     <div class="header">
       <div class="colors-header">
         <span class="translatable" data-key="colours">Farben</span>
@@ -32,47 +29,28 @@
       </div>
     </div>
     
-    <!-- The board will be built here by JavaScript -->
     <div id="board"></div>
     
-    <!-- New 4-column roles layout -->
     <div class="roles">
       <span id="codemaker-label" class="active translatable" data-key="codemaker">ERSTELLER</span>
-      <button id="mode-btn" class="translatable" data-key="mode">Modus</button>
       <span id="codebreaker-label" class="translatable" data-key="codebreaker">LÖSER</span>
     </div>
     
-    <!-- New 4-column controls layout -->
     <div class="controls">
       <button id="new-gamebtn" class="translatable" data-key="newGame">Neues Spiel</button>
-      <!-- The guess area for codemaker -->
       <div id="guess-area"></div>
       <button id="submitbtn" class="translatable" data-key="submit" disabled>Senden</button>
     </div>
     
-    <!-- Mode picker -->
-    <div id="modepicker" class="hidden">
-      <div class="mode-option" data-mode="both">BEIDE</div>
-      <div class="mode-option" data-mode="codemakerMode">ERSTELLER</div>
-      <div class="mode-option" data-mode="codebreakerMode">LÖSER</div>
-    </div>
+    <div id="modepicker" class="hidden"></div>
   </div>
   
-  <!-- Color picker -->
   <div id="color-picker" class="color-picker hidden">
-    <div class="colors">
-      <div class="color-option" style="background-color: #FF0000;"></div>
-      <div class="color-option" style="background-color: #FFFF00;"></div>
-      <div class="color-option" style="background-color: #FFC000;"></div>
-      <div class="color-option" style="background-color: #F36DED;"></div>
-      <div class="color-option" style="background-color: #0070C0;"></div>
-      <div class="color-option" style="background-color: #00B050;"></div>
-      <div class="color-option" style="background-color: #A6A6A6;"></div>
-      <div class="color-option" style="background-color: #000000;"></div>
-    </div>
+    <div class="colors"></div>
     <div class="triangle"></div>
   </div>
   
+  <!-- Load the script directly -->
   <script src="script.js"></script>
 </body>
 </html>

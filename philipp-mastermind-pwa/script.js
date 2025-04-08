@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '2.0.1';
+const APP_VERSION = '2.0.2';
 
 // Utility function for debugging
 function debug(message) {
@@ -380,7 +380,6 @@ function ensureFindCodeMessageCSS() {
     .message-container {
       display: grid;
       grid-template-columns: 40px 40px 240px 80px; /* Match the main grid layout */
-      margin-bottom: 10px;
       width: 100%;
     }
     

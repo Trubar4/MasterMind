@@ -1,638 +1,669 @@
-.guess-circle-cell {
-    grid-column: 4; /* Updated for new grid structure */
-}
-
-.circle-cell {
-    text-align: center;
-    position: relative;
-}
-
-.row-number {
-    color: #212121;
-}
-
-.row {
-    display: grid;
-}
-
+/* ============================
+   1. RESET AND GLOBAL STYLES
+   ============================ */
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #F5F5F5;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: block;
+  background-color: #F5F5F5;
+  position: fixed; /* Prevent page scrolling */
+  top: 0;
+  left: 0;
 }
 
+/* ============================
+   2. LAYOUT STRUCTURE
+   ============================ */
+.game-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
 .container {
-    max-width: 100%; /* Ensure container never exceeds viewport */
-    box-sizing: border-box; /* Include padding in width calculation */
-    padding-right: 0; /* Remove any right padding */
-    margin-right: 0; /* Remove any right margin */
+  width: auto !important; /* Let content determine width */
+  max-width: 400px; /* Maximum width */
+  min-width: 280px; /* Minimum width for tiny screens */
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  transform-origin: center top;
+  will-change: transform;
 }
 
 .container::before {
-    display: none;
+  display: none;
+}
+
+/* Grid Structure */
+.header, .row, .controls, .top-bar {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 40px 40px 3px 188px 3px 80px;
+  gap: 0;
+  column-gap: 0;
+  align-items: center;
+  padding: 0;
+  position: relative;
+  border: none;
+  margin: 0;
+  background-color: transparent;
 }
 
 .top-bar {
-    display: grid;
-    grid-template-columns: 40px 40px 3px 188px 3px minmax(80px, auto);
-    align-items: center;
-    margin-bottom: 5px;
-    position: relative;
-    padding: 8px 0;
-    border-bottom: 2px solid #D6DCE5;
-}
-
-h1 {
-    grid-column: 1 / span 4;
-    font-size: clamp(1.1rem, 2.75vw, 1.32rem);
-    color: #212121;
-    margin: 0;
-    text-align: left;
-    padding-left: 10px;
-}
-
-.language-switcher {
-    grid-column: 6;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
+  margin-bottom: 5px;
+  padding: 8px 0;
+  border-bottom: 2px solid #D6DCE5;
 }
 
 .header {
-    margin-bottom: 2px;
-    display: grid;
-	grid-template-columns: 40px 40px 3px 188px 3px minmax(80px, auto);
+  margin-bottom: 2px;
 }
 
-.colors-header {
-    grid-column: 2;
-    font-size: 1.1rem;
-    color: #1976D2;
-    text-align: center;
-    padding: 4px;
-    width: 100%;
+.row {
+  min-height: 40px;
+  max-height: 44px;
+  padding: 2px 0;
 }
 
-.positions-header {
-    grid-column: 6;
-    font-size: 1.1rem;
-    color: #D32F2F;
-    text-align: center;
-    padding: 0;
-    width: 100%;
+.header::after, .row::after, .roles::after, .controls::after {
+  display: none !important;
 }
 
+.row, .header, .roles, .controls {
+  border-bottom: none !important;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding: 1px 0;
+}
+
+/* ============================
+   3. BOARD AND ROWS
+   ============================ */
 #board {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0px;
-    background-color: #D6DCE5; /* Add background color to board */
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #D6DCE5;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Remove previous background approach */
 #board::before {
-    display: none;
+  display: none;
 }
 
-.header, .row, .roles, .controls {
-    margin-top: 2px;
-    display: grid;
-	grid-template-columns: 40px 40px 3px 188px 3px minmax(80px, auto);
-    gap: 0;
-    column-gap: 0;
-    align-items: center;
-    padding: 0;
-    position: relative;
-    border: none;
-    margin-bottom: 8px;
-    background-color: #F5F5F5; /* Add background color to each row */
-	margin: 0;
+#board .row:nth-child(odd) {
+  background-color: #F0F0F0;
 }
 
+#board .row:nth-child(even) {
+  background-color: #F5F5F5;
+}
+
+/* Row elements */
 .row-number {
-    grid-column: 1;
-    font-size: 1.1rem;
-    color: #212121;
-    text-align: center;
-    padding: 0;
-    width: 40px;
+  grid-column: 1;
+  font-size: 1.1rem;
+  color: #212121;
+  text-align: center;
+  padding: 0;
+  width: 40px;
 }
 
 .colors-feedback {
-    grid-column: 2;
-    font-size: 1.1rem;
-    color: #1976D2;
-    text-align: center;
-    padding: 0;
-    margin: 0;
-    width: 40px;
-    font-weight: bold;
+  grid-column: 2;
+  font-size: 1.1rem;
+  color: #1976D2;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  width: 40px;
+  font-weight: bold;
 }
 
 .position-feedback {
-    grid-column: 6;
-    font-size: 1.1rem;
-    color: #D32F2F;
-    text-align: center;
-    padding: 0;
-    margin: 0;
-    width: 80px;
-    font-weight: bold;
+  grid-column: 6;
+  font-size: 1.1rem;
+  color: #D32F2F;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  width: 80px;
+  font-weight: bold;
 }
 
+/* ============================
+   4. CIRCLES AND CONTAINERS
+   ============================ */
 .circles-container, #guess-area {
-    grid-column: 4;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    width: 188px; /* Match column width exactly */
-    padding: 2px;
-    margin: 0 auto;
-    height: 40px;
-    background-color: #D6DCE5;
+  grid-column: 4;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  width: 188px;
+  padding: 2px;
+  margin: 0 auto;
+  height: auto;
+  min-height: 40px;
+  background-color: #D6DCE5;
+  box-sizing: border-box;
 }
 
 .circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: white;
-    border: 2px solid #B0BEC5;
-    cursor: pointer;
-    box-sizing: border-box;
-    margin: 0;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  width: 40px;
+  height: 40px;
+  aspect-ratio: 1/1 !important;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid #B0BEC5;
+  cursor: pointer;
+  box-sizing: border-box;
+  margin: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  min-width: 28px;
+  min-height: 28px;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ============================
+   5. HEADER AND TITLE
+   ============================ */
+h1 {
+  grid-column: 1 / span 4;
+  font-size: clamp(1.1rem, 2.75vw, 1.32rem);
+  color: #212121;
+  margin: 0;
+  text-align: left;
+  padding-left: 10px;
+}
+
+.colors-header {
+  grid-column: 2;
+  font-size: 1rem;
+  color: #1976D2;
+  text-align: center;
+  padding: 4px;
+  width: 100%;
+}
+
+.positions-header {
+  grid-column: 6;
+  font-size: 1rem;
+  color: #D32F2F;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto;
+}
+
+/* ============================
+   6. BUTTONS AND CONTROLS
+   ============================ */
+.check-btn, #new-gamebtn, #submitbtn, #mode-btn {
+  font-size: 0.9rem;
+  padding: 0.4rem;
+  background-color: #6200EE;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
 .check-btn {
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-    background-color: #B0BEC5;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 80px; /* Match column width exactly */
-    height: 36px;
-    font-weight: bold;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: static;
-    transform: none;
-    grid-column: 6;
-	margin-left: 10px;
-}
-
-.check-btn.active {
-    background-color: #6200EE;
-}
-
-.check-btn.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.roles {
-    margin-top: 2px;
-}
-
-.controls {
-    margin-top: 5px;
-}
-
-#codemaker-label {
-    grid-column: 1 / span 2;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #B0BEC5;
-    text-align: center;
-    padding: 8px 0;
-    border-right: none;
-}
-
-#codebreaker-label {
-    grid-column: 6;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #B0BEC5;
-    text-align: center;
-    padding: 0;
-    border-left: none;
-    height: 36px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-}
-
-#codemaker-label.active, #codebreaker-label.active {
-    color: #212121;
-}
-
-#mode-btn {
-    grid-column: 4;
-    font-size: 0.9rem;
-    padding: 0.4rem;
-    background-color: #6200EE;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 120px;
-    height: 36px;
-    margin: 0 auto;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Four-column controls layout */
-.controls {
-    display: grid;
-}
-
-#new-gamebtn, #submitbtn {
-    font-size: 0.9rem;
-    padding: 0.4rem;
-    background-color: #6200EE;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    height: 36px;
-    margin: auto auto;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  grid-column: 6;
+  width: 80px;
+  height: 36px;
+  margin: 0 auto;
 }
 
 #new-gamebtn {
-    grid-column: 1 / span 2;
-    margin-right: 6px; /* Add 3px space between new-gamebtn and column 4 */
-    width: 90%;
-}
-
-#guess-area {
-    grid-column: 4;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    width: 188px; /* Match column width exactly */
-    padding: 0;
-    margin: 0 auto;
-    background-color: #D6DCE5;
+  grid-column: 1 / span 2;
+  width: 90%;
+  height: 36px;
+  margin: 0 auto;
 }
 
 #submitbtn {
-    grid-column: 6;
-    background-color: #B0BEC5;
-    width: 100%; /* Use full width of the column */
-    max-width: 100px; /* Limit maximum width */
-    margin-left: 6px; /* Add 3px space between column 4 and submitbtn */
+  grid-column: 6;
+  width: 80px;
+  max-width: 80px;
+  height: 36px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
-#submitbtn.active {
-    background-color: #6200EE;
+#mode-btn {
+  grid-column: 4;
+  width: 120px;
+  height: 36px;
+  margin: 0 auto;
 }
 
+/* Button states */
+.check-btn.disabled, #submitbtn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #B0BEC5;
+}
+
+.check-btn.active, #submitbtn.active {
+  background-color: #6200EE;
+}
+
+/* ============================
+   7. ROLES SECTION
+   ============================ */
+.roles {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 !important;
+  width: 100%;
+}
+
+#codemaker-label, #codebreaker-label {
+  grid-column: unset;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #B0BEC5;
+  text-align: center;
+  padding: 8px 0;
+}
+
+#codebreaker-label {
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+#codemaker-label.active, #codebreaker-label.active {
+  color: #212121;
+}
+
+/* ============================
+   8. COLOR PICKER
+   ============================ */
 .color-picker {
-    position: absolute;
-    background-color: #DAE3F3;
-    width: auto;
-    padding: 0.6rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 1000;
-    border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  position: fixed;
+  background-color: #DAE3F3;
+  border: 2px solid #B0BEC5;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 2000 !important;
+  transform-origin: top center;
+  will-change: transform;
+  pointer-events: auto !important;
 }
 
 .colors {
-    display: grid;
-    grid-template-columns: repeat(4, 40px);
-    gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 8px;
 }
 
 .color-option {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid #ccc;
-    box-sizing: border-box;
-    transition: transform 0.1s;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ccc;
+  box-sizing: border-box;
+  transition: transform 0.1s;
+  pointer-events: auto !important;
 }
 
-.color-option:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+.color-option:hover, .color-option:active {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 .triangle {
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid #DAE3F3;
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #DAE3F3;
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.hidden {
-    display: none;
-}
-
-.lang-option {
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
-    color: #B0BEC5;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.lang-option.active {
-    color: #212121;
-    font-weight: bold;
-    background-color: #f0f0f0;
-}
-
-.lang-separator {
-    color: #B0BEC5;
-    font-size: 1.2rem;
-}
-
+/* ============================
+   9. MODE PICKER
+   ============================ */
 #modepicker {
-    position: absolute;
-    background-color: #DAE3F3;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    width: clamp(200px, 60vw, 240px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(200px, 80%, 300px);
+  max-width: 300px;
+  background-color: #DAE3F3;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2000 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto !important;
 }
 
-#modepicker:after {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid #DAE3F3;
-}
-
-#modepicker:before {
-    content: "";
-    position: absolute;
-    bottom: -11px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 11px solid transparent;
-    border-right: 11px solid transparent;
-    border-top: 11px solid #ccc;
-}
-
-#modepicker.hidden {
-    display: none;
+#modepicker:after, #modepicker:before {
+  display: none;
 }
 
 .mode-option {
-    cursor: pointer;
-    padding: 5px 10px;
-    margin: 5px 0;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-    font-size: clamp(0.8rem, 2vw, 1rem);
-    color: #B0BEC5;
-    text-align: center;
-    width: 100%;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin: 5px 0;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  color: #B0BEC5;
+  text-align: center;
+  width: 100%;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
 .mode-option:hover {
-    background-color: #e0e0e0;
+  background-color: #e0e0e0;
 }
 
 .mode-option.selected, .mode-option.active {
-    color: #212121;
-    font-weight: bold;
+  color: #212121;
+  font-weight: bold;
 }
 
+.mode-separator {
+  width: 80%;
+  height: 1px;
+  background-color: #ccc;
+  margin: 10px auto;
+  border: none;
+}
+
+/* ============================
+   10. LANGUAGE SWITCHER
+   ============================ */
+.language-switcher {
+  grid-column: 6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.lang-option {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: #B0BEC5;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+.lang-option.active {
+  color: #212121;
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+
+.lang-separator {
+  color: #B0BEC5;
+  font-size: 1.2rem;
+}
+
+/* ============================
+   11. CIRCLE LENGTH SELECTOR
+   ============================ */
+.circles-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.circles-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.circle-length-option {
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 0.9rem;
+  color: #B0BEC5;
+}
+
+.circle-length-option.selected {
+  color: #000;
+  font-weight: bold;
+}
+
+.circle-length-separator {
+  color: #B0BEC5;
+  font-size: 0.9rem;
+}
+
+/* ============================
+   12. FIVE CIRCLES MODE
+   ============================ */
+.circles-container.five-circles, 
+#guess-area.five-circles {
+  gap: 4px;
+}
+
+.circles-container.five-circles .circle,
+#guess-area.five-circles .circle {
+  width: 32px;
+  height: 32px;
+}
+
+.five-circles .color-option {
+  width: 32px;
+  height: 32px;
+}
+
+/* ============================
+   13. FIND CODE MESSAGE
+   ============================ */
 .find-code-message {
-    text-align: center;
-    font-weight: bold;
-    font-size: 0.8rem;
-    font-style: italic;
-    grid-column: 1 / span 6;
-    width: 100%;
+  font-size: 0.8rem;
+  font-style: italic;
+  padding: 4px 0;
+  margin: 0;
+  grid-column: 1 / span 6;
+  width: 100%;
+  text-align: center;
 }
 
-/* Style adjustments for mobile */
+/* ============================
+   14. UTILITY CLASSES
+   ============================ */
+.hidden {
+  display: none;
+}
+
+/* ============================
+   15. MEDIA QUERIES
+   ============================ */
+/* Larger screens */
+@media (min-width: 500px) {
+  .container {
+    width: 400px;
+  }
+}
+
+/* Medium screens */
 @media (max-width: 500px) {
-    .container {
-        max-width: 394px;
-    }
-    
-    .header, .row, .roles, .controls, .top-bar {
-        grid-template-columns: 30px 30px 3px 160px 3px minmax(70px, auto);
-    }
-    
-    .circles-container, #guess-area {
-        width: 160px;
-        gap: 4px;
-    }
-    
-    .circle {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .row-number {
-        width: 30px;
-    }
-    
-    .colors-feedback {
-        width: 30px;
-    }
-    
-    .position-feedback {
-        width: 70px;
-    }
-    
-    #codebreaker-label {
-        height: 36px;
-    }
-    
-    /* No fixed width for submitbtn, using width: 100% instead */
+  .header, .row, .controls, .top-bar {
+    grid-template-columns: 30px 30px 3px 160px 3px 70px;
+  }
+  
+  .circles-container, #guess-area {
+    width: 160px;
+    gap: 4px;
+  }
+  
+  .circle {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .check-btn, #submitbtn {
+    width: 70px;
+    font-size: 0.85rem;
+  }
+  
+  .color-option {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .circles-container.five-circles .circle,
+  #guess-area.five-circles .circle {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .five-circles .color-option {
+    width: 28px;
+    height: 28px;
+  }
 }
 
+/* Small screens */
 @media (max-width: 400px) {
-    .container {
-        max-width: 314px;
-    }
-    
-    .header, .row, .roles, .controls, .top-bar {
-        grid-template-columns: 25px 25px 3px 141px 3px minmax(60px, auto);
-    }
-    
-    .circles-container, #guess-area {
-        width: 141px;
-        gap: 3px;
-    }
-    
-    .circle {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .row-number {
-        width: 25px;
-        font-size: 0.9rem;
-    }
-    
-    .colors-feedback {
-        width: 25px;
-        font-size: 0.9rem;
-    }
-    
-    .position-feedback {
-        width: 60px;
-        font-size: 0.9rem;
-    }
-    
-    h1 {
-        font-size: clamp(0.8rem, 2.2vw, 1rem);
-    }
-    
-    #new-gamebtn, #mode-btn {
-        font-size: 0.8rem;
-        padding: 0.3rem;
-        height: 32px;
-    }
-    
-    #submitbtn {
-        font-size: 0.8rem;
-        padding: 0.3rem;
-        height: 32px;
-        width: 60px;
-    }
-    
-    #codemaker-label, #codebreaker-label {
-        font-size: 0.9rem;
-    }
-    
-    .check-btn {
-        font-size: 0.8rem;
-        width: 60px; /* Match column width exactly */
-        height: 32px;
-        right: 5px;
-    }
-    
-    .colors {
-        grid-template-columns: repeat(4, 32px);
-    }
-    
-    .color-option {
-        width: 32px;
-        height: 32px;
-    }
-    
-    #codebreaker-label {
-        height: 32px;
-    }
+  .header, .row, .controls, .top-bar {
+    grid-template-columns: 25px 25px 3px 141px 3px 60px;
+  }
+  
+  .circles-container, #guess-area {
+    width: 141px;
+    gap: 3px;
+  }
+  
+  .circle {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .check-btn, #submitbtn {
+    width: 60px;
+    font-size: 0.8rem;
+  }
+  
+  #submitbtn {
+    max-width: 60px;
+    height: 32px;
+  }
+  
+  .color-option {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .circles-container.five-circles .circle,
+  #guess-area.five-circles .circle {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .five-circles .color-option {
+    width: 24px;
+    height: 24px;
+  }
+  
+  #board .row {
+    min-height: 36px;
+    max-height: 40px;
+  }
 }
 
-/* For very small screens */
+/* Very small screens */
 @media (max-width: 320px) {
-    .container {
-        max-width: 274px;
-    }
-    
-    .header, .row, .roles, .controls, .top-bar {
-        grid-template-columns: 20px 20px 3px 119px 3px minmax(50px, auto);
-    }
-    
-    .circles-container, #guess-area {
-        width: 119px;
-        gap: 1px;
-    }
-    
-    .circle {
-        width: 28px;
-        height: 28px;
-        border-width: 1px;
-    }
-    
-    .row-number {
-        width: 20px;
-        font-size: 0.8rem;
-    }
-    
-    .colors-feedback {
-        width: 20px;
-        font-size: 0.8rem;
-    }
-    
-    .position-feedback {
-        width: 50px;
-        font-size: 0.8rem;
-    }
-    
-    #codemaker-label, #codebreaker-label {
-        font-size: 0.75rem;
-    }
-    
-    #new-gamebtn, #mode-btn {
-        font-size: 0.7rem;
-        width: 80%;
-    }
-    
-    #submitbtn {
-        font-size: 0.7rem;
-        width: 50px;
-    }
-    
-    #codebreaker-label {
-        height: 28px;
-    }
-    
-    .check-btn {
-        font-size: 0.7rem;
-        width: 50px;
-    }
-    
-    .colors {
-        grid-template-columns: repeat(4, 28px);
-    }
-    
-    .color-option {
-        width: 28px;
-        height: 28px;
-    }
+  .header, .row, .controls, .top-bar {
+    grid-template-columns: 20px 20px 3px 119px 3px 50px;
+  }
+  
+  .circles-container, #guess-area {
+    width: 119px;
+    gap: 1px;
+  }
+  
+  .circle {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .check-btn, #submitbtn {
+    width: 50px;
+    font-size: 0.75rem;
+  }
+  
+  #submitbtn {
+    max-width: 50px;
+    height: 28px;
+  }
+  
+  .color-option {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .circles-container.five-circles .circle,
+  #guess-area.five-circles .circle {
+    width: 21px;
+    height: 21px;
+  }
+  
+  .five-circles .color-option {
+    width: 21px;
+    height: 21px;
+  }
+  
+  #board .row {
+    min-height: 32px;
+    max-height: 36px;
+  }
 }

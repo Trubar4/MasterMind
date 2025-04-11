@@ -10,39 +10,42 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />    
 </head>
 <body>
-  <div class="container">
-    <div class="top-bar">
-      <h1>Philipp's Mastermind</h1>
-      <div class="language-switcher">
-        <span class="lang-option" data-lang="en">EN</span>
-        <span class="lang-separator">|</span>
-        <span class="lang-option active" data-lang="de">DE</span>
+  <!-- Add a wrapper div to control overall scaling -->
+  <div class="game-wrapper">
+    <div class="container">
+      <div class="top-bar">
+        <h1>Philipp's Mastermind</h1>
+        <div class="language-switcher">
+          <span class="lang-option" data-lang="en">EN</span>
+          <span class="lang-separator">|</span>
+          <span class="lang-option active" data-lang="de">DE</span>
+        </div>
       </div>
-    </div>
-    
-    <div class="header">
-      <div class="colors-header">
-        <span class="translatable" data-key="colours">Farben</span>
+      
+      <div class="header">
+        <div class="colors-header">
+          <span class="translatable" data-key="colours">Farben</span>
+        </div>
+        <div class="positions-header">
+          <span class="translatable" data-key="positions">Positionen</span>
+        </div>
       </div>
-      <div class="positions-header">
-        <span class="translatable" data-key="positions">Positionen</span>
+      
+      <div id="board"></div>
+      
+      <div class="roles">
+        <span id="codemaker-label" class="active translatable" data-key="codemaker">ERSTELLER</span>
+        <span id="codebreaker-label" class="translatable" data-key="codebreaker">LÖSER</span>
       </div>
+      
+      <div class="controls">
+        <button id="new-gamebtn" class="translatable" data-key="newGame">Neues Spiel</button>
+        <div id="guess-area"></div>
+        <button id="submitbtn" class="translatable" data-key="submit" disabled>Senden</button>
+      </div>
+      
+      <div id="modepicker" class="hidden"></div>
     </div>
-    
-    <div id="board"></div>
-    
-    <div class="roles">
-      <span id="codemaker-label" class="active translatable" data-key="codemaker">ERSTELLER</span>
-      <span id="codebreaker-label" class="translatable" data-key="codebreaker">LÖSER</span>
-    </div>
-    
-    <div class="controls">
-      <button id="new-gamebtn" class="translatable" data-key="newGame">Neues Spiel</button>
-      <div id="guess-area"></div>
-      <button id="submitbtn" class="translatable" data-key="submit" disabled>Senden</button>
-    </div>
-    
-    <div id="modepicker" class="hidden"></div>
   </div>
   
   <div id="color-picker" class="color-picker hidden">

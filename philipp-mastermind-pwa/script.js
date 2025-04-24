@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '2.0.5';
+const APP_VERSION = '3.0.0';
 
 // Imports
 import analytics from './analytics.js';

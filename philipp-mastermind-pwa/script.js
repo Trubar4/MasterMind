@@ -1,6 +1,9 @@
 // App version - increment this when making changes
 const APP_VERSION = '2.0.5';
 
+// Imports
+import analytics from './analytics.js';
+
 // ============================
 // 1. CONSTANTS AND GLOBALS
 // ============================
@@ -235,6 +238,9 @@ function setLanguage(lang) {
   
   updateModePicker();
   colorizeHeading();
+  
+  //Track language change
+  analytics.trackInteraction('language_change', { language: lang });
 }
 
 /**
@@ -353,6 +359,23 @@ function updateModePicker() {
   });
   
   modePicker.appendChild(circlesContainer);
+  
+  // Add event tracking for mode selection
+  document.querySelectorAll('.mode-option').forEach(option => {
+    const originalClickHandler = option.onclick;
+    
+    option.onclick = function(event) {
+      const selectedMode = this.dataset.mode;
+      
+      // Track the mode selection
+      analytics.trackInteraction('mode_select', { mode: selectedMode });
+      
+      // Call the original handler
+      if (originalClickHandler) {
+        originalClickHandler.call(this, event);
+      }
+    };
+  });
 }
 
 /**
@@ -490,6 +513,13 @@ function initGame() {
   if (currentMode === GAME_MODES.CODEBREAKER) {
     generateComputerCode();
   }
+  
+  // Track game start
+  analytics.trackGameStart({
+    mode: currentMode,
+    codeLength: CODE_LENGTH,
+    language: currentLang
+  });
   
   // Fix roles display
   fixRolesDisplay();
@@ -1474,6 +1504,9 @@ function revealCode() {
       circle.parentNode.replaceChild(newCircle, circle);
     });
   }
+  
+  // Track the give up event
+  analytics.trackGameEnd('abandoned', currentRow - 1, true);
 }
 
 /**
@@ -1541,6 +1574,29 @@ function checkGuess() {
   
   // Add check button for next row
   addCheckButton();
+  
+    // Check if game is won
+   if (result.correctPositions === CODE_LENGTH) {
+    // Game won
+    analytics.trackGameEnd('win', currentRow, false);
+    alert(translations[currentLang].congratulations);
+    submitBtn.setAttribute("disabled", "true");
+    gameOver = true;
+    return;
+  }
+  
+  // Check if max rows reached
+  if (currentRow > MAX_ROWS) {
+    // Game over - max rows reached
+    analytics.trackGameEnd('loss', MAX_ROWS, false);
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      guessArea.children[i].style.backgroundColor = secretCode[i];
+    }
+    alert(`${translations[currentLang].gameOverFailed || "Couldn't crack the code."}`);
+    submitBtn.setAttribute("disabled", "true");
+    gameOver = true;
+    return;
+  }
 }
 
 /**
@@ -2001,6 +2057,17 @@ function selectColor(color) {
   
   // Hide the color picker
   hideColorPicker();
+  
+  
+  //Track color selections
+  function selectColor(color) {
+	  // ... your existing code ...
+	  
+	  analytics.trackInteraction('color_select', { 
+		color: color,
+		isCodemaker: isGuess,
+		row: row
+   });
 }
 
 /**
@@ -2089,6 +2156,15 @@ window.forceRefresh = forceRefresh;
 // Add a global error handler
 window.addEventListener('error', function(event) {
   console.error('Global error caught:', event.error);
+
+  // Track the error
+  analytics.trackError('javascript', {
+    message: event.error ? event.error.message : 'Unknown error',
+    stack: event.error ? event.error.stack : null,
+    source: event.filename,
+    line: event.lineno,
+    column: event.colno
+  });
 });
 
 // Main initialization when DOM content is loaded
@@ -2102,6 +2178,20 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!initDomReferences()) {
     console.error('Failed to initialize DOM references');
     return;
+  }
+  
+  // Initialize analytics with your tracking ID
+  analytics.initialize('G-W35Z46N2NT'); // Replace with your actual tracking ID
+  addAnalyticsTranslations();
+  addAnalyticsSettings();
+  
+  // Track page load performance
+  if (window.performance) {
+    const pageLoadTime = window.performance.timing.domContentLoadedEventEnd - 
+                        window.performance.timing.navigationStart;
+    analytics.trackPerformance('page_load', pageLoadTime, {
+      appVersion: APP_VERSION
+    });
   }
   
   // Update resource links with version
@@ -2168,3 +2258,100 @@ document.addEventListener('DOMContentLoaded', function() {
   // One final scaling adjustment after all animations and transitions
   setTimeout(adjustGameScaling, 1000);
 });
+
+
+// ============================
+// 8. Analytic settings and functions
+// ============================
+function addAnalyticsSettings() {
+  // Create a settings icon in the top bar
+  const topBar = document.querySelector('.top-bar');
+  const settingsIcon = document.createElement('div');
+  settingsIcon.className = 'settings-icon';
+  settingsIcon.innerHTML = '⚙️';
+  settingsIcon.style.cursor = 'pointer';
+  settingsIcon.style.fontSize = '1.2rem';
+  settingsIcon.style.marginLeft = 'auto';
+  settingsIcon.style.marginRight = '10px';
+  
+  settingsIcon.addEventListener('click', function() {
+    showAnalyticsSettings();
+  });
+  
+  topBar.appendChild(settingsIcon);
+}
+
+function showAnalyticsSettings() {
+  // Create a simple modal for analytics settings
+  const modal = document.createElement('div');
+  modal.className = 'analytics-settings-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '50%';
+  modal.style.left = '50%';
+  modal.style.transform = 'translate(-50%, -50%)';
+  modal.style.backgroundColor = '#DAE3F3';
+  modal.style.padding = '20px';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+  modal.style.zIndex = '3000';
+  modal.style.minWidth = '250px';
+  
+  // Add content
+  const heading = document.createElement('h3');
+  heading.textContent = translations[currentLang].settings || 'Settings';
+  heading.style.marginTop = '0';
+  
+  const analyticsLabel = document.createElement('label');
+  analyticsLabel.style.display = 'block';
+  analyticsLabel.style.margin = '10px 0';
+  
+  const analyticsCheckbox = document.createElement('input');
+  analyticsCheckbox.type = 'checkbox';
+  analyticsCheckbox.checked = analytics.enabled;
+  analyticsCheckbox.style.marginRight = '10px';
+  
+  analyticsLabel.appendChild(analyticsCheckbox);
+  analyticsLabel.appendChild(document.createTextNode(
+    translations[currentLang].enableAnalytics || 'Enable analytics'
+  ));
+  
+  // Close button
+  const closeButton = document.createElement('button');
+  closeButton.textContent = translations[currentLang].close || 'Close';
+  closeButton.style.marginTop = '15px';
+  closeButton.style.padding = '5px 10px';
+  closeButton.style.backgroundColor = '#6200EE';
+  closeButton.style.color = 'white';
+  closeButton.style.border = 'none';
+  closeButton.style.borderRadius = '4px';
+  closeButton.style.cursor = 'pointer';
+  
+  closeButton.addEventListener('click', function() {
+    document.body.removeChild(modal);
+  });
+  
+  // Event listener for checkbox
+  analyticsCheckbox.addEventListener('change', function() {
+    analytics.setEnabled(this.checked);
+  });
+  
+  // Assemble the modal
+  modal.appendChild(heading);
+  modal.appendChild(analyticsLabel);
+  modal.appendChild(closeButton);
+  
+  // Add modal to the page
+  document.body.appendChild(modal);
+}
+
+// Don't forget to add the settings to your translations
+function addAnalyticsTranslations() {
+  // Add to your existing translations
+  translations.en.settings = "Settings";
+  translations.en.enableAnalytics = "Enable anonymous usage statistics";
+  translations.en.close = "Close";
+  
+  translations.de.settings = "Einstellungen";
+  translations.de.enableAnalytics = "Anonyme Nutzungsstatistiken aktivieren";
+  translations.de.close = "Schließen";
+}

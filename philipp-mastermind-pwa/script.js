@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '3.0.0';
+const APP_VERSION = '3.0.1';
 
 // Imports
 import analytics from './analytics.js';
@@ -2055,19 +2055,15 @@ function selectColor(color) {
     }
   }
   
+  // Track color selection
+  analytics.trackInteraction('color_select', { 
+    color: color,
+    isCodemaker: isGuess,
+    row: row
+  });
+  
   // Hide the color picker
   hideColorPicker();
-  
-  
-  //Track color selections
-  function selectColor(color) {
-	  // ... your existing code ...
-	  
-	  analytics.trackInteraction('color_select', { 
-		color: color,
-		isCodemaker: isGuess,
-		row: row
-   });
 }
 
 /**

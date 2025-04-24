@@ -1,5 +1,5 @@
 // analytics.js - User tracking module for Mastermind
-const APP_VERSION = '2.0.5'; // Match your current app version
+const APP_VERSION = '3.0.2'; // Match your current app version
 
 class MastermindAnalytics {
   constructor(options = {}) {
@@ -378,4 +378,4 @@ const analytics = new MastermindAnalytics({
 });
 
 // Export the analytics instance
-export default analytics;
+window.analytics = analytics;

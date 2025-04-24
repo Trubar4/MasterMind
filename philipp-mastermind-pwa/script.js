@@ -1,8 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '3.0.1';
-
-// Imports
-import analytics from './analytics.js';
+const APP_VERSION = '3.0.2';
 
 // ============================
 // 1. CONSTANTS AND GLOBALS
@@ -240,7 +237,7 @@ function setLanguage(lang) {
   colorizeHeading();
   
   //Track language change
-  analytics.trackInteraction('language_change', { language: lang });
+  window.analytics.trackInteraction('language_change', { language: lang });
 }
 
 /**
@@ -368,7 +365,7 @@ function updateModePicker() {
       const selectedMode = this.dataset.mode;
       
       // Track the mode selection
-      analytics.trackInteraction('mode_select', { mode: selectedMode });
+      window.analytics.trackInteraction('mode_select', { mode: selectedMode });
       
       // Call the original handler
       if (originalClickHandler) {
@@ -515,7 +512,7 @@ function initGame() {
   }
   
   // Track game start
-  analytics.trackGameStart({
+  window.analytics.trackGameStart({
     mode: currentMode,
     codeLength: CODE_LENGTH,
     language: currentLang
@@ -1506,7 +1503,7 @@ function revealCode() {
   }
   
   // Track the give up event
-  analytics.trackGameEnd('abandoned', currentRow - 1, true);
+  window.analytics.trackGameEnd('abandoned', currentRow - 1, true);
 }
 
 /**
@@ -1578,7 +1575,7 @@ function checkGuess() {
     // Check if game is won
    if (result.correctPositions === CODE_LENGTH) {
     // Game won
-    analytics.trackGameEnd('win', currentRow, false);
+    window.analytics.trackGameEnd('win', currentRow, false);
     alert(translations[currentLang].congratulations);
     submitBtn.setAttribute("disabled", "true");
     gameOver = true;
@@ -1588,7 +1585,7 @@ function checkGuess() {
   // Check if max rows reached
   if (currentRow > MAX_ROWS) {
     // Game over - max rows reached
-    analytics.trackGameEnd('loss', MAX_ROWS, false);
+    window.analytics.trackGameEnd('loss', MAX_ROWS, false);
     for (let i = 0; i < CODE_LENGTH; i++) {
       guessArea.children[i].style.backgroundColor = secretCode[i];
     }
@@ -2056,7 +2053,7 @@ function selectColor(color) {
   }
   
   // Track color selection
-  analytics.trackInteraction('color_select', { 
+  window.analytics.trackInteraction('color_select', { 
     color: color,
     isCodemaker: isGuess,
     row: row
@@ -2154,7 +2151,7 @@ window.addEventListener('error', function(event) {
   console.error('Global error caught:', event.error);
 
   // Track the error
-  analytics.trackError('javascript', {
+  window.analytics.trackError('javascript', {
     message: event.error ? event.error.message : 'Unknown error',
     stack: event.error ? event.error.stack : null,
     source: event.filename,
@@ -2177,7 +2174,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Initialize analytics with your tracking ID
-  analytics.initialize('G-W35Z46N2NT'); // Replace with your actual tracking ID
+  window.analytics.initialize('G-W35Z46N2NT'); // Replace with your actual tracking ID
   addAnalyticsTranslations();
   addAnalyticsSettings();
   
@@ -2185,7 +2182,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (window.performance) {
     const pageLoadTime = window.performance.timing.domContentLoadedEventEnd - 
                         window.performance.timing.navigationStart;
-    analytics.trackPerformance('page_load', pageLoadTime, {
+    window.analytics.trackPerformance('page_load', pageLoadTime, {
       appVersion: APP_VERSION
     });
   }
@@ -2303,7 +2300,7 @@ function showAnalyticsSettings() {
   
   const analyticsCheckbox = document.createElement('input');
   analyticsCheckbox.type = 'checkbox';
-  analyticsCheckbox.checked = analytics.enabled;
+  analyticsCheckbox.checked = window.analytics.enabled;
   analyticsCheckbox.style.marginRight = '10px';
   
   analyticsLabel.appendChild(analyticsCheckbox);
@@ -2328,7 +2325,7 @@ function showAnalyticsSettings() {
   
   // Event listener for checkbox
   analyticsCheckbox.addEventListener('change', function() {
-    analytics.setEnabled(this.checked);
+    window.analytics.setEnabled(this.checked);
   });
   
   // Assemble the modal

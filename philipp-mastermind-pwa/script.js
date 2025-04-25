@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-window.APP_VERSION = '3.0.6';
+window.APP_VERSION = '3.0.7';
 
 // Make sure analytics is defined before any other script tries to use it
 window.analytics = window.analytics || {
@@ -2188,6 +2188,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.analytics.initialize('G-W35Z46N2NT'); // Replace with your actual tracking ID
   addAnalyticsTranslations();
   addAnalyticsSettings();
+  initializeEnhancedAnalytics(); // Add this line
   
   // Track page load performance
   if (window.performance) {
@@ -2285,6 +2286,7 @@ function addAnalyticsSettings() {
   topBar.appendChild(settingsIcon);
 }
 
+
 function showAnalyticsSettings() {
   // Create a simple modal for analytics settings
   const modal = document.createElement('div');
@@ -2319,6 +2321,23 @@ function showAnalyticsSettings() {
     translations[currentLang].enableAnalytics || 'Enable analytics'
   ));
   
+  // Add stats button
+  const statsButton = document.createElement('button');
+  statsButton.textContent = translations[currentLang].viewStats || 'View Statistics';
+  statsButton.style.margin = '10px 0';
+  statsButton.style.padding = '5px 10px';
+  statsButton.style.backgroundColor = '#4CAF50';
+  statsButton.style.color = 'white';
+  statsButton.style.border = 'none';
+  statsButton.style.borderRadius = '4px';
+  statsButton.style.cursor = 'pointer';
+  statsButton.style.width = '100%';
+  
+  statsButton.addEventListener('click', function() {
+    document.body.removeChild(modal);
+    showAnalyticsDashboard();
+  });
+  
   // Close button
   const closeButton = document.createElement('button');
   closeButton.textContent = translations[currentLang].close || 'Close';
@@ -2329,6 +2348,7 @@ function showAnalyticsSettings() {
   closeButton.style.border = 'none';
   closeButton.style.borderRadius = '4px';
   closeButton.style.cursor = 'pointer';
+  closeButton.style.width = '100%';
   
   closeButton.addEventListener('click', function() {
     document.body.removeChild(modal);
@@ -2342,10 +2362,381 @@ function showAnalyticsSettings() {
   // Assemble the modal
   modal.appendChild(heading);
   modal.appendChild(analyticsLabel);
+  modal.appendChild(statsButton);
   modal.appendChild(closeButton);
   
   // Add modal to the page
   document.body.appendChild(modal);
+}
+
+function showAnalyticsDashboard() {
+  // Get stats from analytics
+  const stats = window.analytics.getPlayerStats();
+  if (!stats) {
+    alert("No analytics data available");
+    return;
+  }
+  
+  // Create dashboard modal
+  const modal = document.createElement('div');
+  modal.className = 'analytics-dashboard-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '50%';
+  modal.style.left = '50%';
+  modal.style.transform = 'translate(-50%, -50%)';
+  modal.style.backgroundColor = '#DAE3F3';
+  modal.style.padding = '20px';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+  modal.style.zIndex = '3000';
+  modal.style.width = '90%';
+  modal.style.maxWidth = '500px';
+  modal.style.maxHeight = '80vh';
+  modal.style.overflow = 'auto';
+
+  // Add title
+  const heading = document.createElement('h3');
+  heading.textContent = translations[currentLang].playerStats || 'Your Game Statistics';
+  heading.style.marginTop = '0';
+  heading.style.textAlign = 'center';
+  heading.style.borderBottom = '1px solid #ccc';
+  heading.style.paddingBottom = '10px';
+  
+  // Create stats container
+  const statsContainer = document.createElement('div');
+  statsContainer.style.display = 'grid';
+  statsContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  statsContainer.style.gap = '15px';
+  statsContainer.style.marginTop = '15px';
+  
+  // Browser/Device info
+  const deviceInfo = document.createElement('div');
+  deviceInfo.style.gridColumn = '1 / span 2';
+  deviceInfo.style.backgroundColor = '#f0f5ff';
+  deviceInfo.style.padding = '10px';
+  deviceInfo.style.borderRadius = '5px';
+  deviceInfo.style.marginBottom = '10px';
+  
+  const browserInfo = detectBrowserInfo();
+  deviceInfo.innerHTML = `
+    <strong>${translations[currentLang].deviceInfo || 'Your Device'}</strong>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px;">
+      <div>${translations[currentLang].browser || 'Browser'}:</div>
+      <div>${browserInfo.browser} ${browserInfo.browserVersion}</div>
+      <div>${translations[currentLang].os || 'OS'}:</div>
+      <div>${browserInfo.os}</div>
+      <div>${translations[currentLang].deviceType || 'Device Type'}:</div>
+      <div>${browserInfo.deviceType}</div>
+      <div>${translations[currentLang].screenSize || 'Screen Size'}:</div>
+      <div>${window.innerWidth}x${window.innerHeight}</div>
+    </div>
+  `;
+  
+  // Add basic stats
+  const statItems = [
+    { label: translations[currentLang].totalGames || 'Total Games', value: stats.totalGames },
+    { label: translations[currentLang].wins || 'Wins', value: stats.wins },
+    { label: translations[currentLang].losses || 'Losses', value: stats.losses },
+    { label: translations[currentLang].abandoned || 'Abandoned', value: stats.abandoned },
+    { label: translations[currentLang].avgAttempts || 'Avg. Attempts', value: stats.averageAttempts },
+    { label: translations[currentLang].avgDuration || 'Avg. Duration', value: `${stats.averageDuration}s` },
+    { label: translations[currentLang].preferredMode || 'Preferred Mode', value: getModeName(stats.preferredMode) },
+    { label: translations[currentLang].preferredLength || 'Preferred Length', value: stats.preferredCodeLength }
+  ];
+  
+  statItems.forEach(item => {
+    const statBlock = document.createElement('div');
+    statBlock.style.backgroundColor = '#f0f5ff';
+    statBlock.style.padding = '10px';
+    statBlock.style.borderRadius = '5px';
+    statBlock.style.textAlign = 'center';
+    
+    const label = document.createElement('div');
+    label.textContent = item.label;
+    label.style.fontSize = '0.8rem';
+    label.style.color = '#555';
+    
+    const value = document.createElement('div');
+    value.textContent = item.value;
+    value.style.fontSize = '1.2rem';
+    value.style.fontWeight = 'bold';
+    value.style.marginTop = '5px';
+    
+    statBlock.appendChild(label);
+    statBlock.appendChild(value);
+    statsContainer.appendChild(statBlock);
+  });
+  
+  // Function to get the translated mode name
+  function getModeName(modeKey) {
+    if (!modeKey || !translations[currentLang][modeKey]) {
+      return modeKey || 'Unknown';
+    }
+    return translations[currentLang][modeKey];
+  }
+  
+  // Add chart section
+  const chartSection = document.createElement('div');
+  chartSection.style.gridColumn = '1 / span 2';
+  chartSection.style.marginTop = '15px';
+  chartSection.style.textAlign = 'center';
+  
+  const chartTitle = document.createElement('h4');
+  chartTitle.textContent = translations[currentLang].gameResults || 'Game Results';
+  chartTitle.style.marginBottom = '10px';
+  
+  const chartContainer = document.createElement('div');
+  chartContainer.style.height = '200px';
+  chartContainer.style.position = 'relative';
+  
+  // Create simple bar chart
+  const barChartContainer = document.createElement('div');
+  barChartContainer.style.display = 'flex';
+  barChartContainer.style.justifyContent = 'space-around';
+  barChartContainer.style.alignItems = 'flex-end';
+  barChartContainer.style.height = '160px';
+  barChartContainer.style.padding = '0 20px';
+  
+  const total = Math.max(1, stats.totalGames);
+  const resultTypes = [
+    { label: translations[currentLang].wins || 'Wins', value: stats.wins, color: '#4CAF50' },
+    { label: translations[currentLang].losses || 'Losses', value: stats.losses, color: '#F44336' },
+    { label: translations[currentLang].abandoned || 'Abandoned', value: stats.abandoned, color: '#FFC107' }
+  ];
+  
+  resultTypes.forEach(result => {
+    const barGroup = document.createElement('div');
+    barGroup.style.display = 'flex';
+    barGroup.style.flexDirection = 'column';
+    barGroup.style.alignItems = 'center';
+    barGroup.style.width = '60px';
+    
+    const percentage = Math.round((result.value / total) * 100);
+    const height = Math.max(10, Math.min(150, (result.value / total) * 150));
+    
+    const bar = document.createElement('div');
+    bar.style.width = '40px';
+    bar.style.height = `${height}px`;
+    bar.style.backgroundColor = result.color;
+    bar.style.position = 'relative';
+    
+    const barLabel = document.createElement('div');
+    barLabel.textContent = `${percentage}%`;
+    barLabel.style.position = 'absolute';
+    barLabel.style.top = '5px';
+    barLabel.style.left = '0';
+    barLabel.style.right = '0';
+    barLabel.style.textAlign = 'center';
+    barLabel.style.color = percentage > 30 ? 'white' : 'black';
+    barLabel.style.fontSize = '12px';
+    
+    bar.appendChild(barLabel);
+    
+    const nameLabel = document.createElement('div');
+    nameLabel.textContent = result.label;
+    nameLabel.style.marginTop = '5px';
+    nameLabel.style.fontSize = '12px';
+    
+    const countLabel = document.createElement('div');
+    countLabel.textContent = result.value;
+    countLabel.style.fontSize = '12px';
+    countLabel.style.fontWeight = 'bold';
+    
+    barGroup.appendChild(bar);
+    barGroup.appendChild(nameLabel);
+    barGroup.appendChild(countLabel);
+    
+    barChartContainer.appendChild(barGroup);
+  });
+  
+  chartContainer.appendChild(barChartContainer);
+  chartSection.appendChild(chartTitle);
+  chartSection.appendChild(chartContainer);
+  
+  // Add close button
+  const closeButton = document.createElement('button');
+  closeButton.textContent = translations[currentLang].close || 'Close';
+  closeButton.style.marginTop = '20px';
+  closeButton.style.padding = '8px 15px';
+  closeButton.style.backgroundColor = '#6200EE';
+  closeButton.style.color = 'white';
+  closeButton.style.border = 'none';
+  closeButton.style.borderRadius = '4px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.display = 'block';
+  closeButton.style.margin = '20px auto 0';
+  
+  closeButton.addEventListener('click', function() {
+    document.body.removeChild(modal);
+  });
+  
+  // Assemble the modal
+  modal.appendChild(heading);
+  modal.appendChild(deviceInfo);
+  modal.appendChild(statsContainer);
+  modal.appendChild(chartSection);
+  modal.appendChild(closeButton);
+  
+  // Add modal to the page
+  document.body.appendChild(modal);
+}
+
+// Helper function to detect browser info
+function detectBrowserInfo() {
+  const userAgent = navigator.userAgent;
+  let browserName = "Unknown";
+  let browserVersion = "Unknown";
+  let osName = "Unknown";
+  let deviceType = "Unknown";
+  
+  // Detect OS
+  if (userAgent.indexOf("Win") !== -1) osName = "Windows";
+  else if (userAgent.indexOf("Mac") !== -1) osName = "macOS";
+  else if (userAgent.indexOf("Linux") !== -1) osName = "Linux";
+  else if (userAgent.indexOf("Android") !== -1) osName = "Android";
+  else if (userAgent.indexOf("like Mac") !== -1) osName = "iOS";
+  
+  // Detect device type
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(userAgent)) {
+    deviceType = "Tablet";
+  } else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated/.test(userAgent)) {
+    deviceType = "Mobile";
+  } else {
+    deviceType = "Desktop";
+  }
+  
+  // Detect browser
+  try {
+    if (userAgent.indexOf("Firefox") > -1) {
+      browserName = "Firefox";
+      const match = userAgent.match(/Firefox\/([0-9.]+)/);
+      browserVersion = match ? match[1] : "";
+    } else if (userAgent.indexOf("SamsungBrowser") > -1) {
+      browserName = "Samsung Browser";
+      const match = userAgent.match(/SamsungBrowser\/([0-9.]+)/);
+      browserVersion = match ? match[1] : "";
+    } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1) {
+      browserName = "Opera";
+      if (userAgent.indexOf("Opera") > -1) {
+        const match = userAgent.match(/Opera\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "";
+      } else {
+        const match = userAgent.match(/OPR\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "";
+      }
+    } else if (userAgent.indexOf("Trident") > -1) {
+      browserName = "Internet Explorer";
+      const match = userAgent.match(/rv:([0-9.]+)/);
+      browserVersion = match ? match[1] : "";
+    } else if (userAgent.indexOf("Edge") > -1) {
+      browserName = "Edge";
+      const match = userAgent.match(/Edge\/([0-9.]+)/);
+      browserVersion = match ? match[1] : "";
+    } else if (userAgent.indexOf("Chrome") > -1) {
+      browserName = "Chrome";
+      const match = userAgent.match(/Chrome\/([0-9.]+)/);
+      browserVersion = match ? match[1] : "";
+    } else if (userAgent.indexOf("Safari") > -1) {
+      browserName = "Safari";
+      const match = userAgent.match(/Safari\/([0-9.]+)/);
+      browserVersion = match ? match[1] : "";
+    }
+  } catch (e) {
+    console.error("Error detecting browser info:", e);
+  }
+  
+  return {
+    browser: browserName,
+    browserVersion: browserVersion,
+    os: osName,
+    deviceType: deviceType
+  };
+}
+
+// Function to track returning users
+function trackReturningUser() {
+  if (window.analytics && window.analytics.userData) {
+    const userData = window.analytics.userData;
+    
+    // Calculate days since first visit
+    const daysSinceFirstVisit = Math.floor((Date.now() - userData.firstSeen) / (1000 * 60 * 60 * 24));
+    
+    // Track user retention data
+    window.analytics.trackEvent('user', 'retention', {
+      daysSinceFirstVisit: daysSinceFirstVisit,
+      visits: userData.visits,
+      userType: window.analytics._getUserType ? window.analytics._getUserType() : 'unknown',
+      uniqueId: userData.uniqueId
+    });
+    
+    // If it's been more than 7 days since first visit, they're a retained user
+    if (daysSinceFirstVisit >= 7) {
+      window.analytics.trackEvent('user', 'retained', {
+        days: daysSinceFirstVisit,
+        games: userData.gameHistory ? userData.gameHistory.length : 0
+      });
+    }
+  }
+}
+
+// Function to initialize enhanced analytics
+function initializeEnhancedAnalytics() {
+  // Track returning users when the app loads
+  trackReturningUser();
+  
+  // Set up periodic sync of analytics data if needed
+  setInterval(function() {
+    if (window.analytics.enabled) {
+      // Flush current events queue
+      if (window.analytics.flush) {
+        window.analytics.flush(false);
+      }
+    }
+  }, 5 * 60 * 1000); // Every 5 minutes
+  
+  // Track session duration more accurately
+  let sessionHeartbeatInterval;
+  
+  function startSessionHeartbeat() {
+    if (sessionHeartbeatInterval) {
+      clearInterval(sessionHeartbeatInterval);
+    }
+    
+    // Send heartbeat every minute to accurately track session duration
+    sessionHeartbeatInterval = setInterval(function() {
+      if (window.analytics.enabled && window.analytics._getSessionDuration) {
+        window.analytics.trackEvent('session', 'heartbeat', {
+          duration: window.analytics._getSessionDuration()
+        });
+      }
+    }, 60 * 1000); // Every minute
+  }
+  
+  // Start the heartbeat
+  startSessionHeartbeat();
+  
+  // Stop heartbeat when page is hidden and restart when visible again
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      clearInterval(sessionHeartbeatInterval);
+      
+      // Track that the user left the page
+      if (window.analytics.enabled && window.analytics._getSessionDuration) {
+        window.analytics.trackEvent('session', 'background', {
+          duration: window.analytics._getSessionDuration()
+        });
+      }
+    } else {
+      // Track that the user returned to the page
+      if (window.analytics.enabled && window.analytics._getSessionDuration) {
+        window.analytics.trackEvent('session', 'foreground', {
+          duration: window.analytics._getSessionDuration()
+        });
+      }
+      
+      startSessionHeartbeat();
+    }
+  });
 }
 
 // Don't forget to add the settings to your translations
@@ -2354,18 +2745,41 @@ function addAnalyticsTranslations() {
   translations.en.settings = "Settings";
   translations.en.enableAnalytics = "Enable anonymous usage statistics";
   translations.en.close = "Close";
+  translations.en.playerStats = "Your Game Statistics";
+  translations.en.deviceInfo = "Your Device";
+  translations.en.browser = "Browser";
+  translations.en.os = "Operating System";
+  translations.en.deviceType = "Device Type";
+  translations.en.screenSize = "Screen Size";
+  translations.en.totalGames = "Total Games";
+  translations.en.wins = "Wins";
+  translations.en.losses = "Losses";
+  translations.en.abandoned = "Abandoned";
+  translations.en.avgAttempts = "Avg. Attempts";
+  translations.en.avgDuration = "Avg. Duration";
+  translations.en.preferredMode = "Preferred Mode";
+  translations.en.preferredLength = "Preferred Length";
+  translations.en.gameResults = "Game Results";
+  translations.en.viewStats = "View Statistics";
   
   translations.de.settings = "Einstellungen";
   translations.de.enableAnalytics = "Anonyme Nutzungsstatistiken aktivieren";
   translations.de.close = "Schließen";
+  translations.de.playerStats = "Deine Spielstatistiken";
+  translations.de.deviceInfo = "Dein Gerät";
+  translations.de.browser = "Browser";
+  translations.de.os = "Betriebssystem";
+  translations.de.deviceType = "Gerätetyp";
+  translations.de.screenSize = "Bildschirmgröße";
+  translations.de.totalGames = "Gesamtspiele";
+  translations.de.wins = "Gewonnen";
+  translations.de.losses = "Verloren";
+  translations.de.abandoned = "Abgebrochen";
+  translations.de.avgAttempts = "Durchschn. Versuche";
+  translations.de.avgDuration = "Durchschn. Dauer";
+  translations.de.preferredMode = "Bevorzugter Modus";
+  translations.de.preferredLength = "Bevorzugte Länge";
+  translations.de.gameResults = "Spielergebnisse";
+  translations.de.viewStats = "Statistiken anzeigen";
 }
 
-// // Make sure analytics exists even if the analytics.js script fails
-// window.analytics = window.analytics || {
-  // initialize: function() {},
-  // trackGameStart: function() {},
-  // trackGameEnd: function() {},
-  // trackInteraction: function() {},
-  // trackError: function() {},
-  // trackPerformance: function() {}
-// };

@@ -55,12 +55,19 @@ class MastermindAnalytics {
       // Start scheduled flushing of events
       this._scheduleFlush();
       
+      // Get browser info
+      const browserInfo = this._detectBrowserInfo();
+      
       // Track session start
       this.trackEvent('session', 'start', {
-		appVersion: window.APP_VERSION || '3.0.5', // Use global version or fallback
+        appVersion: window.APP_VERSION || '3.0.7', // Use global version or fallback
         screenSize: `${window.innerWidth}x${window.innerHeight}`,
         language: document.documentElement.lang || 'unknown',
-        userType: this._getUserType()
+        userType: this._getUserType(),
+        browser: browserInfo.browser,
+        browserVersion: browserInfo.browserVersion,
+        os: browserInfo.os,
+        deviceType: browserInfo.deviceType
       });
       
       // Add event listeners for session tracking
@@ -110,9 +117,35 @@ class MastermindAnalytics {
     this.gameStartTime = Date.now();
     this.gameCount++;
     
+    // New game ID that includes the unique device identifier
+    const gameId = `${this._generateGameId()}_${this.userData.uniqueId}`;
+    
+    // Record this game in user history
+    if (this.localStorage && this.userData.gameHistory) {
+      // Add new game to history
+      this.userData.gameHistory.push({
+        gameId: gameId,
+        startTime: this.gameStartTime,
+        options: gameOptions
+      });
+      
+      // Keep only last 20 games to avoid storage limits
+      if (this.userData.gameHistory.length > 20) {
+        this.userData.gameHistory = this.userData.gameHistory.slice(-20);
+      }
+      
+      // Save updated user data
+      try {
+        localStorage.setItem('mastermind_user', JSON.stringify(this.userData));
+      } catch (e) {
+        console.error('Failed to save game history:', e);
+      }
+    }
+    
     return this.trackEvent('game', 'start', {
-      gameId: this._generateGameId(),
+      gameId: gameId,
       gameCount: this.gameCount,
+      uniqueId: this.userData.uniqueId,
       mode: gameOptions.mode,
       codeLength: gameOptions.codeLength,
       language: gameOptions.language
@@ -123,11 +156,28 @@ class MastermindAnalytics {
   trackGameEnd(result, attempts, giveUp = false) {
     const gameDuration = this.gameStartTime ? Math.floor((Date.now() - this.gameStartTime) / 1000) : 0;
     
+    // Update the last game in history
+    if (this.localStorage && this.userData.gameHistory && this.userData.gameHistory.length > 0) {
+      const lastGameIndex = this.userData.gameHistory.length - 1;
+      this.userData.gameHistory[lastGameIndex].endTime = Date.now();
+      this.userData.gameHistory[lastGameIndex].result = result;
+      this.userData.gameHistory[lastGameIndex].attempts = attempts;
+      this.userData.gameHistory[lastGameIndex].duration = gameDuration;
+      
+      // Save updated user data
+      try {
+        localStorage.setItem('mastermind_user', JSON.stringify(this.userData));
+      } catch (e) {
+        console.error('Failed to update game history:', e);
+      }
+    }
+    
     return this.trackEvent('game', 'end', {
       result: result, // 'win', 'loss', 'abandoned'
       attempts: attempts,
       duration: gameDuration,
-      giveUp: giveUp
+      giveUp: giveUp,
+      uniqueId: this.userData.uniqueId
     });
   }
 
@@ -237,6 +287,86 @@ class MastermindAnalytics {
   setDebugMode(enabled) {
     this.debugMode = enabled;
   }
+  
+  // Get player statistics
+  getPlayerStats() {
+    if (!this.localStorage || !this.userData.gameHistory) {
+      return null;
+    }
+    
+    try {
+      const stats = {
+        totalGames: this.userData.gameHistory.length,
+        wins: 0,
+        losses: 0,
+        abandoned: 0,
+        averageAttempts: 0,
+        averageDuration: 0,
+        preferredMode: null,
+        preferredCodeLength: null
+      };
+      
+      // Count modes and code lengths
+      const modes = {};
+      const codeLengths = {};
+      let totalAttempts = 0;
+      let totalDuration = 0;
+      let completedGames = 0;
+      
+      this.userData.gameHistory.forEach(game => {
+        // Count result types
+        if (game.result === 'win') stats.wins++;
+        else if (game.result === 'loss') stats.losses++;
+        else if (game.result === 'abandoned') stats.abandoned++;
+        
+        // Count modes
+        if (game.options && game.options.mode) {
+          modes[game.options.mode] = (modes[game.options.mode] || 0) + 1;
+        }
+        
+        // Count code lengths
+        if (game.options && game.options.codeLength) {
+          codeLengths[game.options.codeLength] = (codeLengths[game.options.codeLength] || 0) + 1;
+        }
+        
+        // Calculate averages
+        if (game.attempts && game.duration) {
+          totalAttempts += game.attempts;
+          totalDuration += game.duration;
+          completedGames++;
+        }
+      });
+      
+      // Find preferred mode
+      let maxModeCount = 0;
+      for (const mode in modes) {
+        if (modes[mode] > maxModeCount) {
+          maxModeCount = modes[mode];
+          stats.preferredMode = mode;
+        }
+      }
+      
+      // Find preferred code length
+      let maxCodeLengthCount = 0;
+      for (const length in codeLengths) {
+        if (codeLengths[length] > maxCodeLengthCount) {
+          maxCodeLengthCount = codeLengths[length];
+          stats.preferredCodeLength = parseInt(length);
+        }
+      }
+      
+      // Calculate averages
+      if (completedGames > 0) {
+        stats.averageAttempts = Math.round((totalAttempts / completedGames) * 10) / 10;
+        stats.averageDuration = Math.round(totalDuration / completedGames);
+      }
+      
+      return stats;
+    } catch (error) {
+      console.error('Failed to generate player stats:', error);
+      return null;
+    }
+  }
 
   // Private helper methods
   _initializeUserData() {
@@ -245,7 +375,9 @@ class MastermindAnalytics {
       firstSeen: Date.now(),
       lastSeen: Date.now(),
       visits: 1,
-      analyticsEnabled: true
+      analyticsEnabled: true,
+      uniqueId: null,
+      gameHistory: []
     };
     
     if (this.localStorage) {
@@ -262,8 +394,9 @@ class MastermindAnalytics {
             visits: (parsedData.visits || 0) + 1
           };
         } else {
-          // First time user, generate ID
+          // First time user, generate IDs
           this.userData.userId = this._generateUserId();
+          this.userData.uniqueId = this._generateFingerprintId();
         }
         
         // Save updated user data
@@ -275,10 +408,12 @@ class MastermindAnalytics {
       } catch (error) {
         console.error('Failed to initialize user data:', error);
         this.userData.userId = this._generateUserId();
+        this.userData.uniqueId = this._generateFingerprintId();
       }
     } else {
       // No localStorage, generate temporary ID
       this.userData.userId = this._generateUserId();
+      this.userData.uniqueId = this._generateFingerprintId();
     }
   }
 
@@ -322,6 +457,30 @@ class MastermindAnalytics {
   _generateUserId() {
     return 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
   }
+  
+  // Generate a more unique device fingerprint
+  _generateFingerprintId() {
+    const components = [
+      navigator.userAgent,
+      navigator.language,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      !!window.sessionStorage,
+      !!window.localStorage,
+      screen.width + "x" + screen.height
+    ];
+    
+    // Create a hash from the components
+    let hash = 0;
+    const stringToHash = components.join('###');
+    for (let i = 0; i < stringToHash.length; i++) {
+      const char = stringToHash.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    return 'device_' + Math.abs(hash).toString(36);
+  }
 
   _getSessionDuration() {
     return Math.floor((Date.now() - this.sessionStartTime) / 1000);
@@ -357,6 +516,78 @@ class MastermindAnalytics {
     } catch (e) {
       return false;
     }
+  }
+  
+  // Function to detect browser information
+  _detectBrowserInfo() {
+    const userAgent = navigator.userAgent;
+    let browserName = "Unknown";
+    let browserVersion = "Unknown";
+    let osName = "Unknown";
+    let deviceType = "Unknown";
+    
+    // Detect OS
+    if (userAgent.indexOf("Win") !== -1) osName = "Windows";
+    else if (userAgent.indexOf("Mac") !== -1) osName = "macOS";
+    else if (userAgent.indexOf("Linux") !== -1) osName = "Linux";
+    else if (userAgent.indexOf("Android") !== -1) osName = "Android";
+    else if (userAgent.indexOf("like Mac") !== -1) osName = "iOS";
+    
+    // Detect device type
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(userAgent)) {
+      deviceType = "Tablet";
+    } else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated/.test(userAgent)) {
+      deviceType = "Mobile";
+    } else {
+      deviceType = "Desktop";
+    }
+    
+    // Detect browser
+    try {
+      if (userAgent.indexOf("Firefox") > -1) {
+        browserName = "Firefox";
+        const match = userAgent.match(/Firefox\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "Unknown";
+      } else if (userAgent.indexOf("SamsungBrowser") > -1) {
+        browserName = "Samsung Browser";
+        const match = userAgent.match(/SamsungBrowser\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "Unknown";
+      } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1) {
+        browserName = "Opera";
+        if (userAgent.indexOf("Opera") > -1) {
+          const match = userAgent.match(/Opera\/([0-9.]+)/);
+          browserVersion = match ? match[1] : "Unknown";
+        } else {
+          const match = userAgent.match(/OPR\/([0-9.]+)/);
+          browserVersion = match ? match[1] : "Unknown";
+        }
+      } else if (userAgent.indexOf("Trident") > -1) {
+        browserName = "Internet Explorer";
+        const match = userAgent.match(/rv:([0-9.]+)/);
+        browserVersion = match ? match[1] : "Unknown";
+      } else if (userAgent.indexOf("Edge") > -1) {
+        browserName = "Edge";
+        const match = userAgent.match(/Edge\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "Unknown";
+      } else if (userAgent.indexOf("Chrome") > -1) {
+        browserName = "Chrome";
+        const match = userAgent.match(/Chrome\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "Unknown";
+      } else if (userAgent.indexOf("Safari") > -1) {
+        browserName = "Safari";
+        const match = userAgent.match(/Safari\/([0-9.]+)/);
+        browserVersion = match ? match[1] : "Unknown";
+      }
+    } catch (e) {
+      console.error("Error detecting browser info:", e);
+    }
+    
+    return {
+      browser: browserName,
+      browserVersion: browserVersion,
+      os: osName,
+      deviceType: deviceType
+    };
   }
 
   _debug(message, data) {

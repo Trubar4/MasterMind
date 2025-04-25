@@ -120,18 +120,18 @@ function getColumnWidth() {
  * Update resource links with version parameter
  */
 function updateResourceLinks() {
-  debug(`Updating resource links with version: ${APP_VERSION}`);
+  debug(`Updating resource links with version: ${window.APP_VERSION}`);
   
   // Update CSS link
   const stylesLink = document.getElementById('styles-link');
   if (stylesLink) {
-    stylesLink.href = `styles.css?v=${APP_VERSION}`;
+    stylesLink.href = `styles.css?v=${window.APP_VERSION}`;
   }
   
   // Update manifest link
   const manifestLink = document.getElementById('manifest-link');
   if (manifestLink) {
-    manifestLink.href = `manifest.json?v=${APP_VERSION}`;
+    manifestLink.href = `manifest.json?v=${window.APP_VERSION}`;
   }
 }
 
@@ -591,7 +591,7 @@ function initServiceWorker() {
       debug('Checking for service worker support');
       
       // Register service worker with version parameter
-      navigator.serviceWorker.register(`./service-worker.js?v=${APP_VERSION}`)
+      navigator.serviceWorker.register(`./service-worker.js?v=${window.APP_VERSION}`)
         .then(reg => {
           debug('Service worker registered!');
           
@@ -2186,7 +2186,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageLoadTime = window.performance.timing.domContentLoadedEventEnd - 
                         window.performance.timing.navigationStart;
     window.analytics.trackPerformance('page_load', pageLoadTime, {
-      appVersion: APP_VERSION
+      appVersion: window.APP_VERSION
     });
   }
   

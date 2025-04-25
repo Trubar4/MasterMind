@@ -1,4 +1,455 @@
-<!DOCTYPE html>
+// Mock function for mode preference data
+    async function fetchModePreferenceData(dateRange) {
+      // Sample data for demonstration
+      const modeData = [45, 30, 25]; // [2 Player, Computer as Breaker, Computer as Maker]
+      
+      // Update chart
+      chartInstances.modePreference.data.datasets[0].data = modeData;
+      chartInstances.modePreference.update();
+    }
+    
+    // Mock function for language distribution data
+    async function fetchLanguageDistributionData(dateRange) {
+      // Sample data for demonstration
+      const languageData = [70, 30]; // [English, German]
+      
+      // Update chart
+      chartInstances.languageDistribution.data.datasets[0].data = languageData;
+      chartInstances.languageDistribution.update();
+    }
+    
+    // Mock function for code length preference data
+    async function fetchCodeLengthPreferenceData(dateRange) {
+      // Sample data for demonstration
+      const codeLengthData = [65, 35]; // [4 Circles, 5 Circles]
+      
+      // Update chart
+      chartInstances.lengthPreference.data.datasets[0].data = codeLengthData;
+      chartInstances.lengthPreference.update();
+    }
+    
+    // Mock function for color usage data
+    async function fetchColorUsageData(dateRange) {
+      // Sample data for demonstration
+      const colorUsageData = [120, 95, 85, 75, 110, 90, 60, 70]; // Colors in order: Red, Yellow, Orange, Pink, Blue, Green, Gray, Black
+      
+      // Update chart
+      chartInstances.colorUsage.data.datasets[0].data = colorUsageData;
+      chartInstances.colorUsage.update();
+    }
+    
+    // Mock function for win rate by attempts data
+    async function fetchWinRateByAttemptsData(dateRange) {
+      // Sample data for demonstration - win rates decreasing with attempt number
+      const winRateData = [90, 75, 65, 50, 40, 30, 25, 20, 15, 10];
+      
+      // Update chart
+      chartInstances.winByAttempts.data.datasets[0].data = winRateData;
+      chartInstances.winByAttempts.update();
+    }
+    
+    // Mock function for recent sessions data
+    async function fetchRecentSessionsData(dateRange) {
+      // Sample data for recent games
+      const sampleGames = [
+        { date: '04/20/2025', mode: '2 Player', result: 'Win', attempts: 5, duration: '2m 45s' },
+        { date: '04/19/2025', mode: 'Computer as Maker', result: 'Win', attempts: 7, duration: '4m 12s' },
+        { date: '04/19/2025', mode: '2 Player', result: 'Loss', attempts: 10, duration: '5m 30s' },
+        { date: '04/18/2025', mode: 'Computer as Breaker', result: 'Win', attempts: 4, duration: '2m 15s' },
+        { date: '04/17/2025', mode: 'Computer as Maker', result: 'Abandoned', attempts: 3, duration: '1m 45s' },
+        { date: '04/16/2025', mode: '2 Player', result: 'Win', attempts: 6, duration: '3m 10s' },
+        { date: '04/15/2025', mode: 'Computer as Breaker', result: 'Loss', attempts: 10, duration: '6m 05s' },
+        { date: '04/15/2025', mode: 'Computer as Maker', result: 'Win', attempts: 5, duration: '3m 30s' },
+        { date: '04/14/2025', mode: '2 Player', result: 'Win', attempts: 3, duration: '1m 50s' },
+        { date: '04/13/2025', mode: 'Computer as Breaker', result: 'Win', attempts: 8, duration: '4m 40s' }
+      ];
+      
+      // Update table
+      const tableBody = document.querySelector('#recent-games tbody');
+      tableBody.innerHTML = ''; // Clear existing rows
+      
+      for (const game of sampleGames) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${game.date}</td>
+          <td>${game.mode}</td>
+          <td>${game.result}</td>
+          <td>${game.attempts}</td>
+          <td>${game.duration}</td>
+        `;
+        
+        tableBody.appendChild(tr);
+      }
+    }
+    
+    // Mock function for device distribution data
+    async function fetchDeviceDistributionData(dateRange) {
+      // Sample data for demonstration
+      const deviceData = [55, 35, 10]; // [Desktop, Mobile, Tablet]
+      
+      // Update chart
+      chartInstances.deviceDistribution.data.datasets[0].data = deviceData;
+      chartInstances.deviceDistribution.update();
+    }
+    
+    // Mock function for error rates data
+    async function fetchErrorRatesData(dateRange) {
+      // Sample data for demonstration
+      const errorData = [12, 8, 5, 3, 4]; // [Game Logic, Network, Input, Rendering, Other]
+      
+      // Update chart
+      chartInstances.errorRates.data.datasets[0].data = errorData;
+      chartInstances.errorRates.update();
+    }
+    
+    // Export data to CSV
+    async function exportDataToCSV() {
+      showLoading();
+      
+      // Collect all current data
+      const exportData = {
+        overview: {
+          'Total Games': document.getElementById('total-games').textContent,
+          'Unique Users': document.getElementById('total-users').textContent,
+          'Average Session Duration': document.getElementById('avg-session').textContent,
+          'Completion Rate': document.getElementById('completion-rate').textContent
+        },
+        performance: {
+          'Win Rate': document.getElementById('win-rate').textContent,
+          'Average Attempts': document.getElementById('avg-attempts').textContent,
+          'Give Up Rate': document.getElementById('give-up-rate').textContent,
+          'Average Game Time': document.getElementById('avg-time').textContent
+        }
+      };
+      
+      // Create CSV content
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      
+      // Add overview section
+      csvContent += 'OVERVIEW\r\n';
+      csvContent += 'Metric,Value\r\n';
+      for (const [key, value] of Object.entries(exportData.overview)) {
+        csvContent += `${key},${value}\r\n`;
+      }
+      csvContent += '\r\n';
+      
+      // Add performance section
+      csvContent += 'PERFORMANCE\r\n';
+      csvContent += 'Metric,Value\r\n';
+      for (const [key, value] of Object.entries(exportData.performance)) {
+        csvContent += `${key},${value}\r\n`;
+      }
+      csvContent += '\r\n';
+      
+      // Add games over time
+      if (chartInstances.gamesOverTime.data.labels.length > 0) {
+        csvContent += 'GAMES OVER TIME\r\n';
+        csvContent += 'Date,Games\r\n';
+        chartInstances.gamesOverTime.data.labels.forEach((label, i) => {
+          csvContent += `${label},${chartInstances.gamesOverTime.data.datasets[0].data[i]}\r\n`;
+        });
+        csvContent += '\r\n';
+      }
+      
+      // Add mode preference
+      csvContent += 'MODE PREFERENCE\r\n';
+      csvContent += 'Mode,Count\r\n';
+      chartInstances.modePreference.data.labels.forEach((label, i) => {
+        csvContent += `${label},${chartInstances.modePreference.data.datasets[0].data[i]}\r\n`;
+      });
+      csvContent += '\r\n';
+      
+      // Add language distribution
+      csvContent += 'LANGUAGE DISTRIBUTION\r\n';
+      csvContent += 'Language,Count\r\n';
+      chartInstances.languageDistribution.data.labels.forEach((label, i) => {
+        csvContent += `${label},${chartInstances.languageDistribution.data.datasets[0].data[i]}\r\n`;
+      });
+      csvContent += '\r\n';
+      
+      // Create a download link and trigger click
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'mastermind_analytics.csv');
+      document.body.appendChild(link);
+      
+      link.click();
+      document.body.removeChild(link);
+      
+      hideLoading();
+      showStatus('Data exported successfully');
+    }
+    
+    // Initialize the application
+    function init() {
+      try {
+        showLoading();
+        initializeGoogleAPI();
+      } catch (error) {
+        console.error('Initialization error:', error);
+        showError('Failed to initialize application: ' + error.message);
+      }
+    }
+    
+    // Start the application when the page loads
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>    // Store chart instances for later reference
+    const chartInstances = {};
+    
+    // Utility function to format numbers with commas
+    function numberWithCommas(x) {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    // Utility function to format seconds into minutes and seconds
+    function formatTime(seconds) {
+      if (seconds < 60) return seconds + 's';
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return minutes + 'm ' + (remainingSeconds > 0 ? remainingSeconds + 's' : '');
+    }
+    
+    // Display error message
+    function showError(message) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+      hideLoading();
+    }
+    
+    // Display status message
+    function showStatus(message) {
+      const statusElement = document.getElementById('status-message');
+      statusElement.textContent = message;
+      statusElement.classList.remove('hidden');
+      setTimeout(() => {
+        statusElement.classList.add('hidden');
+      }, 5000);
+    }
+    
+    // Show loading overlay
+    function showLoading() {
+      document.getElementById('loading-overlay').style.display = 'flex';
+    }
+    
+    // Hide loading overlay
+    function hideLoading() {
+      document.getElementById('loading-overlay').style.display = 'none';
+    }
+    
+    // Initialize date inputs with default values (last 30 days)
+    function initializeDateRange() {
+      const today = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      document.getElementById('start-date').value = formatDate(thirtyDaysAgo);
+      document.getElementById('end-date').value = formatDate(today);
+    }
+    
+    // Initialize Google API client and authenticate
+    async function initializeGoogleAPI() {
+      try {
+        showLoading();
+        
+        // Load the API client
+        await new Promise((resolve, reject) => {
+          gapi.load('client:auth2', {
+            callback: resolve,
+            onerror: reject
+          });
+        });
+        
+        // Initialize the client with API key
+        await gapi.client.init({
+          apiKey: GA4_API_KEY,
+          clientId: GA4_CLIENT_ID,
+          discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta'],
+          scope: SCOPES
+        });
+        
+        // Setup Sign In button
+        document.getElementById('sign-in-button').addEventListener('click', () => {
+          gapi.auth2.getAuthInstance().signIn().then(
+            () => {
+              onSignInSuccess();
+            },
+            (error) => {
+              showError('Sign in error: ' + error.error);
+            }
+          );
+        });
+        
+        // Setup Sign Out button
+        document.getElementById('sign-out-button').addEventListener('click', () => {
+          gapi.auth2.getAuthInstance().signOut().then(() => {
+            document.getElementById('dashboard-content').classList.add('hidden');
+            document.getElementById('sign-in-button').classList.remove('hidden');
+            document.getElementById('sign-out-button').classList.add('hidden');
+            showStatus('Signed out successfully');
+          });
+        });
+        
+        // Check if user already signed in
+        if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+          onSignInSuccess();
+        } else {
+          hideLoading();
+        }
+        
+      } catch (error) {
+        console.error('Google API initialization error:', error);
+        showError('Failed to initialize Google API: ' + error.message);
+      }
+    }
+    
+    // Handle successful sign-in
+    function onSignInSuccess() {
+      document.getElementById('dashboard-content').classList.remove('hidden');
+      document.getElementById('sign-in-button').classList.add('hidden');
+      document.getElementById('sign-out-button').classList.remove('hidden');
+      
+      initializeDateRange();
+      initializeCharts();
+      fetchAnalyticsData();
+      
+      // Add event listeners for interactive elements
+      document.getElementById('apply-date').addEventListener('click', fetchAnalyticsData);
+      document.getElementById('refresh-data').addEventListener('click', fetchAnalyticsData);
+      document.getElementById('export-data').addEventListener('click', exportDataToCSV);
+      document.getElementById('filter-mode').addEventListener('change', fetchAnalyticsData);
+      document.getElementById('filter-code-length').addEventListener('change', fetchAnalyticsData);
+    }
+    
+    // Fetch analytics data using GA4 API
+    async function fetchAnalyticsData() {
+      try {
+        showLoading();
+        
+        // Get date range values
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        
+        if (!startDate || !endDate) {
+          throw new Error('Please select valid date range');
+        }
+        
+        // Get filter values
+        const modeFilter = document.getElementById('filter-mode').value;
+        const codeLengthFilter = document.getElementById('filter-code-length').value;
+        
+        // Configure the date range for all requests
+        const dateRange = {
+          startDate: startDate,
+          endDate: endDate
+        };
+        
+        // Build dimension filter for game events
+        let dimensionFilter = '';
+        if (modeFilter !== 'all') {
+          dimensionFilter += `eventParams.mode == "${modeFilter}"`;
+        }
+        if (codeLengthFilter !== 'all') {
+          if (dimensionFilter) dimensionFilter += ' AND ';
+          dimensionFilter += `eventParams.codeLength == "${codeLengthFilter}"`;
+        }
+        
+        // Fetch overview data
+        await fetchOverviewData(dateRange, dimensionFilter);
+        
+        // Fetch game performance data
+        await fetchGamePerformanceData(dateRange, dimensionFilter);
+        
+        // Fetch time series data
+        await fetchTimeSeriesData(dateRange, dimensionFilter);
+        
+        // Fetch mode preference data
+        await fetchModePreferenceData(dateRange);
+        
+        // Fetch language distribution data
+        await fetchLanguageDistributionData(dateRange);
+        
+        // Fetch code length preference data
+        await fetchCodeLengthPreferenceData(dateRange);
+        
+        // Fetch color usage data
+        await fetchColorUsageData(dateRange);
+        
+        // Fetch win rate by attempts data
+        await fetchWinRateByAttemptsData(dateRange);
+        
+        // Fetch recent sessions data
+        await fetchRecentSessionsData(dateRange);
+        
+        // Fetch device distribution data
+        await fetchDeviceDistributionData(dateRange);
+        
+        // Fetch error rates data
+        await fetchErrorRatesData(dateRange);
+        
+        showStatus('Analytics data updated successfully');
+        hideLoading();
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        showError('Failed to fetch analytics data: ' + error.message);
+      }
+    }
+    
+    // Mock function for overview data (in a real implementation, this would use the GA4 API)
+    async function fetchOverviewData(dateRange, dimensionFilter) {
+      // This is a placeholder for GA4 API call
+      // In a real implementation, this would use gapi.client.analyticsdata.properties.runReport
+      
+      // For demonstration, we'll set some sample data
+      document.getElementById('total-games').textContent = numberWithCommas(1250);
+      document.getElementById('total-users').textContent = numberWithCommas(450);
+      document.getElementById('avg-session').textContent = '5m 30s';
+      document.getElementById('completion-rate').textContent = '85.7%';
+    }
+    
+    // Mock function for game performance data
+    async function fetchGamePerformanceData(dateRange, dimensionFilter) {
+      // For demonstration, we'll set some sample data
+      document.getElementById('win-rate').textContent = '62.5%';
+      document.getElementById('avg-attempts').textContent = '5.8';
+      document.getElementById('give-up-rate').textContent = '18.3%';
+      document.getElementById('avg-time').textContent = '3m 45s';
+    }
+    
+    // Mock function for time series data
+    async function fetchTimeSeriesData(dateRange, dimensionFilter) {
+      // Generate some sample data for demonstration
+      const startDate = new Date(dateRange.startDate);
+      const endDate = new Date(dateRange.endDate);
+      const dayMillis = 24 * 60 * 60 * 1000;
+      
+      const labels = [];
+      const data = [];
+      
+      for (let d = new Date(startDate); d <= endDate; d = new Date(d.getTime() + dayMillis)) {
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        labels.push(`${month}/${day}`);
+        
+        // Generate random data between 5-50
+        data.push(Math.floor(Math.random() * 45) + 5);
+      }
+      
+      // Update chart
+      chartInstances.gamesOverTime.data.labels = labels;
+      chartInstances.gamesOverTime.data.datasets[0].data = data;
+      chartInstances.gamesOverTime.update();
+    }<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -353,8 +804,12 @@
 
   <script>
     // Configuration - Update these values with your actual GA4 info
-    const GA_PROPERTY_ID = '486860865'; // Replace with your actual property ID
-    const CLIENT_ID = '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com'; // Use your actual client ID
+    const GA4_PROPERTY_ID = '486860865'; // Replace with your GA4 Property ID
+    const GA4_CLIENT_ID = '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com'; // Your OAuth client ID
+    const GA4_API_KEY = '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'; // Your API key
+    
+    // Define scope for Google Analytics API access
+    const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
     
     // Store chart instances for later reference
     const chartInstances = {};

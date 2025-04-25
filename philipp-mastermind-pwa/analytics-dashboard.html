@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mastermind Analytics Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Load the Google Analytics Embed API library -->
+  <script>
+  (function(w,d,s,g,js,fjs){
+    g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
+    js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
+    js.src='https://apis.google.com/js/platform.js';
+    fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
+  }(window,document,'script'));
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -121,6 +130,7 @@
   </style>
 </head>
 <body>
+  <div id="auth-button" style="margin-bottom: 20px;"></div>
   <div class="container">
     <div class="header">
       <h1>Philipp's Mastermind Analytics</h1>
@@ -284,241 +294,73 @@
   </div>
 
   <script>
-    // Mock data for demonstration purposes
-    // In a real implementation, you would fetch this data from your analytics backend
-    const mockData = {
-      overview: {
-        totalGames: 546,
-        uniqueUsers: 203,
-        avgSessionMinutes: 12,
-        completionRate: 78
-      },
-      performance: {
-        winRate: 65,
-        avgAttempts: 6.2,
-        giveUpRate: 15,
-        avgGameTimeSeconds: 145
-      },
-      gamesOverTime: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        data: [42, 58, 69, 85, 125, 167]
-      },
-      modePreference: {
-        labels: ['2 Player', 'Computer as Breaker', 'Computer as Maker'],
-        data: [45, 30, 25]
-      },
-      languageDistribution: {
-        labels: ['English', 'German'],
-        data: [35, 65]
-      },
-      lengthPreference: {
-        labels: ['4 Circles', '5 Circles'],
-        data: [78, 22]
-      },
-      colorUsage: {
-        labels: ['Red', 'Yellow', 'Orange', 'Pink', 'Blue', 'Green', 'Gray', 'Black'],
-        data: [22, 15, 13, 12, 11, 10, 9, 8],
-        backgroundColor: [
-          '#FF0000', '#FFFF00', '#FFC000', '#F36DED', 
-          '#0070C0', '#00B050', '#A6A6A6', '#000000'
-        ]
-      },
-      winByAttempts: {
-        labels: ['1-3', '4-6', '7-8', '9-10'],
-        data: [12, 43, 35, 10]
-      },
-      deviceDistribution: {
-        labels: ['Mobile', 'Tablet', 'Desktop'],
-        data: [55, 15, 30]
-      },
-      errorRates: {
-        labels: ['JavaScript', 'Network', 'Service Worker', 'Other'],
-        data: [3, 2, 1, 1]
-      },
-      recentGames: [
-        { date: '2025-04-23', mode: '2 Player', result: 'Win', attempts: 5, duration: '2m 15s' },
-        { date: '2025-04-23', mode: 'Computer as Maker', result: 'Loss', attempts: 10, duration: '3m 42s' },
-        { date: '2025-04-22', mode: '2 Player', result: 'Win', attempts: 7, duration: '3m 05s' },
-        { date: '2025-04-22', mode: 'Computer as Breaker', result: 'Win', attempts: 8, duration: '1m 52s' },
-        { date: '2025-04-21', mode: 'Computer as Maker', result: 'Abandoned', attempts: 3, duration: '0m 48s' }
-      ]
-    };
-
-    // Initialize the dashboard with mock data
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set today's date as end date and 30 days ago as start date
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+    // Wait for the Google Analytics Embed API to load
+    gapi.analytics.ready(function() {
       
-      document.getElementById('end-date').valueAsDate = endDate;
-      document.getElementById('start-date').valueAsDate = startDate;
-      
-      // Populate overview stats
-      document.getElementById('total-games').textContent = mockData.overview.totalGames;
-      document.getElementById('total-users').textContent = mockData.overview.uniqueUsers;
-      document.getElementById('avg-session').textContent = mockData.overview.avgSessionMinutes + 'm';
-      document.getElementById('completion-rate').textContent = mockData.overview.completionRate + '%';
-      
-      // Populate performance stats
-      document.getElementById('win-rate').textContent = mockData.performance.winRate + '%';
-      document.getElementById('avg-attempts').textContent = mockData.performance.avgAttempts;
-      document.getElementById('give-up-rate').textContent = mockData.performance.giveUpRate + '%';
-      document.getElementById('avg-time').textContent = mockData.performance.avgGameTimeSeconds + 's';
-      
-      // Create charts
-      createLineChart('games-over-time', 'Games Played', mockData.gamesOverTime.labels, mockData.gamesOverTime.data);
-      createPieChart('mode-preference', mockData.modePreference.labels, mockData.modePreference.data);
-      createPieChart('language-distribution', mockData.languageDistribution.labels, mockData.languageDistribution.data);
-      createPieChart('length-preference', mockData.lengthPreference.labels, mockData.lengthPreference.data);
-      createBarChart('color-usage', 'Color Usage', mockData.colorUsage.labels, mockData.colorUsage.data, mockData.colorUsage.backgroundColor);
-      createBarChart('win-by-attempts', 'Wins', mockData.winByAttempts.labels, mockData.winByAttempts.data);
-      createPieChart('device-distribution', mockData.deviceDistribution.labels, mockData.deviceDistribution.data);
-      createBarChart('error-rates', 'Error Count', mockData.errorRates.labels, mockData.errorRates.data);
-      
-      // Populate recent games table
-      const tableBody = document.querySelector('#recent-games tbody');
-      mockData.recentGames.forEach(game => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${game.date}</td>
-          <td>${game.mode}</td>
-          <td>${game.result}</td>
-          <td>${game.attempts}</td>
-          <td>${game.duration}</td>
-        `;
-        tableBody.appendChild(row);
+    // Authorize the user with an access token obtained server-side.
+	  gapi.analytics.auth.authorize({
+		'serverAuth': {
+		  'access_token': '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'
+		}
+	  });
+  // OR use OAuth 2.0 client ID for client-side authentication
+	  gapi.analytics.auth.authorize({
+		clientid: '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com',
+		container: 'auth-button'
+	  });
+	  
+      // Add an auth button that lets users authenticate with their Google account
+      const authButton = new gapi.analytics.auth.AuthButton({
+        container: 'auth-button'
       });
       
-      // Add event listeners
-      document.getElementById('refresh-data').addEventListener('click', refreshData);
-      document.getElementById('export-data').addEventListener('click', exportData);
-      document.getElementById('apply-date').addEventListener('click', applyDateRange);
-      document.getElementById('filter-mode').addEventListener('change', applyFilters);
-      document.getElementById('filter-code-length').addEventListener('change', applyFilters);
-    });
-
-    function createLineChart(canvasId, label, labels, data) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: label,
-            data: data,
-            borderColor: '#6200EE',
-            backgroundColor: 'rgba(98, 0, 238, 0.1)',
-            borderWidth: 2,
-            tension: 0.1,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
+      // Configure authorization
+      authButton.once('success', function() {
+        // On successful authentication, fetch data and display the dashboard
+        fetchAnalyticsData();
+      });
+      
+      function fetchAnalyticsData() {
+        // Get date range values
+        const startDate = document.getElementById('start-date').value || '30daysAgo';
+        const endDate = document.getElementById('end-date').value || 'today';
+        
+        // Create a query to fetch total games played
+        const totalGamesQuery = new gapi.analytics.report.Data({
+          query: {
+			'ids': 'ga:10626080660',
+            'start-date': startDate,
+            'end-date': endDate,
+            'metrics': 'ga:totalEvents',
+            'dimensions': 'ga:eventCategory,ga:eventAction',
+            'filters': 'ga:eventCategory==game,ga:eventAction==start'
           }
-        }
-      });
-    }
-
-    function createPieChart(canvasId, labels, data) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: data,
-            backgroundColor: [
-              '#6200EE',
-              '#03DAC5',
-              '#B00020',
-              '#FFDE03',
-              '#FF7597'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right'
-            }
+        });
+        
+        // Execute the query and update the dashboard
+        totalGamesQuery.execute(function(response) {
+          if (response.error) {
+            console.error('Error fetching total games:', response.error.message);
+            return;
           }
-        }
-      });
-    }
-
-    function createBarChart(canvasId, label, labels, data, backgroundColor) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: label,
-            data: data,
-            backgroundColor: backgroundColor || '#6200EE',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
+          
+          // Extract total games played from the response
+          let totalGames = 0;
+          if (response.rows && response.rows.length > 0) {
+            totalGames = parseInt(response.rows[0][2]);
           }
-        }
-      });
-    }
-
-    function refreshData() {
-      // In a real implementation, this would fetch fresh data from your backend
-      alert('In a real implementation, this would refresh data from your analytics backend.');
-    }
-
-    function exportData() {
-      // In a real implementation, this would generate and download a CSV file
-      alert('In a real implementation, this would generate and download a CSV file of your analytics data.');
-    }
-
-    function applyDateRange() {
-      const startDate = document.getElementById('start-date').value;
-      const endDate = document.getElementById('end-date').value;
-      
-      if (!startDate || !endDate) {
-        alert('Please select both start and end dates.');
-        return;
+          
+          // Update the UI
+          document.getElementById('total-games').textContent = totalGames;
+          
+          // Continue with other queries for additional metrics...
+          // You would create similar queries for each metric/chart
+        });
       }
       
-      // In a real implementation, this would filter data based on the date range
-      alert(`Date range applied: ${startDate} to ${endDate}`);
-    }
-
-    function applyFilters() {
-      const modeFilter = document.getElementById('filter-mode').value;
-      const codeLengthFilter = document.getElementById('filter-code-length').value;
-      
-      // In a real implementation, this would filter the displayed data
-      alert(`Filters applied: Mode=${modeFilter}, Code Length=${codeLengthFilter}`);
-    }
+      // Add event listeners
+      document.getElementById('apply-date').addEventListener('click', fetchAnalyticsData);
+    });
   </script>
+</body>
+</html>

@@ -60,7 +60,7 @@ class MastermindAnalytics {
 		
 		// Track session start with enhanced data
 		window.gtag('event', 'session_start', {
-		  'app_version': window.APP_VERSION || '3.0.9',
+		  'app_version': window.APP_VERSION || '3.1.0',
 		  'screen_size': `${window.innerWidth}x${window.innerHeight}`,
 		  'language': document.documentElement.lang || 'unknown',
 		  'user_type': this._getUserType(),

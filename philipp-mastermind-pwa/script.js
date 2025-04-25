@@ -1,8 +1,16 @@
 // App version - increment this when making changes
-window.APP_VERSION = '3.0.5';
+window.APP_VERSION = '3.0.6';
 
 // Make sure analytics is defined before any other script tries to use it
-window.analytics = {};
+window.analytics = window.analytics || {
+  initialize: function() {},
+  trackGameStart: function() {},
+  trackGameEnd: function() {},
+  trackInteraction: function() {},
+  trackError: function() {},
+  trackPerformance: function() {},
+  setEnabled: function() {}
+};
 
 // ============================
 // 1. CONSTANTS AND GLOBALS

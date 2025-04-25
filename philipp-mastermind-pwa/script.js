@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-const APP_VERSION = '3.0.4';
+window.APP_VERSION = '3.0.5';
 
 // Make sure analytics is defined before any other script tries to use it
 window.analytics = {};

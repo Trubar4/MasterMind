@@ -1,136 +1,8 @@
 // App version - increment this when making changes
-const APP_VERSION = '3.0.3';
+const APP_VERSION = '3.0.4';
 
 // Make sure analytics is defined before any other script tries to use it
 window.analytics = {};
-
-class MastermindAnalytics {
-  constructor(options = {}) {
-    this.trackingId = options.trackingId || null;
-    this.enabled = options.enabled !== false;
-    this.debugMode = options.debugMode || false;
-    this.sessionStartTime = Date.now();
-    this.gameCount = 0;
-    this.initialized = false;
-    this.sessionId = this._generateSessionId();
-    this.localStorage = options.localStorage !== false && this._isLocalStorageAvailable();
-    this.eventQueue = [];
-    this.flushInterval = options.flushInterval || 30000; // 30 seconds
-    this.maxQueueSize = options.maxQueueSize || 20;
-    this.flushTimeoutId = null;
-    
-    // Initialize user data
-    this._initializeUserData();
-  }
-  
-  function addAnalyticsSettings() {
-	  // Create a settings icon in the top bar
-	  const topBar = document.querySelector('.top-bar');
-	  const settingsIcon = document.createElement('div');
-	  settingsIcon.className = 'settings-icon';
-	  settingsIcon.innerHTML = '⚙️';
-	  settingsIcon.style.cursor = 'pointer';
-	  settingsIcon.style.fontSize = '1.2rem';
-	  settingsIcon.style.marginLeft = 'auto';
-	  settingsIcon.style.marginRight = '10px';
-	  
-	  settingsIcon.addEventListener('click', function() {
-		showAnalyticsSettings();
-	  });
-	  
-	  topBar.appendChild(settingsIcon);
-	}
-
-	function showAnalyticsSettings() {
-	  // Create a simple modal for analytics settings
-	  const modal = document.createElement('div');
-	  modal.className = 'analytics-settings-modal';
-	  modal.style.position = 'fixed';
-	  modal.style.top = '50%';
-	  modal.style.left = '50%';
-	  modal.style.transform = 'translate(-50%, -50%)';
-	  modal.style.backgroundColor = '#DAE3F3';
-	  modal.style.padding = '20px';
-	  modal.style.borderRadius = '8px';
-	  modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-	  modal.style.zIndex = '3000';
-	  modal.style.minWidth = '250px';
-	  
-	  // Add content
-	  const heading = document.createElement('h3');
-	  heading.textContent = translations[currentLang].settings || 'Settings';
-	  heading.style.marginTop = '0';
-	  
-	  const analyticsLabel = document.createElement('label');
-	  analyticsLabel.style.display = 'block';
-	  analyticsLabel.style.margin = '10px 0';
-	  
-	  const analyticsCheckbox = document.createElement('input');
-	  analyticsCheckbox.type = 'checkbox';
-	  analyticsCheckbox.checked = window.analytics.enabled;
-	  analyticsCheckbox.style.marginRight = '10px';
-	  
-	  analyticsLabel.appendChild(analyticsCheckbox);
-	  analyticsLabel.appendChild(document.createTextNode(
-		translations[currentLang].enableAnalytics || 'Enable analytics'
-	  ));
-	  
-	  // Close button
-	  const closeButton = document.createElement('button');
-	  closeButton.textContent = translations[currentLang].close || 'Close';
-	  closeButton.style.marginTop = '15px';
-	  closeButton.style.padding = '5px 10px';
-	  closeButton.style.backgroundColor = '#6200EE';
-	  closeButton.style.color = 'white';
-	  closeButton.style.border = 'none';
-	  closeButton.style.borderRadius = '4px';
-	  closeButton.style.cursor = 'pointer';
-	  
-	  closeButton.addEventListener('click', function() {
-		document.body.removeChild(modal);
-	  });
-	  
-	  // Event listener for checkbox
-	  analyticsCheckbox.addEventListener('change', function() {
-		window.analytics.setEnabled(this.checked);
-	  });
-	  
-	  // Assemble the modal
-	  modal.appendChild(heading);
-	  modal.appendChild(analyticsLabel);
-	  modal.appendChild(closeButton);
-	  
-	  // Add modal to the page
-	  document.body.appendChild(modal);
-	}
-
-	// Don't forget to add the settings to your translations
-	function addAnalyticsTranslations() {
-	  // Add to your existing translations
-	  translations.en.settings = "Settings";
-	  translations.en.enableAnalytics = "Enable anonymous usage statistics";
-	  translations.en.close = "Close";
-	  
-	  translations.de.settings = "Einstellungen";
-	  translations.de.enableAnalytics = "Anonyme Nutzungsstatistiken aktivieren";
-	  translations.de.close = "Schließen";
-	}
-}
-
-// Create singleton instance
-const analyticsInstance = new MastermindAnalytics({
-  debugMode: true, // Set to false in production
-  localStorage: true
-});
-  
-// Copy all methods from the instance to the window.analytics object
-for (let key in analyticsInstance) {
-  if (typeof analyticsInstance[key] === 'function') {
-    window.analytics[key] = analyticsInstance[key].bind(analyticsInstance);
-  } else {
-    window.analytics[key] = analyticsInstance[key];
-  }
-}
 
 // ============================
 // 1. CONSTANTS AND GLOBALS
@@ -2383,12 +2255,109 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(adjustGameScaling, 1000);
 });
 
-// Make sure analytics exists even if the analytics.js script fails
-window.analytics = window.analytics || {
-  initialize: function() {},
-  trackGameStart: function() {},
-  trackGameEnd: function() {},
-  trackInteraction: function() {},
-  trackError: function() {},
-  trackPerformance: function() {}
-};
+
+// ============================
+// 8. Analytic settings and functions
+// ============================
+function addAnalyticsSettings() {
+  // Create a settings icon in the top bar
+  const topBar = document.querySelector('.top-bar');
+  const settingsIcon = document.createElement('div');
+  settingsIcon.className = 'settings-icon';
+  settingsIcon.innerHTML = '⚙️';
+  settingsIcon.style.cursor = 'pointer';
+  settingsIcon.style.fontSize = '1.2rem';
+  settingsIcon.style.marginLeft = 'auto';
+  settingsIcon.style.marginRight = '10px';
+  
+  settingsIcon.addEventListener('click', function() {
+    showAnalyticsSettings();
+  });
+  
+  topBar.appendChild(settingsIcon);
+}
+
+function showAnalyticsSettings() {
+  // Create a simple modal for analytics settings
+  const modal = document.createElement('div');
+  modal.className = 'analytics-settings-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '50%';
+  modal.style.left = '50%';
+  modal.style.transform = 'translate(-50%, -50%)';
+  modal.style.backgroundColor = '#DAE3F3';
+  modal.style.padding = '20px';
+  modal.style.borderRadius = '8px';
+  modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+  modal.style.zIndex = '3000';
+  modal.style.minWidth = '250px';
+  
+  // Add content
+  const heading = document.createElement('h3');
+  heading.textContent = translations[currentLang].settings || 'Settings';
+  heading.style.marginTop = '0';
+  
+  const analyticsLabel = document.createElement('label');
+  analyticsLabel.style.display = 'block';
+  analyticsLabel.style.margin = '10px 0';
+  
+  const analyticsCheckbox = document.createElement('input');
+  analyticsCheckbox.type = 'checkbox';
+  analyticsCheckbox.checked = window.analytics.enabled;
+  analyticsCheckbox.style.marginRight = '10px';
+  
+  analyticsLabel.appendChild(analyticsCheckbox);
+  analyticsLabel.appendChild(document.createTextNode(
+    translations[currentLang].enableAnalytics || 'Enable analytics'
+  ));
+  
+  // Close button
+  const closeButton = document.createElement('button');
+  closeButton.textContent = translations[currentLang].close || 'Close';
+  closeButton.style.marginTop = '15px';
+  closeButton.style.padding = '5px 10px';
+  closeButton.style.backgroundColor = '#6200EE';
+  closeButton.style.color = 'white';
+  closeButton.style.border = 'none';
+  closeButton.style.borderRadius = '4px';
+  closeButton.style.cursor = 'pointer';
+  
+  closeButton.addEventListener('click', function() {
+    document.body.removeChild(modal);
+  });
+  
+  // Event listener for checkbox
+  analyticsCheckbox.addEventListener('change', function() {
+    window.analytics.setEnabled(this.checked);
+  });
+  
+  // Assemble the modal
+  modal.appendChild(heading);
+  modal.appendChild(analyticsLabel);
+  modal.appendChild(closeButton);
+  
+  // Add modal to the page
+  document.body.appendChild(modal);
+}
+
+// Don't forget to add the settings to your translations
+function addAnalyticsTranslations() {
+  // Add to your existing translations
+  translations.en.settings = "Settings";
+  translations.en.enableAnalytics = "Enable anonymous usage statistics";
+  translations.en.close = "Close";
+  
+  translations.de.settings = "Einstellungen";
+  translations.de.enableAnalytics = "Anonyme Nutzungsstatistiken aktivieren";
+  translations.de.close = "Schließen";
+}
+
+// // Make sure analytics exists even if the analytics.js script fails
+// window.analytics = window.analytics || {
+  // initialize: function() {},
+  // trackGameStart: function() {},
+  // trackGameEnd: function() {},
+  // trackInteraction: function() {},
+  // trackError: function() {},
+  // trackPerformance: function() {}
+// };

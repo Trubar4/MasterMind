@@ -1,5 +1,5 @@
 // Replace this with your actual app version - must match script.js
-const CACHE_VERSION = '3.0.8';
+const CACHE_VERSION = '3.0.9';
 const CACHE_NAME = `mastermind-cache-${CACHE_VERSION}`;
 
 // List all files to cache

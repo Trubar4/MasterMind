@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mastermind Analytics Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <!-- Load the Google Analytics Embed API library -->
   <script>
   (function(w,d,s,g,js,fjs){
@@ -350,7 +350,6 @@
   <div id="loading-overlay" class="loading-overlay">
     <div class="loading-spinner"></div>
   </div>
-
 
   <script>
     // Configuration - Update these values with your actual GA4 info
@@ -1291,7 +1290,28 @@
       chartInstances.errorRates.update();
     }
     
-utf-8,';
+    // Export data to CSV
+    async function exportDataToCSV() {
+      showLoading();
+      
+      // Collect all current data
+      const exportData = {
+        overview: {
+          'Total Games': document.getElementById('total-games').textContent,
+          'Unique Users': document.getElementById('total-users').textContent,
+          'Average Session Duration': document.getElementById('avg-session').textContent,
+          'Completion Rate': document.getElementById('completion-rate').textContent
+        },
+        performance: {
+          'Win Rate': document.getElementById('win-rate').textContent,
+          'Average Attempts': document.getElementById('avg-attempts').textContent,
+          'Give Up Rate': document.getElementById('give-up-rate').textContent,
+          'Average Game Time': document.getElementById('avg-time').textContent
+        }
+      };
+      
+      // Create CSV content
+      let csvContent = 'data:text/csv;charset=utf-8,';
       
       // Add overview section
       csvContent += 'OVERVIEW\r\n';
@@ -1347,7 +1367,58 @@ utf-8,';
       
       hideLoading();
       showStatus('Data exported successfully');
+    }
     
+    // Initialize the Google Analytics Embed API
+    function initializeGoogleAnalytics() {
+      gapi.analytics.ready(function() {
+        // Create the authentication button
+        const authButton = new gapi.analytics.auth.AuthButton({
+          container: 'auth-button',
+          clientid: CLIENT_ID
+        });
+        
+        // Add event listener for successful authentication
+        authButton.on('success', function(response) {
+          document.getElementById('dashboard-content').classList.remove('hidden');
+          hideLoading();
+          
+          // Initialize and load data
+          initializeDateRange();
+          initializeCharts();
+          fetchAnalyticsData();
+          
+          // Add event listeners for interactive elements
+          document.getElementById('apply-date').addEventListener('click', fetchAnalyticsData);
+          document.getElementById('refresh-data').addEventListener('click', fetchAnalyticsData);
+          document.getElementById('export-data').addEventListener('click', exportDataToCSV);
+          document.getElementById('filter-mode').addEventListener('change', fetchAnalyticsData);
+          document.getElementById('filter-code-length').addEventListener('change', fetchAnalyticsData);
+        });
+        
+        // Add event listener for auth failure
+        authButton.on('error', function(response) {
+          showError('Authentication failed: ' + (response.error || 'Unknown error'));
+        });
+        
+        // Render the auth button
+        authButton.render();
+      });
+    }
+    
+    // Initialize the application
+    function init() {
+      try {
+        showLoading();
+        initializeGoogleAnalytics();
+      } catch (error) {
+        console.error('Initialization error:', error);
+        showError('Failed to initialize application: ' + error.message);
+      }
+    }
+    
+    // Start the application when the page loads
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>

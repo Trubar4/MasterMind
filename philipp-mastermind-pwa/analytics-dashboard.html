@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mastermind Analytics Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-	<!-- Google API Client Library -->
-	<script src="https://apis.google.com/js/api.js"></script>
-	<!-- Google Identity Services -->
-	<script src="https://accounts.google.com/gsi/client"></script>
-	<!-- JWT Decoder für Token-Parsing -->
-	<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <!-- Google API Client Library -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <!-- JWT Decoder für Token-Parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -170,44 +170,44 @@
       background-color: #e8f5e9;
       color: #2e7d32;
     }
-	#auth-container {
-	  margin-bottom: 20px;
-	}
-	#sign-in-button {
-	  background-color: #4285F4;
-	  color: white;
-	  border: none;
-	  padding: 10px 16px;
-	  border-radius: 4px;
-	  cursor: pointer;
-	  font-weight: bold;
-	}
-	#sign-in-button:hover {
-	  background-color: #3367D6;
-	}
-	#sign-out-button {
-	  margin-left: 10px;
-	  background-color: #757575;
-	}
-	.g_id_signin {
-	  margin-bottom: 15px;
-	}
+    #auth-container {
+      margin-bottom: 20px;
+    }
+    .sign-in-button {
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .sign-in-button:hover {
+      background-color: #3367D6;
+    }
+    #sign-out-button {
+      margin-left: 10px;
+      background-color: #757575;
+    }
+    .g_id_signin {
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>Philipp's Mastermind Analytics</h1>
-	<div id="auth-container">
-	  <!-- Google Identity Services Button wird hier eingefügt -->
-	  <div id="g_id_onload"
-		   data-client_id="82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com"
-		   data-context="signin"
-		   data-callback="handleCredentialResponse">
-	  </div>
-	  <div class="g_id_signin"></div>
-	  <button id="sign-out-button" class="hidden">Sign Out</button>
-	</div>
+      <div id="auth-container">
+        <!-- Google Identity Services Button -->
+        <div id="g_id_onload"
+             data-client_id="82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com"
+             data-context="signin"
+             data-callback="handleCredentialResponse">
+        </div>
+        <div class="g_id_signin" data-type="standard"></div>
+        <button id="sign-out-button" class="hidden">Sign Out</button>
+      </div>
     </div>
 
     <div id="error-message" class="error-message"></div>
@@ -289,6 +289,7 @@
           </div>
         </div>
 
+        <!-- Charts and other content remain the same -->
         <!-- Games Over Time Chart -->
         <div class="card">
           <div class="card-header">Games Played Over Time</div>
@@ -381,14 +382,12 @@
 
   <script>
     // Configuration - Update these values with your actual GA4 info
-	const GA4_PROPERTY_ID = '486860865'; // Deine GA4 Property ID
-	const GA4_CLIENT_ID = '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com'; // Deine OAuth client ID (behalte diese)
-	//const GA4_API_KEY = 'AIzaSyAf2h1mThchuKUO-MIMPweiV__KeqeJ1Co'; // Your API key
-	const GA4_API_KEY = 'AIzaSyBNP0qJzO_f-7O2ZZ9MiS4vgiidzXxAvvs'; // Your API key
-	
+    const GA4_PROPERTY_ID = '486860865'; // Deine GA4 Property ID
+    const GA4_CLIENT_ID = '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com'; // Deine OAuth client ID (behalte diese)
+    const GA4_API_KEY = 'AIzaSyBNP0qJzO_f-7O2ZZ9MiS4vgiidzXxAvvs'; // Your API key
     
     // Define scope for Google Analytics API access
-	const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
+    const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
     
     // Store chart instances for later reference
     const chartInstances = {};
@@ -693,639 +692,106 @@
           filterString += `;ga:eventLabel==${codeLengthFilter}`;
         }
         
-        // Query for total games
-        await queryTotalGames(startDate, endDate, filterString);
-        
-        // Query for unique users
-        await queryUniqueUsers(startDate, endDate, filterString);
-        
-        // Query for session metrics
-        await querySessionMetrics(startDate, endDate, filterString);
-        
-        // Query for game performance
-        await queryGamePerformance(startDate, endDate, filterString);
-        
-        // Query for games over time
-        await queryGamesOverTime(startDate, endDate, filterString);
-        
-        // Query for mode preference
-        await queryModePreference(startDate, endDate);
-        
-        // Query for language distribution
-        await queryLanguageDistribution(startDate, endDate);
-        
-        // Query for code length preference
-        await queryCodeLengthPreference(startDate, endDate);
-        
-        // Query for color usage
-        await queryColorUsage(startDate, endDate);
-        
-        // Query for win rate by attempts
-        await queryWinRateByAttempts(startDate, endDate);
-        
-        // Query for recent game sessions
-        await queryRecentSessions(startDate, endDate);
-        
-        // Query for device distribution
-        await queryDeviceDistribution(startDate, endDate);
-        
-        // Query for error rates
-        await queryErrorRates(startDate, endDate);
-        
-        showStatus('Analytics data updated successfully');
+        // For now, use demo data until we integrate the actual GA4 API calls
+        loadDemoData();
+        showStatus('Analytics data updated (demo mode)');
         hideLoading();
+        return;
       } catch (error) {
         console.error('Error fetching analytics data:', error);
         showError('Failed to fetch analytics data. Error: ' + error.message);
       }
-	  // For now, use demo data until we integrate the actual GA4 API calls
-	loadDemoData();
-	showStatus('Analytics data updated (demo mode)');
-	return;
     }
     
-    // Query for total games
-    async function queryTotalGames(startDate, endDate, filterString) {
-      const totalGamesQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventCategory',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start'
-        }
-      });
+    // Load demo data for initial display
+    function loadDemoData() {
+      // Set overview statistics
+      document.getElementById('total-games').textContent = '1,250';
+      document.getElementById('total-users').textContent = '450';
+      document.getElementById('avg-session').textContent = '5m 30s';
+      document.getElementById('completion-rate').textContent = '85.7%';
       
-      const response = await totalGamesQuery.execute();
+      // Set game performance statistics
+      document.getElementById('win-rate').textContent = '62.5%';
+      document.getElementById('avg-attempts').textContent = '5.8';
+      document.getElementById('give-up-rate').textContent = '18.3%';
+      document.getElementById('avg-time').textContent = '3m 45s';
       
-      if (response.error) {
-        throw new Error(response.error.message);
+      // Update time series chart
+      const timeLabels = [];
+      const timeData = [];
+      const today = new Date();
+      
+      for (let i = 30; i > 0; i--) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        timeLabels.push(`${month}/${day}`);
+        timeData.push(Math.floor(Math.random() * 45) + 5);
       }
       
-      let totalGames = 0;
-      if (response.rows && response.rows.length > 0) {
-        totalGames = parseInt(response.rows[0][1]);
-      }
-      
-      document.getElementById('total-games').textContent = numberWithCommas(totalGames);
-    }
-    
-    // Query for unique users
-    async function queryUniqueUsers(startDate, endDate, filterString) {
-      const uniqueUsersQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:users',
-          'filters': 'ga:eventCategory==game'
-        }
-      });
-      
-      const response = await uniqueUsersQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let totalUsers = 0;
-      if (response.rows && response.rows.length > 0) {
-        totalUsers = parseInt(response.rows[0][0]);
-      }
-      
-      document.getElementById('total-users').textContent = numberWithCommas(totalUsers);
-    }
-    
-    // Query for session metrics
-    async function querySessionMetrics(startDate, endDate, filterString) {
-      const sessionQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:avgSessionDuration,ga:sessionCount,ga:bounceRate'
-        }
-      });
-      
-      const response = await sessionQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      if (response.rows && response.rows.length > 0) {
-        const avgSessionDuration = Math.round(parseFloat(response.rows[0][0]));
-        const completionRate = 100 - parseFloat(response.rows[0][2]);
-        
-        document.getElementById('avg-session').textContent = formatTime(avgSessionDuration);
-        document.getElementById('completion-rate').textContent = completionRate.toFixed(1) + '%';
-      }
-    }
-    
-    // Query for game performance
-    async function queryGamePerformance(startDate, endDate, filterString) {
-      const performanceQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventAction',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end'
-        }
-      });
-      
-      const response = await performanceQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      // Get win/loss data by querying event labels
-      const resultQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end'
-        }
-      });
-      
-      const resultResponse = await resultQuery.execute();
-      
-      if (resultResponse.error) {
-        throw new Error(resultResponse.error.message);
-      }
-      
-      let wins = 0;
-      let giveUps = 0;
-      let totalGames = 0;
-      let totalAttempts = 0;
-      let totalDuration = 0;
-      
-      if (resultResponse.rows && resultResponse.rows.length > 0) {
-        for (const row of resultResponse.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          totalGames += count;
-          
-          if (label.includes('win')) {
-            wins += count;
-          } else if (label.includes('giveUp=true') || label.includes('abandoned')) {
-            giveUps += count;
-          }
-          
-          // Extract attempts and duration from labels if available
-          const attemptsMatch = label.match(/attempts=(\d+)/);
-          const durationMatch = label.match(/duration=(\d+)/);
-          
-          if (attemptsMatch) {
-            totalAttempts += parseInt(attemptsMatch[1]) * count;
-          }
-          
-          if (durationMatch) {
-            totalDuration += parseInt(durationMatch[1]) * count;
-          }
-        }
-      }
-      
-      // Calculate metrics
-      const winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0;
-      const giveUpRate = totalGames > 0 ? (giveUps / totalGames) * 100 : 0;
-      const avgAttempts = totalGames > 0 ? totalAttempts / totalGames : 0;
-      const avgTime = totalGames > 0 ? totalDuration / totalGames : 0;
-      
-      // Update UI
-      document.getElementById('win-rate').textContent = winRate.toFixed(1) + '%';
-      document.getElementById('give-up-rate').textContent = giveUpRate.toFixed(1) + '%';
-      document.getElementById('avg-attempts').textContent = avgAttempts.toFixed(1);
-      document.getElementById('avg-time').textContent = formatTime(Math.round(avgTime));
-    }
-    
-    // Query for games over time
-    async function queryGamesOverTime(startDate, endDate, filterString) {
-      const gamesOverTimeQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:date',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start',
-          'sort': 'ga:date'
-        }
-      });
-      
-      const response = await gamesOverTimeQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const labels = [];
-      const data = [];
-      
-      if (response.rows && response.rows.length > 0) {
-        response.rows.forEach(row => {
-          // Format the date from YYYYMMDD to MM/DD
-          const dateStr = row[0];
-          const month = dateStr.substr(4, 2);
-          const day = dateStr.substr(6, 2);
-          const formattedDate = `${month}/${day}`;
-          
-          labels.push(formattedDate);
-          data.push(parseInt(row[1]));
-        });
-      }
-      
-      // Update the chart
-      chartInstances.gamesOverTime.data.labels = labels;
-      chartInstances.gamesOverTime.data.datasets[0].data = data;
+      chartInstances.gamesOverTime.data.labels = timeLabels;
+      chartInstances.gamesOverTime.data.datasets[0].data = timeData;
       chartInstances.gamesOverTime.update();
-    }
-    
-    // Query for mode preference
-    async function queryModePreference(startDate, endDate) {
-      const modePreferenceQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start;ga:eventLabel=~mode=',
-        }
-      });
       
-      const response = await modePreferenceQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let bothCount = 0;
-      let codemakerCount = 0;
-      let codebreakerCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          if (label.includes('mode=both')) {
-            bothCount += count;
-          } else if (label.includes('mode=codemakerMode')) {
-            codemakerCount += count;
-          } else if (label.includes('mode=codebreakerMode')) {
-            codebreakerCount += count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.modePreference.data.datasets[0].data = [bothCount, codemakerCount, codebreakerCount];
+      // Update mode preference chart
+      chartInstances.modePreference.data.datasets[0].data = [45, 30, 25];
       chartInstances.modePreference.update();
-    }
-    
-    // Query for language distribution
-    async function queryLanguageDistribution(startDate, endDate) {
-      const languageQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start;ga:eventLabel=~language=',
-        }
-      });
       
-      const response = await languageQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let englishCount = 0;
-      let germanCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          if (label.includes('language=en')) {
-            englishCount += count;
-          } else if (label.includes('language=de')) {
-            germanCount += count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.languageDistribution.data.datasets[0].data = [englishCount, germanCount];
+      // Update language distribution chart
+      chartInstances.languageDistribution.data.datasets[0].data = [70, 30];
       chartInstances.languageDistribution.update();
-    }
-    
-    // Query for code length preference
-    async function queryCodeLengthPreference(startDate, endDate) {
-      const codeLengthQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start;ga:eventLabel=~codeLength=',
-        }
-      });
       
-      const response = await codeLengthQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let fourCodeCount = 0;
-      let fiveCodeCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          if (label.includes('codeLength=4')) {
-            fourCodeCount += count;
-          } else if (label.includes('codeLength=5')) {
-            fiveCodeCount += count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.lengthPreference.data.datasets[0].data = [fourCodeCount, fiveCodeCount];
+      // Update code length preference chart
+      chartInstances.lengthPreference.data.datasets[0].data = [65, 35];
       chartInstances.lengthPreference.update();
-    }
-    
-    // Query for color usage
-    async function queryColorUsage(startDate, endDate) {
-      const colorUsageQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==interaction;ga:eventAction==color_select',
-        }
-      });
       
-      const response = await colorUsageQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const colorCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // Red, Yellow, Orange, Pink, Blue, Green, Gray, Black
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          // Parse color from event label
-          if (label.includes('color=#FF0000')) colorCounts[0] += count; // Red
-          else if (label.includes('color=#FFFF00')) colorCounts[1] += count; // Yellow
-          else if (label.includes('color=#FFC000')) colorCounts[2] += count; // Orange
-          else if (label.includes('color=#F36DED')) colorCounts[3] += count; // Pink
-          else if (label.includes('color=#0070C0')) colorCounts[4] += count; // Blue
-          else if (label.includes('color=#00B050')) colorCounts[5] += count; // Green
-          else if (label.includes('color=#A6A6A6')) colorCounts[6] += count; // Gray
-          else if (label.includes('color=#000000')) colorCounts[7] += count; // Black
-        }
-      }
-      
-      // Update the chart
-      chartInstances.colorUsage.data.datasets[0].data = colorCounts;
+      // Update color usage chart
+      chartInstances.colorUsage.data.datasets[0].data = [120, 95, 85, 75, 110, 90, 60, 70];
       chartInstances.colorUsage.update();
-    }
-    
-    // Query for win rate by attempts
-    async function queryWinRateByAttempts(startDate, endDate) {
-      const winRateQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end;ga:eventLabel=~attempts=',
-        }
-      });
       
-      const response = await winRateQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      // Initialize arrays to store attempts data
-      const winsByAttempt = Array(10).fill(0);
-      const totalByAttempt = Array(10).fill(0);
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          // Extract attempts number
-          const attemptsMatch = label.match(/attempts=(\d+)/);
-          if (attemptsMatch) {
-            const attempts = parseInt(attemptsMatch[1]);
-            if (attempts > 0 && attempts <= 10) {
-              totalByAttempt[attempts - 1] += count;
-              
-              // Check if this was a win
-              if (label.includes('result=win')) {
-                winsByAttempt[attempts - 1] += count;
-              }
-            }
-          }
-        }
-      }
-      
-      // Calculate win rates for each attempt count
-      const winRates = winsByAttempt.map((wins, i) => 
-        totalByAttempt[i] > 0 ? (wins / totalByAttempt[i]) * 100 : 0
-      );
-      
-      // Update the chart
-      chartInstances.winByAttempts.data.datasets[0].data = winRates;
+      // Update win rate by attempts chart
+      chartInstances.winByAttempts.data.datasets[0].data = [90, 75, 65, 50, 40, 30, 25, 20, 15, 10];
       chartInstances.winByAttempts.update();
-    }
-    
-    // Query for recent game sessions
-    async function queryRecentSessions(startDate, endDate) {
-      const recentGamesQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:date,ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end',
-          'sort': '-ga:date',
-          'max-results': 20
-        }
-      });
       
-      const response = await recentGamesQuery.execute();
+      // Update device distribution chart
+      chartInstances.deviceDistribution.data.datasets[0].data = [55, 35, 10];
+      chartInstances.deviceDistribution.update();
       
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
+      // Update error rates chart
+      chartInstances.errorRates.data.datasets[0].data = [12, 8, 5, 3, 4];
+      chartInstances.errorRates.update();
+      
+      // Update recent games table
+      const sampleGames = [
+        { date: '04/20/2025', mode: '2 Player', result: 'Win', attempts: 5, duration: '2m 45s' },
+        { date: '04/19/2025', mode: 'Computer as Maker', result: 'Win', attempts: 7, duration: '4m 12s' },
+        { date: '04/19/2025', mode: '2 Player', result: 'Loss', attempts: 10, duration: '5m 30s' },
+        { date: '04/18/2025', mode: 'Computer as Breaker', result: 'Win', attempts: 4, duration: '2m 15s' },
+        { date: '04/17/2025', mode: 'Computer as Maker', result: 'Abandoned', attempts: 3, duration: '1m 45s' },
+        { date: '04/16/2025', mode: '2 Player', result: 'Win', attempts: 6, duration: '3m 10s' },
+        { date: '04/15/2025', mode: 'Computer as Breaker', result: 'Loss', attempts: 10, duration: '6m 05s' },
+        { date: '04/15/2025', mode: 'Computer as Maker', result: 'Win', attempts: 5, duration: '3m 30s' },
+        { date: '04/14/2025', mode: '2 Player', result: 'Win', attempts: 3, duration: '1m 50s' },
+        { date: '04/13/2025', mode: 'Computer as Breaker', result: 'Win', attempts: 8, duration: '4m 40s' }
+      ];
       
       const tableBody = document.querySelector('#recent-games tbody');
       tableBody.innerHTML = ''; // Clear existing rows
       
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const date = row[0]; // YYYYMMDD format
-          const label = row[1];
-          
-          // Format date as MM/DD/YYYY
-          const formattedDate = `${date.substr(4, 2)}/${date.substr(6, 2)}/${date.substr(0, 4)}`;
-          
-          // Extract game data from label
-          let mode = 'Unknown';
-          if (label.includes('mode=both')) mode = '2 Player';
-          else if (label.includes('mode=codemakerMode')) mode = 'Computer as Breaker';
-          else if (label.includes('mode=codebreakerMode')) mode = 'Computer as Maker';
-          
-          let result = 'Unknown';
-          if (label.includes('result=win')) result = 'Win';
-          else if (label.includes('result=loss')) result = 'Loss';
-          else if (label.includes('result=abandoned')) result = 'Abandoned';
-          
-          let attempts = '-';
-          const attemptsMatch = label.match(/attempts=(\d+)/);
-          if (attemptsMatch) attempts = attemptsMatch[1];
-          
-          let duration = '-';
-          const durationMatch = label.match(/duration=(\d+)/);
-          if (durationMatch) duration = formatTime(parseInt(durationMatch[1]));
-          
-          // Create table row
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>${mode}</td>
-            <td>${result}</td>
-            <td>${attempts}</td>
-            <td>${duration}</td>
-          `;
-          
-          tableBody.appendChild(tr);
-        }
-      }
-      
-      // Add empty row if no data
-      if (tableBody.children.length === 0) {
+      for (const game of sampleGames) {
         const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="5" style="text-align: center;">No recent games found</td>';
+        tr.innerHTML = `
+          <td>${game.date}</td>
+          <td>${game.mode}</td>
+          <td>${game.result}</td>
+          <td>${game.attempts}</td>
+          <td>${game.duration}</td>
+        `;
+        
         tableBody.appendChild(tr);
       }
-    }
-    
-    // Query for device distribution
-    async function queryDeviceDistribution(startDate, endDate) {
-      const deviceQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:sessions',
-          'dimensions': 'ga:deviceCategory'
-        }
-      });
-      
-      const response = await deviceQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let desktopCount = 0;
-      let mobileCount = 0;
-      let tabletCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const deviceType = row[0];
-          const count = parseInt(row[1]);
-          
-          if (deviceType === 'desktop') {
-            desktopCount = count;
-          } else if (deviceType === 'mobile') {
-            mobileCount = count;
-          } else if (deviceType === 'tablet') {
-            tabletCount = count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.deviceDistribution.data.datasets[0].data = [desktopCount, mobileCount, tabletCount];
-      chartInstances.deviceDistribution.update();
-    }
-    
-    // Query for error rates
-    async function queryErrorRates(startDate, endDate) {
-      const errorQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventAction',
-          'filters': 'ga:eventCategory==error'
-        }
-      });
-      
-      const response = await errorQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const errorCounts = [0, 0, 0, 0, 0]; // Game Logic, Network, Input, Rendering, Other
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const errorType = row[0];
-          const count = parseInt(row[1]);
-          
-          if (errorType.includes('javascript')) {
-            errorCounts[0] += count; // Game Logic
-          } else if (errorType.includes('network')) {
-            errorCounts[1] += count; // Network
-          } else if (errorType.includes('input')) {
-            errorCounts[2] += count; // Input
-          } else if (errorType.includes('rendering')) {
-            errorCounts[3] += count; // Rendering
-          } else {
-            errorCounts[4] += count; // Other
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.errorRates.data.datasets[0].data = errorCounts;
-      chartInstances.errorRates.update();
     }
     
     // Export data to CSV
@@ -1405,9 +871,9 @@
       
       hideLoading();
       showStatus('Data exported successfully');
-    }
-    
-		// Behandelt die Antwort vom Google Identity Services
+	}
+	  
+	// Behandelt die Antwort vom Google Identity Services
 	function handleCredentialResponse(response) {
 	  console.log("GIS Antwort erhalten:", response);
 	  

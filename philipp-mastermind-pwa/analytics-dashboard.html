@@ -377,7 +377,7 @@
 	
     
     // Define scope for Google Analytics API access
-    const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
+	const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
     
     // Store chart instances for later reference
     const chartInstances = {};
@@ -1401,21 +1401,38 @@
 	  try {
 		showLoading();
 		
+		// Debugging: Zeige die verwendeten Werte
+		console.log("Initialisiere Google API mit:", {
+		  apiKey: GA4_API_KEY,
+		  clientId: GA4_CLIENT_ID,
+		  scope: SCOPES
+		});
+		
 		// Load the API client
 		await new Promise((resolve, reject) => {
 		  gapi.load('client:auth2', {
 			callback: resolve,
-			onerror: reject
+			onerror: (error) => {
+			  console.error("Error loading client:auth2:", error);
+			  reject(error);
+			}
 		  });
 		});
 		
-		// Initialize the client with API key
-		await gapi.client.init({
-		  apiKey: GA4_API_KEY,
-		  clientId: GA4_CLIENT_ID,
-		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta'],
-		  scope: SCOPES
-		});
+		// Verwende ein Try/Catch speziell für die Client-Initialisierung
+		try {
+		  // Initialize the client with API key
+		  await gapi.client.init({
+			apiKey: GA4_API_KEY,
+			clientId: GA4_CLIENT_ID,
+			scope: SCOPES
+		  });
+		  
+		  console.log("Google API Client erfolgreich initialisiert");
+		} catch (initError) {
+		  console.error("Fehler bei der Client-Initialisierung:", initError);
+		  throw initError;
+		}
 		
 		// Show sign in button
 		document.getElementById('sign-in-button').classList.remove('hidden');
@@ -1427,7 +1444,8 @@
 			  onSignInSuccess();
 			},
 			(error) => {
-			  showError('Sign in error: ' + error.error);
+			  showError('Sign in error: ' + (error.error || JSON.stringify(error)));
+			  console.error("Sign in error details:", error);
 			}
 		  );
 		});
@@ -1442,16 +1460,24 @@
 		  });
 		});
 		
-		// Check if user already signed in
-		if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-		  onSignInSuccess();
+		// Da wir das discovery document entfernt haben, müssen wir manuell prüfen
+		if (gapi.auth2 && gapi.auth2.getAuthInstance()) {
+		  console.log("Auth instance gefunden, prüfe Login-Status");
+		  if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+			console.log("Benutzer ist eingeloggt");
+			onSignInSuccess();
+		  } else {
+			console.log("Benutzer ist nicht eingeloggt");
+			hideLoading();
+		  }
 		} else {
+		  console.log("Kein Auth-Instance gefunden, zeige Login-Button");
 		  hideLoading();
 		}
 		
 	  } catch (error) {
 		console.error('Google API initialization error:', error);
-		showError('Failed to initialize Google API: ' + error.message);
+		showError('Failed to initialize Google API: ' + (error.message || JSON.stringify(error)));
 		hideLoading();
 	  }
 	}
@@ -1568,15 +1594,31 @@
 	}
     
     // Initialize the application
-    function init() {
-      try {
-        showLoading();
-        initializeGoogleAnalytics();
-      } catch (error) {
-        console.error('Initialization error:', error);
-        showError('Failed to initialize application: ' + error.message);
-      }
-    }
+	function init() {
+	  try {
+		showLoading();
+		
+		// Sofort Demo-Daten laden, falls die Authentifizierung fehlschlägt
+		setTimeout(() => {
+		  if (document.getElementById('loading-overlay').style.display === 'flex') {
+			hideLoading();
+			document.getElementById('dashboard-content').classList.remove('hidden');
+			loadDemoData();
+			showStatus('Verwende Demo-Daten (API-Initialisierung fehlgeschlagen)');
+		  }
+		}, 10000);  // 10 Sekunden Timeout
+		
+		initializeGoogleAnalytics();
+	  } catch (error) {
+		console.error('Initialization error:', error);
+		showError('Failed to initialize application: ' + error.message);
+		
+		// Im Fehlerfall Demo-Daten anzeigen
+		document.getElementById('dashboard-content').classList.remove('hidden');
+		loadDemoData();
+		showStatus('Verwende Demo-Daten (API-Initialisierung fehlgeschlagen)');
+	  }
+	}
     
     // Start the application when the page loads
     window.addEventListener('load', init);

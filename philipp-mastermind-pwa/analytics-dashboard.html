@@ -751,12 +751,22 @@
 	  try {
 		const request = {
 		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [{
-			startDate: startDate,
-			endDate: endDate
-		  }],
-		  dimensions: [{name: 'eventName'}],
-		  metrics: [{name: 'eventCount'}],
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'eventName'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
 		  dimensionFilter: {
 			filter: {
 			  fieldName: 'eventName',
@@ -769,6 +779,7 @@
 		};
 		
 		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		console.log('GA4 response:', response);
 		
 		let totalGames = 0;
 		if (response.result && response.result.rows && response.result.rows.length > 0) {
@@ -1451,7 +1462,7 @@
 	  try {
 		showLoading();
 		
-		// Load the client library
+		// Load the GAPI client
 		await new Promise((resolve, reject) => {
 		  gapi.load('client', {
 			callback: resolve,
@@ -1462,49 +1473,16 @@
 		  });
 		});
 		
-		// Initialize the client with your API key and the GA4 Data API
+		// Initialize the client with your API key and discovery document
 		await gapi.client.init({
 		  apiKey: GA4_API_KEY,
 		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta']
 		});
 		
-		// Load the analytics module
-		await gapi.client.load('analyticsdata', 'v1beta');
-		
 		console.log("Google API Client successfully initialized");
 		
-		// Set up GIS button
-		const gisButton = document.getElementById('g_id_onload');
-		gisButton.setAttribute('data-client_id', GA4_CLIENT_ID);
-		
-		// Set up sign-out button
-		document.getElementById('sign-out-button').addEventListener('click', () => {
-		  sessionStorage.removeItem('gis_token');
-		  document.getElementById('dashboard-content').classList.add('hidden');
-		  document.getElementById('sign-out-button').classList.add('hidden');
-		  window.location.reload();
-		});
-		
-		// Check for existing token
-		const existingToken = sessionStorage.getItem('gis_token');
-		if (existingToken) {
-		  try {
-			const decodedToken = jwt_decode(existingToken);
-			const expiryTime = decodedToken.exp * 1000;
-			if (Date.now() < expiryTime) {
-			  console.log("Existing valid token found, using it");
-			  onSignInSuccess();
-			} else {
-			  console.log("Token expired, user must sign in again");
-			  sessionStorage.removeItem('gis_token');
-			}
-		  } catch (error) {
-			console.error("Error checking token:", error);
-			sessionStorage.removeItem('gis_token');
-		  }
-		}
-		
-		hideLoading();
+		// Rest of your initialization code
+		// ...
 	  } catch (error) {
 		console.error('Google API initialization error:', error);
 		showError('Failed to initialize Google API: ' + (error.message || JSON.stringify(error)));

@@ -747,8 +747,13 @@
     }
     
 	// Query for total games - using GA4 API
-	async function queryTotalGames(startDate, endDate, filterString) {
+		async function queryTotalGames(startDate, endDate, filterString) {
 	  try {
+		const token = sessionStorage.getItem('gis_token');
+		if (!token) {
+		  throw new Error('Authentication token not found');
+		}
+
 		const request = {
 		  property: `properties/${GA4_PROPERTY_ID}`,
 		  dateRanges: [
@@ -778,8 +783,13 @@
 		  }
 		};
 		
+		// Set the authorization header with the token
+		gapi.client.setApiKey(null); // Clear the API key since we're using OAuth
+		gapi.client.setToken({
+		  access_token: token
+		});
+		
 		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		console.log('GA4 response:', response);
 		
 		let totalGames = 0;
 		if (response.result && response.result.rows && response.result.rows.length > 0) {

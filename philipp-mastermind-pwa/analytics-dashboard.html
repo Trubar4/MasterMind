@@ -678,26 +678,17 @@
     }
     
     // Fetch analytics data
-    async function fetchAnalyticsData() {
-      try {
-        showLoading();
-        
-        // Get date range values
-        const startDate = document.getElementById('start-date').value || '30daysAgo';
-        const endDate = document.getElementById('end-date').value || 'today';
-        
-        // Get filter values
-        const modeFilter = document.getElementById('filter-mode').value;
-        const codeLengthFilter = document.getElementById('filter-code-length').value;
-        
-        // Build filter string
-        let filterString = 'ga:eventCategory==game';
-        if (modeFilter !== 'all') {
-          filterString += `;ga:eventLabel==${modeFilter}`;
-        }
-        if (codeLengthFilter !== 'all') {
-          filterString += `;ga:eventLabel==${codeLengthFilter}`;
-        }
+	async function fetchAnalyticsData() {
+	  try {
+		showLoading();
+		
+		// Get date range values
+		const startDate = document.getElementById('start-date').value || '30daysAgo';
+		const endDate = document.getElementById('end-date').value || 'today';
+		
+		// Get filter values
+		const modeFilter = document.getElementById('filter-mode').value;
+		const codeLengthFilter = document.getElementById('filter-code-length').value;
         
         // Query for total games
         await queryTotalGames(startDate, endDate, filterString);
@@ -738,22 +729,24 @@
         // Query for error rates
         await queryErrorRates(startDate, endDate);
         
-        showStatus('Analytics data updated successfully');
-        hideLoading();
-      } catch (error) {
-        console.error('Error fetching analytics data:', error);
-        showError('Failed to fetch analytics data. Error: ' + error.message);
-      }
-    }
+		showStatus('Analytics data updated successfully');
+		hideLoading();
+	  } catch (error) {
+		console.error('Error fetching analytics data:', error);
+		showError('Failed to fetch analytics data. Loading demo data instead.');
+		
+		// Load demo data if real data fails
+		loadDemoData();
+		
+		hideLoading();
+	  }
+	}
     
 	// Query for total games - using GA4 API
-		async function queryTotalGames(startDate, endDate, filterString) {
+	async function queryTotalGames(startDate, endDate, filterString) {
 	  try {
-		const token = sessionStorage.getItem('gis_token');
-		if (!token) {
-		  throw new Error('Authentication token not found');
-		}
-
+		prepareApiCall(); // Add this line to get the token
+		
 		const request = {
 		  property: `properties/${GA4_PROPERTY_ID}`,
 		  dateRanges: [
@@ -782,12 +775,6 @@
 			}
 		  }
 		};
-		
-		// Set the authorization header with the token
-		gapi.client.setApiKey(null); // Clear the API key since we're using OAuth
-		gapi.client.setToken({
-		  access_token: token
-		});
 		
 		const response = await gapi.client.analyticsdata.properties.runReport(request);
 		
@@ -1476,26 +1463,20 @@
 		await new Promise((resolve, reject) => {
 		  gapi.load('client', {
 			callback: resolve,
-			onerror: (error) => {
-			  console.error("Error loading API library:", error);
-			  reject(error);
-			}
+			onerror: reject
 		  });
 		});
 		
-		// Initialize the client with your API key and discovery document
+		// Initialize the client with the discovery document
 		await gapi.client.init({
-		  apiKey: GA4_API_KEY,
 		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta']
 		});
 		
 		console.log("Google API Client successfully initialized");
-		
-		// Rest of your initialization code
-		// ...
+		hideLoading();
 	  } catch (error) {
 		console.error('Google API initialization error:', error);
-		showError('Failed to initialize Google API: ' + (error.message || JSON.stringify(error)));
+		showError('Failed to initialize Google API: ' + error.message);
 		hideLoading();
 	  }
 	}
@@ -1609,6 +1590,38 @@
 		tableBody.appendChild(tr);
 	  }
 	}
+	
+	// Add this function to your code
+	function prepareApiCall() {
+	  const token = sessionStorage.getItem('gis_token');
+	  if (!token) {
+		throw new Error('Authentication token not found');
+	  }
+	  
+	  // Set the token for use with the API
+	  gapi.client.setToken({
+		access_token: token
+	  });
+	}
+	
+	function signOut() {
+	  sessionStorage.removeItem('gis_token');
+	  document.getElementById('dashboard-content').classList.add('hidden');
+	  document.getElementById('sign-out-button').classList.add('hidden');
+	  
+	  // Reset Google Sign-In button
+	  const googleDiv = document.querySelector('.g_id_signin');
+	  googleDiv.innerHTML = '';
+	  google.accounts.id.renderButton(googleDiv, { 
+		theme: 'outline', 
+		size: 'large'
+	  });
+	  
+	  showStatus('Signed out successfully');
+	}
+
+	// Add this line in your init function
+	document.getElementById('sign-out-button').addEventListener('click', signOut);
     
     // Initialize the application
 	function init() {

@@ -453,6 +453,12 @@
     
     // Initialize charts with default empty data
     function initializeCharts() {
+	  // Destroy existing charts if they exist
+	  Object.keys(chartInstances).forEach(key => {
+		if (chartInstances[key]) {
+		  chartInstances[key].destroy();
+		}
+	  });
       // Games Over Time Chart
       const gamesOverTimeCtx = document.getElementById('games-over-time').getContext('2d');
       chartInstances.gamesOverTime = new Chart(gamesOverTimeCtx, {
@@ -738,10 +744,6 @@
         console.error('Error fetching analytics data:', error);
         showError('Failed to fetch analytics data. Error: ' + error.message);
       }
-	  // For now, use demo data until we integrate the actual GA4 API calls
-	loadDemoData();
-	showStatus('Analytics data updated (demo mode)');
-	return;
     }
     
     // Query for total games
@@ -1518,8 +1520,8 @@
 	  initializeDateRange();
 	  initializeCharts();
 	  
-	  // Load demo data for now (will replace with actual API calls)
-	  loadDemoData();
+	  // Fetch real analytics data instead of loading demo data
+	  fetchAnalyticsData();
 	  
 	  // Add event listeners for interactive elements
 	  document.getElementById('apply-date').addEventListener('click', fetchAnalyticsData);
@@ -1625,26 +1627,19 @@
 	  try {
 		showLoading();
 		
-		// Timeout für den Fall, dass die Initialisierung zu lange dauert
+		// Timeout for when initialization takes too long
 		setTimeout(() => {
 		  if (document.getElementById('loading-overlay').style.display === 'flex') {
 			hideLoading();
-			document.getElementById('dashboard-content').classList.remove('hidden');
-			loadDemoData();
-			showStatus('Timeout: Verwende Demo-Daten');
+			showError('Timeout: API initialization took too long. Please try refreshing the page.');
 		  }
-		}, 10000);  // 10 Sekunden Timeout
+		}, 10000);  // 10 second timeout
 		
-		// Initialisiere die API
+		// Initialize the API
 		initializeGoogleAPI();
 	  } catch (error) {
 		console.error('Initialization error:', error);
 		showError('Failed to initialize application: ' + error.message);
-		
-		// Im Fehlerfall Demo-Daten anzeigen
-		document.getElementById('dashboard-content').classList.remove('hidden');
-		loadDemoData();
-		showStatus('Verwende Demo-Daten');
 	  }
 	}
     

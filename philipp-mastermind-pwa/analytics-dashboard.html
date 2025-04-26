@@ -200,11 +200,12 @@
       <h1>Philipp's Mastermind Analytics</h1>
 	<div id="auth-container">
 	  <!-- Google Identity Services Button -->
-	  <div id="g_id_onload"
-		   data-client_id="82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com"
-		   data-context="signin"
-		   data-callback="handleCredentialResponse">
-	  </div>
+	<div id="g_id_onload"
+		 data-client_id="82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com"
+		 data-context="signin"
+		 data-callback="handleCredentialResponse"
+		 data-scope="https://www.googleapis.com/auth/analytics.readonly">
+	</div>
 	  <div class="g_id_signin" data-type="standard"></div>
 	  <button id="sign-out-button" class="hidden">Sign Out</button>
 	</div>
@@ -746,35 +747,49 @@
 	async function queryTotalGames(startDate, endDate, modeFilter, codeLengthFilter) {
 	  try {
 		prepareApiCall(); // Add this line to get the token
-		
+
 		const request = {
 		  property: `properties/${GA4_PROPERTY_ID}`,
 		  dateRanges: [
 			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'eventName'
+			  startDate: '30daysAgo',
+			  endDate: 'today'
 			}
 		  ],
 		  metrics: [
 			{
-			  name: 'eventCount'
+			  name: 'activeUsers'
 			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'game_start',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
+		  ]
+		};		
+		<!-- const request = { -->
+		  <!-- property: `properties/${GA4_PROPERTY_ID}`, -->
+		  <!-- dateRanges: [ -->
+			<!-- { -->
+			  <!-- startDate: startDate, -->
+			  <!-- endDate: endDate -->
+			<!-- } -->
+		  <!-- ], -->
+		  <!-- dimensions: [ -->
+			<!-- { -->
+			  <!-- name: 'eventName' -->
+			<!-- } -->
+		  <!-- ], -->
+		  <!-- metrics: [ -->
+			<!-- { -->
+			  <!-- name: 'eventCount' -->
+			<!-- } -->
+		  <!-- ], -->
+		  <!-- dimensionFilter: { -->
+			<!-- filter: { -->
+			  <!-- fieldName: 'eventName', -->
+			  <!-- stringFilter: { -->
+				<!-- value: 'game_start', -->
+				<!-- matchType: 'EXACT' -->
+			  <!-- } -->
+			<!-- } -->
+		  <!-- } -->
+		<!-- }; -->
 		
 		const response = await gapi.client.analyticsdata.properties.runReport(request);
 		
@@ -1735,31 +1750,87 @@
       showStatus('Data exported successfully');
     }
     
-	// Behandelt die Antwort vom Google Identity Services
 	function handleCredentialResponse(response) {
-	  console.log("GIS Antwort erhalten:", response);
+	  console.log("GIS response received:", response);
 	  
-	  // Token aus der Antwort extrahieren
+	  // Extract token from the response
 	  const token = response.credential;
 	  
-	  // Token dekodieren um Benutzerinformationen zu erhalten
+	  // Decode the token to get user information
 	  try {
 		const decodedToken = jwt_decode(token);
-		console.log("Dekodiertes Token:", decodedToken);
+		console.log("Decoded token:", decodedToken);
 		
-		// Speichere das Token für API-Zugriffe
+		// Store the token for API access
 		sessionStorage.setItem('gis_token', token);
 		
-		// User-Infos anzeigen/speichern wenn nötig
+		// Show user info if needed
 		const userEmail = decodedToken.email;
 		const userName = decodedToken.name;
-		console.log(`Eingeloggt als: ${userName} (${userEmail})`);
+		console.log(`Logged in as: ${userName} (${userEmail})`);
 		
-		// Initialisiere das Dashboard nach erfolgreicher Anmeldung
+		// Check if the token has the scope we need
+		if (decodedToken.scope && decodedToken.scope.includes('https://www.googleapis.com/auth/analytics.readonly')) {
+		  console.log("Token has analytics.readonly scope");
+		} else {
+		  console.warn("Token does NOT have analytics.readonly scope - this may cause authentication issues");
+		}
+		
+		// Initialize the dashboard after successful login
 		onSignInSuccess();
 	  } catch (error) {
-		console.error("Fehler beim Dekodieren des Tokens:", error);
-		showError("Anmeldung fehlgeschlagen: " + error.message);
+		console.error("Error decoding token:", error);
+		showError("Login failed: " + error.message);
+	  }
+	}
+	
+	// Try this alternative authentication method
+	async function initializeGoogleAPIAlternative() {
+	  try {
+		showLoading();
+		
+		// Load the GAPI client
+		await new Promise((resolve, reject) => {
+		  gapi.load('client:auth2', {
+			callback: resolve,
+			onerror: reject
+		  });
+		});
+		
+		// Initialize the client with API key and scope
+		await gapi.client.init({
+		  apiKey: GA4_API_KEY,
+		  clientId: GA4_CLIENT_ID,
+		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta'],
+		  scope: 'https://www.googleapis.com/auth/analytics.readonly'
+		});
+		
+		// Check if user is already signed in
+		if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+		  console.log("User already signed in with GAPI");
+		  onSignInSuccess();
+		} else {
+		  // Show sign-in button (using GAPI auth instead of GIS)
+		  document.getElementById('auth-container').innerHTML = `
+			<button id="gapi-sign-in" class="sign-in-button">Sign in with Google (GAPI)</button>
+			<button id="sign-out-button" class="hidden">Sign Out</button>
+		  `;
+		  
+		  document.getElementById('gapi-sign-in').addEventListener('click', () => {
+			gapi.auth2.getAuthInstance().signIn().then(() => {
+			  onSignInSuccess();
+			}).catch(error => {
+			  showError("GAPI sign-in failed: " + error.message);
+			});
+		  });
+		}
+		
+		console.log("Google API Client successfully initialized");
+		hideLoading();
+	  } catch (error) {
+		console.error('Google API initialization error:', error);
+		showError('Failed to initialize Google API: ' + error.message);
+		hideLoading();
 	  }
 	}
 
@@ -1899,18 +1970,28 @@
 		tableBody.appendChild(tr);
 	  }
 	}
-	
-	// Add this function to your code
+		
 	function prepareApiCall() {
+	  // First try using the session token
 	  const token = sessionStorage.getItem('gis_token');
-	  if (!token) {
+	  
+	  if (token) {
+		// Try using the GIS token
+		gapi.client.setToken({
+		  access_token: token
+		});
+		console.log("Using GIS token for API call");
+	  } else if (gapi.auth2 && gapi.auth2.getAuthInstance() && gapi.auth2.getAuthInstance().isSignedIn.get()) {
+		// Fallback to using GAPI auth
+		const currentUser = gapi.auth2.getAuthInstance().currentUser.get();
+		const authResponse = currentUser.getAuthResponse();
+		gapi.client.setToken({
+		  access_token: authResponse.access_token
+		});
+		console.log("Using GAPI token for API call");
+	  } else {
 		throw new Error('Authentication token not found');
 	  }
-	  
-	  // Set the token for use with the API
-	  gapi.client.setToken({
-		access_token: token
-	  });
 	}
 	
 	function signOut() {

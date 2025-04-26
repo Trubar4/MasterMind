@@ -9,6 +9,8 @@
 	<script src="https://apis.google.com/js/api.js"></script>
 	<!-- Google Identity Services -->
 	<script src="https://accounts.google.com/gsi/client"></script>
+	<!-- JWT Decoder für Token-Parsing -->
+	<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -187,16 +189,25 @@
 	  margin-left: 10px;
 	  background-color: #757575;
 	}
+	.g_id_signin {
+	  margin-bottom: 15px;
+	}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>Philipp's Mastermind Analytics</h1>
-      <div id="auth-container">
-		  <button id="sign-in-button" class="hidden">Sign In with Google</button>
-		  <button id="sign-out-button" class="hidden">Sign Out</button>
-      </div>
+	<div id="auth-container">
+	  <!-- Google Identity Services Button wird hier eingefügt -->
+	  <div id="g_id_onload"
+		   data-client_id="DEINE_CLIENT_ID"
+		   data-context="signin"
+		   data-callback="handleCredentialResponse">
+	  </div>
+	  <div class="g_id_signin"></div>
+	  <button id="sign-out-button" class="hidden">Sign Out</button>
+	</div>
     </div>
 
     <div id="error-message" class="error-message"></div>
@@ -1396,88 +1407,105 @@
       showStatus('Data exported successfully');
     }
     
-	// Initialize Google API client and authenticate
-	async function initializeGoogleAnalytics() {
+		// Behandelt die Antwort vom Google Identity Services
+	function handleCredentialResponse(response) {
+	  console.log("GIS Antwort erhalten:", response);
+	  
+	  // Token aus der Antwort extrahieren
+	  const token = response.credential;
+	  
+	  // Token dekodieren um Benutzerinformationen zu erhalten
+	  try {
+		const decodedToken = jwt_decode(token);
+		console.log("Dekodiertes Token:", decodedToken);
+		
+		// Speichere das Token für API-Zugriffe
+		sessionStorage.setItem('gis_token', token);
+		
+		// User-Infos anzeigen/speichern wenn nötig
+		const userEmail = decodedToken.email;
+		const userName = decodedToken.name;
+		console.log(`Eingeloggt als: ${userName} (${userEmail})`);
+		
+		// Initialisiere das Dashboard nach erfolgreicher Anmeldung
+		onSignInSuccess();
+	  } catch (error) {
+		console.error("Fehler beim Dekodieren des Tokens:", error);
+		showError("Anmeldung fehlgeschlagen: " + error.message);
+	  }
+	}
+
+	// Initialisiert die Google API
+	async function initializeGoogleAPI() {
 	  try {
 		showLoading();
 		
-		// Debugging: Zeige die verwendeten Werte
-		console.log("Initialisiere Google API mit:", {
-		  apiKey: GA4_API_KEY,
-		  clientId: GA4_CLIENT_ID,
-		  scope: SCOPES
-		});
-		
-		// Load the API client
+		// Lade die API-Bibliothek
 		await new Promise((resolve, reject) => {
-		  gapi.load('client:auth2', {
+		  gapi.load('client', {
 			callback: resolve,
 			onerror: (error) => {
-			  console.error("Error loading client:auth2:", error);
+			  console.error("Fehler beim Laden der API-Bibliothek:", error);
 			  reject(error);
 			}
 		  });
 		});
 		
-		// Verwende ein Try/Catch speziell für die Client-Initialisierung
-		try {
-		  // Initialize the client with API key
-		  await gapi.client.init({
-			apiKey: GA4_API_KEY,
-			clientId: GA4_CLIENT_ID,
-			scope: SCOPES
-		  });
-		  
-		  console.log("Google API Client erfolgreich initialisiert");
-		} catch (initError) {
-		  console.error("Fehler bei der Client-Initialisierung:", initError);
-		  throw initError;
-		}
-		
-		// Show sign in button
-		document.getElementById('sign-in-button').classList.remove('hidden');
-		
-		// Setup Sign In button
-		document.getElementById('sign-in-button').addEventListener('click', () => {
-		  gapi.auth2.getAuthInstance().signIn().then(
-			() => {
-			  onSignInSuccess();
-			},
-			(error) => {
-			  showError('Sign in error: ' + (error.error || JSON.stringify(error)));
-			  console.error("Sign in error details:", error);
-			}
-		  );
+		// Initialisiere den API-Client (ohne Auth, da wir GIS verwenden)
+		await gapi.client.init({
+		  apiKey: GA4_API_KEY,
+		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta']
 		});
 		
-		// Setup Sign Out button
+		console.log("Google API Client erfolgreich initialisiert");
+		
+		// GIS-Button dynamisch einrichten
+		const gisButton = document.getElementById('g_id_onload');
+		gisButton.setAttribute('data-client_id', GA4_CLIENT_ID);
+		
+		// Abmelde-Button einrichten
 		document.getElementById('sign-out-button').addEventListener('click', () => {
-		  gapi.auth2.getAuthInstance().signOut().then(() => {
-			document.getElementById('dashboard-content').classList.add('hidden');
-			document.getElementById('sign-in-button').classList.remove('hidden');
-			document.getElementById('sign-out-button').classList.add('hidden');
-			showStatus('Signed out successfully');
-		  });
+		  // Token entfernen
+		  sessionStorage.removeItem('gis_token');
+		  
+		  // UI zurücksetzen
+		  document.getElementById('dashboard-content').classList.add('hidden');
+		  document.getElementById('sign-out-button').classList.add('hidden');
+		  
+		  // Seite neu laden um GIS-Button zurückzusetzen
+		  window.location.reload();
 		});
 		
-		// Da wir das discovery document entfernt haben, müssen wir manuell prüfen
-		if (gapi.auth2 && gapi.auth2.getAuthInstance()) {
-		  console.log("Auth instance gefunden, prüfe Login-Status");
-		  if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-			console.log("Benutzer ist eingeloggt");
-			onSignInSuccess();
-		  } else {
-			console.log("Benutzer ist nicht eingeloggt");
-			hideLoading();
+		// Prüfe auf ein existierendes Token
+		const existingToken = sessionStorage.getItem('gis_token');
+		if (existingToken) {
+		  try {
+			const decodedToken = jwt_decode(existingToken);
+			// Prüfe, ob das Token abgelaufen ist
+			const expiryTime = decodedToken.exp * 1000; // in Millisekunden
+			if (Date.now() < expiryTime) {
+			  console.log("Existierendes gültiges Token gefunden, verwende es");
+			  onSignInSuccess();
+			} else {
+			  console.log("Token abgelaufen, Benutzer muss sich neu anmelden");
+			  sessionStorage.removeItem('gis_token');
+			}
+		  } catch (error) {
+			console.error("Fehler beim Überprüfen des Tokens:", error);
+			sessionStorage.removeItem('gis_token');
 		  }
-		} else {
-		  console.log("Kein Auth-Instance gefunden, zeige Login-Button");
-		  hideLoading();
 		}
 		
+		hideLoading();
 	  } catch (error) {
 		console.error('Google API initialization error:', error);
 		showError('Failed to initialize Google API: ' + (error.message || JSON.stringify(error)));
+		
+		// Fallback auf Demo-Daten
+		document.getElementById('dashboard-content').classList.remove('hidden');
+		loadDemoData();
+		showStatus('Verwende Demo-Daten (API-Initialisierung fehlgeschlagen)');
+		
 		hideLoading();
 	  }
 	}
@@ -1598,17 +1626,18 @@
 	  try {
 		showLoading();
 		
-		// Sofort Demo-Daten laden, falls die Authentifizierung fehlschlägt
+		// Timeout für den Fall, dass die Initialisierung zu lange dauert
 		setTimeout(() => {
 		  if (document.getElementById('loading-overlay').style.display === 'flex') {
 			hideLoading();
 			document.getElementById('dashboard-content').classList.remove('hidden');
 			loadDemoData();
-			showStatus('Verwende Demo-Daten (API-Initialisierung fehlgeschlagen)');
+			showStatus('Timeout: Verwende Demo-Daten');
 		  }
 		}, 10000);  // 10 Sekunden Timeout
 		
-		initializeGoogleAnalytics();
+		// Initialisiere die API
+		initializeGoogleAPI();
 	  } catch (error) {
 		console.error('Initialization error:', error);
 		showError('Failed to initialize application: ' + error.message);
@@ -1616,7 +1645,7 @@
 		// Im Fehlerfall Demo-Daten anzeigen
 		document.getElementById('dashboard-content').classList.remove('hidden');
 		loadDemoData();
-		showStatus('Verwende Demo-Daten (API-Initialisierung fehlgeschlagen)');
+		showStatus('Verwende Demo-Daten');
 	  }
 	}
     

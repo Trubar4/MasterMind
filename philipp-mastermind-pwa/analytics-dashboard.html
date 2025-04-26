@@ -690,20 +690,20 @@
 		const modeFilter = document.getElementById('filter-mode').value;
 		const codeLengthFilter = document.getElementById('filter-code-length').value;
         
-        // Query for total games
-        await queryTotalGames(startDate, endDate, filterString);
-        
-        // Query for unique users
-        await queryUniqueUsers(startDate, endDate, filterString);
-        
-        // Query for session metrics
-        await querySessionMetrics(startDate, endDate, filterString);
-        
-        // Query for game performance
-        await queryGamePerformance(startDate, endDate, filterString);
-        
-        // Query for games over time
-        await queryGamesOverTime(startDate, endDate, filterString);
+		// Query for total games
+		await queryTotalGames(startDate, endDate, modeFilter, codeLengthFilter);
+
+		// Query for unique users
+		await queryUniqueUsers(startDate, endDate);
+
+		// Query for session metrics
+		await querySessionMetrics(startDate, endDate);
+
+		// Query for game performance
+		await queryGamePerformance(startDate, endDate, modeFilter, codeLengthFilter);
+
+		// Query for games over time
+		await queryGamesOverTime(startDate, endDate, modeFilter, codeLengthFilter);
         
         // Query for mode preference
         await queryModePreference(startDate, endDate);
@@ -743,7 +743,7 @@
 	}
     
 	// Query for total games - using GA4 API
-	async function queryTotalGames(startDate, endDate, filterString) {
+	async function queryTotalGames(startDate, endDate, modeFilter, codeLengthFilter) {
 	  try {
 		prepareApiCall(); // Add this line to get the token
 		
@@ -791,561 +791,870 @@
 	}
     
     // Query for unique users
-    async function queryUniqueUsers(startDate, endDate, filterString) {
-      const uniqueUsersQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:users',
-          'filters': 'ga:eventCategory==game'
-        }
-      });
-      
-      const response = await uniqueUsersQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let totalUsers = 0;
-      if (response.rows && response.rows.length > 0) {
-        totalUsers = parseInt(response.rows[0][0]);
-      }
-      
-      document.getElementById('total-users').textContent = numberWithCommas(totalUsers);
-    }
+	async function queryUniqueUsers(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'totalUsers'
+			}
+		  ]
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let totalUsers = 0;
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  totalUsers = parseInt(response.result.rows[0].metricValues[0].value);
+		}
+		
+		document.getElementById('total-users').textContent = numberWithCommas(totalUsers);
+	  } catch (error) {
+		console.error('Error querying unique users:', error);
+		throw error;
+	  }
+	}
     
     // Query for session metrics
-    async function querySessionMetrics(startDate, endDate, filterString) {
-      const sessionQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:avgSessionDuration,ga:sessionCount,ga:bounceRate'
-        }
-      });
-      
-      const response = await sessionQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      if (response.rows && response.rows.length > 0) {
-        const avgSessionDuration = Math.round(parseFloat(response.rows[0][0]));
-        const completionRate = 100 - parseFloat(response.rows[0][2]);
-        
-        document.getElementById('avg-session').textContent = formatTime(avgSessionDuration);
-        document.getElementById('completion-rate').textContent = completionRate.toFixed(1) + '%';
-      }
-    }
+	async function querySessionMetrics(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'averageSessionDuration'
+			},
+			{
+			  name: 'bounceRate'
+			}
+		  ]
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  const avgSessionDuration = Math.round(parseFloat(response.result.rows[0].metricValues[0].value));
+		  const bounceRate = parseFloat(response.result.rows[0].metricValues[1].value);
+		  const completionRate = 100 - bounceRate;
+		  
+		  document.getElementById('avg-session').textContent = formatTime(avgSessionDuration);
+		  document.getElementById('completion-rate').textContent = completionRate.toFixed(1) + '%';
+		}
+	  } catch (error) {
+		console.error('Error querying session metrics:', error);
+		throw error;
+	  }
+	}
     
-    // Query for game performance
-    async function queryGamePerformance(startDate, endDate, filterString) {
-      const performanceQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventAction',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end'
-        }
-      });
-      
-      const response = await performanceQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      // Get win/loss data by querying event labels
-      const resultQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end'
-        }
-      });
-      
-      const resultResponse = await resultQuery.execute();
-      
-      if (resultResponse.error) {
-        throw new Error(resultResponse.error.message);
-      }
-      
-      let wins = 0;
-      let giveUps = 0;
-      let totalGames = 0;
-      let totalAttempts = 0;
-      let totalDuration = 0;
-      
-      if (resultResponse.rows && resultResponse.rows.length > 0) {
-        for (const row of resultResponse.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          totalGames += count;
-          
-          if (label.includes('win')) {
-            wins += count;
-          } else if (label.includes('giveUp=true') || label.includes('abandoned')) {
-            giveUps += count;
-          }
-          
-          // Extract attempts and duration from labels if available
-          const attemptsMatch = label.match(/attempts=(\d+)/);
-          const durationMatch = label.match(/duration=(\d+)/);
-          
-          if (attemptsMatch) {
-            totalAttempts += parseInt(attemptsMatch[1]) * count;
-          }
-          
-          if (durationMatch) {
-            totalDuration += parseInt(durationMatch[1]) * count;
-          }
-        }
-      }
-      
-      // Calculate metrics
-      const winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0;
-      const giveUpRate = totalGames > 0 ? (giveUps / totalGames) * 100 : 0;
-      const avgAttempts = totalGames > 0 ? totalAttempts / totalGames : 0;
-      const avgTime = totalGames > 0 ? totalDuration / totalGames : 0;
-      
-      // Update UI
-      document.getElementById('win-rate').textContent = winRate.toFixed(1) + '%';
-      document.getElementById('give-up-rate').textContent = giveUpRate.toFixed(1) + '%';
-      document.getElementById('avg-attempts').textContent = avgAttempts.toFixed(1);
-      document.getElementById('avg-time').textContent = formatTime(Math.round(avgTime));
-    }
+	// Query for game performance
+	async function queryGamePerformance(startDate, endDate, modeFilter, codeLengthFilter) {
+	  try {
+		prepareApiCall();
+		
+		let dimensionFilter = {
+		  filter: {
+			fieldName: 'eventName',
+			stringFilter: {
+			  value: 'game_end',
+			  matchType: 'EXACT'
+			}
+		  }
+		};
+		
+		// Add mode filter if specified
+		if (modeFilter !== 'all') {
+		  dimensionFilter = {
+			andGroup: {
+			  expressions: [
+				dimensionFilter,
+				{
+				  filter: {
+					fieldName: 'customEvent:mode',
+					stringFilter: {
+					  value: modeFilter,
+					  matchType: 'EXACT'
+					}
+				  }
+				}
+			  ]
+			}
+		  };
+		}
+		
+		// Add code length filter if specified
+		if (codeLengthFilter !== 'all') {
+		  const filter = {
+			filter: {
+			  fieldName: 'customEvent:codeLength',
+			  stringFilter: {
+				value: codeLengthFilter,
+				matchType: 'EXACT'
+			  }
+			}
+		  };
+		  
+		  if (dimensionFilter.andGroup) {
+			dimensionFilter.andGroup.expressions.push(filter);
+		  } else {
+			dimensionFilter = {
+			  andGroup: {
+				expressions: [dimensionFilter, filter]
+			  }
+			};
+		  }
+		}
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'eventName'
+			},
+			{
+			  name: 'customEvent:result'
+			},
+			{
+			  name: 'customEvent:attempts'
+			},
+			{
+			  name: 'customEvent:duration'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: dimensionFilter
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let wins = 0;
+		let giveUps = 0;
+		let totalGames = 0;
+		let totalAttempts = 0;
+		let totalDuration = 0;
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const result = row.dimensionValues[1].value;
+			const attempts = parseInt(row.dimensionValues[2].value) || 0;
+			const duration = parseInt(row.dimensionValues[3].value) || 0;
+			const count = parseInt(row.metricValues[0].value);
+			
+			totalGames += count;
+			
+			if (result === 'win') {
+			  wins += count;
+			} else if (result === 'giveUp' || result === 'abandoned') {
+			  giveUps += count;
+			}
+			
+			totalAttempts += attempts * count;
+			totalDuration += duration * count;
+		  }
+		}
+		
+		// Calculate metrics
+		const winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0;
+		const giveUpRate = totalGames > 0 ? (giveUps / totalGames) * 100 : 0;
+		const avgAttempts = totalGames > 0 ? totalAttempts / totalGames : 0;
+		const avgTime = totalGames > 0 ? totalDuration / totalGames : 0;
+		
+		// Update UI
+		document.getElementById('win-rate').textContent = winRate.toFixed(1) + '%';
+		document.getElementById('give-up-rate').textContent = giveUpRate.toFixed(1) + '%';
+		document.getElementById('avg-attempts').textContent = avgAttempts.toFixed(1);
+		document.getElementById('avg-time').textContent = formatTime(Math.round(avgTime));
+	  } catch (error) {
+		console.error('Error querying game performance:', error);
+		throw error;
+	  }
+	}
     
-    // Query for games over time
-    async function queryGamesOverTime(startDate, endDate, filterString) {
-      const gamesOverTimeQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:date',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start',
-          'sort': 'ga:date'
-        }
-      });
-      
-      const response = await gamesOverTimeQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const labels = [];
-      const data = [];
-      
-      if (response.rows && response.rows.length > 0) {
-        response.rows.forEach(row => {
-          // Format the date from YYYYMMDD to MM/DD
-          const dateStr = row[0];
-          const month = dateStr.substr(4, 2);
-          const day = dateStr.substr(6, 2);
-          const formattedDate = `${month}/${day}`;
-          
-          labels.push(formattedDate);
-          data.push(parseInt(row[1]));
-        });
-      }
-      
-      // Update the chart
-      chartInstances.gamesOverTime.data.labels = labels;
-      chartInstances.gamesOverTime.data.datasets[0].data = data;
-      chartInstances.gamesOverTime.update();
-    }
+	// Query for games over time
+	async function queryGamesOverTime(startDate, endDate, modeFilter, codeLengthFilter) {
+	  try {
+		prepareApiCall();
+		
+		let dimensionFilter = {
+		  filter: {
+			fieldName: 'eventName',
+			stringFilter: {
+			  value: 'game_start',
+			  matchType: 'EXACT'
+			}
+		  }
+		};
+		
+		// Add filters if specified
+		if (modeFilter !== 'all' || codeLengthFilter !== 'all') {
+		  const expressions = [dimensionFilter];
+		  
+		  if (modeFilter !== 'all') {
+			expressions.push({
+			  filter: {
+				fieldName: 'customEvent:mode',
+				stringFilter: {
+				  value: modeFilter,
+				  matchType: 'EXACT'
+				}
+			  }
+			});
+		  }
+		  
+		  if (codeLengthFilter !== 'all') {
+			expressions.push({
+			  filter: {
+				fieldName: 'customEvent:codeLength',
+				stringFilter: {
+				  value: codeLengthFilter,
+				  matchType: 'EXACT'
+				}
+			  }
+			});
+		  }
+		  
+		  dimensionFilter = {
+			andGroup: {
+			  expressions: expressions
+			}
+		  };
+		}
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'date'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: dimensionFilter,
+		  orderBys: [
+			{
+			  dimension: {
+				dimensionName: 'date'
+			  }
+			}
+		  ]
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		const labels = [];
+		const data = [];
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  response.result.rows.forEach(row => {
+			// Format the date from YYYYMMDD to MM/DD
+			const dateStr = row.dimensionValues[0].value;
+			const month = dateStr.substr(4, 2);
+			const day = dateStr.substr(6, 2);
+			const formattedDate = `${month}/${day}`;
+			
+			labels.push(formattedDate);
+			data.push(parseInt(row.metricValues[0].value));
+		  });
+		}
+		
+		// Update the chart
+		chartInstances.gamesOverTime.data.labels = labels;
+		chartInstances.gamesOverTime.data.datasets[0].data = data;
+		chartInstances.gamesOverTime.update();
+	  } catch (error) {
+		console.error('Error querying games over time:', error);
+		throw error;
+	  }
+	}
     
-    // Query for mode preference
-    async function queryModePreference(startDate, endDate) {
-      const modePreferenceQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start;ga:eventLabel=~mode=',
-        }
-      });
-      
-      const response = await modePreferenceQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let bothCount = 0;
-      let codemakerCount = 0;
-      let codebreakerCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          if (label.includes('mode=both')) {
-            bothCount += count;
-          } else if (label.includes('mode=codemakerMode')) {
-            codemakerCount += count;
-          } else if (label.includes('mode=codebreakerMode')) {
-            codebreakerCount += count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.modePreference.data.datasets[0].data = [bothCount, codemakerCount, codebreakerCount];
-      chartInstances.modePreference.update();
-    }
+	// Query for mode preference
+	async function queryModePreference(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'customEvent:mode'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'game_start',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let bothCount = 0;
+		let codemakerCount = 0;
+		let codebreakerCount = 0;
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const mode = row.dimensionValues[0].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			if (mode === 'both') {
+			  bothCount += count;
+			} else if (mode === 'codemakerMode') {
+			  codemakerCount += count;
+			} else if (mode === 'codebreakerMode') {
+			  codebreakerCount += count;
+			}
+		  }
+		}
+		
+		// Update the chart
+		chartInstances.modePreference.data.datasets[0].data = [bothCount, codemakerCount, codebreakerCount];
+		chartInstances.modePreference.update();
+	  } catch (error) {
+		console.error('Error querying mode preference:', error);
+		throw error;
+	  }
+	}
+		
+	// Query for language distribution
+	async function queryLanguageDistribution(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'language'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'game_start',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let englishCount = 0;
+		let germanCount = 0;
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const language = row.dimensionValues[0].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			if (language === 'en' || language.startsWith('en-')) {
+			  englishCount += count;
+			} else if (language === 'de' || language.startsWith('de-')) {
+			  germanCount += count;
+			}
+		  }
+		}
+		
+		// Update the chart
+		chartInstances.languageDistribution.data.datasets[0].data = [englishCount, germanCount];
+		chartInstances.languageDistribution.update();
+	  } catch (error) {
+		console.error('Error querying language distribution:', error);
+		throw error;
+	  }
+	}
     
-    // Query for language distribution
-    async function queryLanguageDistribution(startDate, endDate) {
-      const languageQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start;ga:eventLabel=~language=',
-        }
-      });
-      
-      const response = await languageQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let englishCount = 0;
-      let germanCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          if (label.includes('language=en')) {
-            englishCount += count;
-          } else if (label.includes('language=de')) {
-            germanCount += count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.languageDistribution.data.datasets[0].data = [englishCount, germanCount];
-      chartInstances.languageDistribution.update();
-    }
+	// Query for code length preference
+	async function queryCodeLengthPreference(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'customEvent:codeLength'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'game_start',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let fourCodeCount = 0;
+		let fiveCodeCount = 0;
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const codeLength = row.dimensionValues[0].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			if (codeLength === '4') {
+			  fourCodeCount += count;
+			} else if (codeLength === '5') {
+			  fiveCodeCount += count;
+			}
+		  }
+		}
+		
+		// Update the chart
+		chartInstances.lengthPreference.data.datasets[0].data = [fourCodeCount, fiveCodeCount];
+		chartInstances.lengthPreference.update();
+	  } catch (error) {
+		console.error('Error querying code length preference:', error);
+		throw error;
+	  }
+	}
     
-    // Query for code length preference
-    async function queryCodeLengthPreference(startDate, endDate) {
-      const codeLengthQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start;ga:eventLabel=~codeLength=',
-        }
-      });
-      
-      const response = await codeLengthQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let fourCodeCount = 0;
-      let fiveCodeCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          if (label.includes('codeLength=4')) {
-            fourCodeCount += count;
-          } else if (label.includes('codeLength=5')) {
-            fiveCodeCount += count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.lengthPreference.data.datasets[0].data = [fourCodeCount, fiveCodeCount];
-      chartInstances.lengthPreference.update();
-    }
+	// Query for color usage
+	async function queryColorUsage(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'customEvent:color'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'color_select',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		const colorCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // Red, Yellow, Orange, Pink, Blue, Green, Gray, Black
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const color = row.dimensionValues[0].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			// Parse color from event dimension
+			if (color === '#FF0000') colorCounts[0] += count; // Red
+			else if (color === '#FFFF00') colorCounts[1] += count; // Yellow
+			else if (color === '#FFC000') colorCounts[2] += count; // Orange
+			else if (color === '#F36DED') colorCounts[3] += count; // Pink
+			else if (color === '#0070C0') colorCounts[4] += count; // Blue
+			else if (color === '#00B050') colorCounts[5] += count; // Green
+			else if (color === '#A6A6A6') colorCounts[6] += count; // Gray
+			else if (color === '#000000') colorCounts[7] += count; // Black
+		  }
+		}
+		
+		// Update the chart
+		chartInstances.colorUsage.data.datasets[0].data = colorCounts;
+		chartInstances.colorUsage.update();
+	  } catch (error) {
+		console.error('Error querying color usage:', error);
+		throw error;
+	  }
+	}
     
-    // Query for color usage
-    async function queryColorUsage(startDate, endDate) {
-      const colorUsageQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==interaction;ga:eventAction==color_select',
-        }
-      });
-      
-      const response = await colorUsageQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const colorCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // Red, Yellow, Orange, Pink, Blue, Green, Gray, Black
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          // Parse color from event label
-          if (label.includes('color=#FF0000')) colorCounts[0] += count; // Red
-          else if (label.includes('color=#FFFF00')) colorCounts[1] += count; // Yellow
-          else if (label.includes('color=#FFC000')) colorCounts[2] += count; // Orange
-          else if (label.includes('color=#F36DED')) colorCounts[3] += count; // Pink
-          else if (label.includes('color=#0070C0')) colorCounts[4] += count; // Blue
-          else if (label.includes('color=#00B050')) colorCounts[5] += count; // Green
-          else if (label.includes('color=#A6A6A6')) colorCounts[6] += count; // Gray
-          else if (label.includes('color=#000000')) colorCounts[7] += count; // Black
-        }
-      }
-      
-      // Update the chart
-      chartInstances.colorUsage.data.datasets[0].data = colorCounts;
-      chartInstances.colorUsage.update();
-    }
+	// Query for win rate by attempts
+	async function queryWinRateByAttempts(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'customEvent:attempts'
+			},
+			{
+			  name: 'customEvent:result'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'game_end',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		// Initialize arrays to store attempts data
+		const winsByAttempt = Array(10).fill(0);
+		const totalByAttempt = Array(10).fill(0);
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const attempts = parseInt(row.dimensionValues[0].value);
+			const result = row.dimensionValues[1].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			if (attempts > 0 && attempts <= 10) {
+			  totalByAttempt[attempts - 1] += count;
+			  
+			  // Check if this was a win
+			  if (result === 'win') {
+				winsByAttempt[attempts - 1] += count;
+			  }
+			}
+		  }
+		}
+		
+		// Calculate win rates for each attempt count
+		const winRates = winsByAttempt.map((wins, i) => 
+		  totalByAttempt[i] > 0 ? (wins / totalByAttempt[i]) * 100 : 0
+		);
+		
+		// Update the chart
+		chartInstances.winByAttempts.data.datasets[0].data = winRates;
+		chartInstances.winByAttempts.update();
+	  } catch (error) {
+		console.error('Error querying win rate by attempts:', error);
+		throw error;
+	  }
+	}
     
-    // Query for win rate by attempts
-    async function queryWinRateByAttempts(startDate, endDate) {
-      const winRateQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end;ga:eventLabel=~attempts=',
-        }
-      });
-      
-      const response = await winRateQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      // Initialize arrays to store attempts data
-      const winsByAttempt = Array(10).fill(0);
-      const totalByAttempt = Array(10).fill(0);
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const label = row[0];
-          const count = parseInt(row[1]);
-          
-          // Extract attempts number
-          const attemptsMatch = label.match(/attempts=(\d+)/);
-          if (attemptsMatch) {
-            const attempts = parseInt(attemptsMatch[1]);
-            if (attempts > 0 && attempts <= 10) {
-              totalByAttempt[attempts - 1] += count;
-              
-              // Check if this was a win
-              if (label.includes('result=win')) {
-                winsByAttempt[attempts - 1] += count;
-              }
-            }
-          }
-        }
-      }
-      
-      // Calculate win rates for each attempt count
-      const winRates = winsByAttempt.map((wins, i) => 
-        totalByAttempt[i] > 0 ? (wins / totalByAttempt[i]) * 100 : 0
-      );
-      
-      // Update the chart
-      chartInstances.winByAttempts.data.datasets[0].data = winRates;
-      chartInstances.winByAttempts.update();
-    }
+	// Query for recent game sessions
+	async function queryRecentSessions(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'date'
+			},
+			{
+			  name: 'customEvent:mode'
+			},
+			{
+			  name: 'customEvent:result'
+			},
+			{
+			  name: 'customEvent:attempts'
+			},
+			{
+			  name: 'customEvent:duration'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'game_end',
+				matchType: 'EXACT'
+			  }
+			}
+		  },
+		  orderBys: [
+			{
+			  desc: true,
+			  dimension: {
+				dimensionName: 'date'
+			  }
+			}
+		  ],
+		  limit: 20
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		const tableBody = document.querySelector('#recent-games tbody');
+		tableBody.innerHTML = ''; // Clear existing rows
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const date = row.dimensionValues[0].value;
+			const mode = row.dimensionValues[1].value;
+			const result = row.dimensionValues[2].value;
+			const attempts = row.dimensionValues[3].value;
+			const duration = parseInt(row.dimensionValues[4].value) || 0;
+			
+			// Format date as MM/DD/YYYY
+			const formattedDate = `${date.substr(4, 2)}/${date.substr(6, 2)}/${date.substr(0, 4)}`;
+			
+			// Format mode
+			let modeDisplay = 'Unknown';
+			if (mode === 'both') modeDisplay = '2 Player';
+			else if (mode === 'codemakerMode') modeDisplay = 'Computer as Breaker';
+			else if (mode === 'codebreakerMode') modeDisplay = 'Computer as Maker';
+			
+			// Format result
+			let resultDisplay = 'Unknown';
+			if (result === 'win') resultDisplay = 'Win';
+			else if (result === 'loss') resultDisplay = 'Loss';
+			else if (result === 'abandoned' || result === 'giveUp') resultDisplay = 'Abandoned';
+			
+			// Create table row
+			const tr = document.createElement('tr');
+			tr.innerHTML = `
+			  <td>${formattedDate}</td>
+			  <td>${modeDisplay}</td>
+			  <td>${resultDisplay}</td>
+			  <td>${attempts || '-'}</td>
+			  <td>${formatTime(duration)}</td>
+			`;
+			
+			tableBody.appendChild(tr);
+		  }
+		}
+		
+		// Add empty row if no data
+		if (tableBody.children.length === 0) {
+		  const tr = document.createElement('tr');
+		  tr.innerHTML = '<td colspan="5" style="text-align: center;">No recent games found</td>';
+		  tableBody.appendChild(tr);
+		}
+	  } catch (error) {
+		console.error('Error querying recent sessions:', error);
+		throw error;
+	  }
+	}
     
-    // Query for recent game sessions
-    async function queryRecentSessions(startDate, endDate) {
-      const recentGamesQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:date,ga:eventLabel',
-          'filters': 'ga:eventCategory==game;ga:eventAction==end',
-          'sort': '-ga:date',
-          'max-results': 20
-        }
-      });
-      
-      const response = await recentGamesQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const tableBody = document.querySelector('#recent-games tbody');
-      tableBody.innerHTML = ''; // Clear existing rows
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const date = row[0]; // YYYYMMDD format
-          const label = row[1];
-          
-          // Format date as MM/DD/YYYY
-          const formattedDate = `${date.substr(4, 2)}/${date.substr(6, 2)}/${date.substr(0, 4)}`;
-          
-          // Extract game data from label
-          let mode = 'Unknown';
-          if (label.includes('mode=both')) mode = '2 Player';
-          else if (label.includes('mode=codemakerMode')) mode = 'Computer as Breaker';
-          else if (label.includes('mode=codebreakerMode')) mode = 'Computer as Maker';
-          
-          let result = 'Unknown';
-          if (label.includes('result=win')) result = 'Win';
-          else if (label.includes('result=loss')) result = 'Loss';
-          else if (label.includes('result=abandoned')) result = 'Abandoned';
-          
-          let attempts = '-';
-          const attemptsMatch = label.match(/attempts=(\d+)/);
-          if (attemptsMatch) attempts = attemptsMatch[1];
-          
-          let duration = '-';
-          const durationMatch = label.match(/duration=(\d+)/);
-          if (durationMatch) duration = formatTime(parseInt(durationMatch[1]));
-          
-          // Create table row
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>${mode}</td>
-            <td>${result}</td>
-            <td>${attempts}</td>
-            <td>${duration}</td>
-          `;
-          
-          tableBody.appendChild(tr);
-        }
-      }
-      
-      // Add empty row if no data
-      if (tableBody.children.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="5" style="text-align: center;">No recent games found</td>';
-        tableBody.appendChild(tr);
-      }
-    }
+	// Query for device distribution
+	async function queryDeviceDistribution(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'deviceCategory'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'activeUsers'
+			}
+		  ]
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let desktopCount = 0;
+		let mobileCount = 0;
+		let tabletCount = 0;
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const deviceType = row.dimensionValues[0].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			if (deviceType === 'desktop') {
+			  desktopCount = count;
+			} else if (deviceType === 'mobile') {
+			  mobileCount = count;
+			} else if (deviceType === 'tablet') {
+			  tabletCount = count;
+			}
+		  }
+		}
+		
+		// Update the chart
+		chartInstances.deviceDistribution.data.datasets[0].data = [desktopCount, mobileCount, tabletCount];
+		chartInstances.deviceDistribution.update();
+	  } catch (error) {
+		console.error('Error querying device distribution:', error);
+		throw error;
+	  }
+	}
     
-    // Query for device distribution
-    async function queryDeviceDistribution(startDate, endDate) {
-      const deviceQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:sessions',
-          'dimensions': 'ga:deviceCategory'
-        }
-      });
-      
-      const response = await deviceQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let desktopCount = 0;
-      let mobileCount = 0;
-      let tabletCount = 0;
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const deviceType = row[0];
-          const count = parseInt(row[1]);
-          
-          if (deviceType === 'desktop') {
-            desktopCount = count;
-          } else if (deviceType === 'mobile') {
-            mobileCount = count;
-          } else if (deviceType === 'tablet') {
-            tabletCount = count;
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.deviceDistribution.data.datasets[0].data = [desktopCount, mobileCount, tabletCount];
-      chartInstances.deviceDistribution.update();
-    }
-    
-    // Query for error rates
-    async function queryErrorRates(startDate, endDate) {
-      const errorQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventAction',
-          'filters': 'ga:eventCategory==error'
-        }
-      });
-      
-      const response = await errorQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      const errorCounts = [0, 0, 0, 0, 0]; // Game Logic, Network, Input, Rendering, Other
-      
-      if (response.rows && response.rows.length > 0) {
-        for (const row of response.rows) {
-          const errorType = row[0];
-          const count = parseInt(row[1]);
-          
-          if (errorType.includes('javascript')) {
-            errorCounts[0] += count; // Game Logic
-          } else if (errorType.includes('network')) {
-            errorCounts[1] += count; // Network
-          } else if (errorType.includes('input')) {
-            errorCounts[2] += count; // Input
-          } else if (errorType.includes('rendering')) {
-            errorCounts[3] += count; // Rendering
-          } else {
-            errorCounts[4] += count; // Other
-          }
-        }
-      }
-      
-      // Update the chart
-      chartInstances.errorRates.data.datasets[0].data = errorCounts;
-      chartInstances.errorRates.update();
-    }
+	// Query for error rates
+	async function queryErrorRates(startDate, endDate) {
+	  try {
+		prepareApiCall();
+		
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [
+			{
+			  startDate: startDate,
+			  endDate: endDate
+			}
+		  ],
+		  dimensions: [
+			{
+			  name: 'customEvent:errorType'
+			}
+		  ],
+		  metrics: [
+			{
+			  name: 'eventCount'
+			}
+		  ],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'error',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		const errorCounts = [0, 0, 0, 0, 0]; // Game Logic, Network, Input, Rendering, Other
+		
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  for (const row of response.result.rows) {
+			const errorType = row.dimensionValues[0].value;
+			const count = parseInt(row.metricValues[0].value);
+			
+			if (errorType.includes('javascript') || errorType.includes('logic')) {
+			  errorCounts[0] += count; // Game Logic
+			} else if (errorType.includes('network')) {
+			  errorCounts[1] += count; // Network
+			} else if (errorType.includes('input')) {
+			  errorCounts[2] += count; // Input
+			} else if (errorType.includes('render')) {
+			  errorCounts[3] += count; // Rendering
+			} else {
+			  errorCounts[4] += count; // Other
+			}
+		  }
+		}
+		
+		// Update the chart
+		chartInstances.errorRates.data.datasets[0].data = errorCounts;
+		chartInstances.errorRates.update();
+	  } catch (error) {
+		console.error('Error querying error rates:', error);
+		throw error;
+	  }
+	}
     
     // Export data to CSV
     async function exportDataToCSV() {

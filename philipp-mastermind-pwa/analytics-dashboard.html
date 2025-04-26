@@ -746,32 +746,41 @@
       }
     }
     
-    // Query for total games
-    async function queryTotalGames(startDate, endDate, filterString) {
-      const totalGamesQuery = new gapi.analytics.report.Data({
-        query: {
-          'ids': `ga:${GA_PROPERTY_ID}`,
-          'start-date': startDate,
-          'end-date': endDate,
-          'metrics': 'ga:totalEvents',
-          'dimensions': 'ga:eventCategory',
-          'filters': 'ga:eventCategory==game;ga:eventAction==start'
-        }
-      });
-      
-      const response = await totalGamesQuery.execute();
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      let totalGames = 0;
-      if (response.rows && response.rows.length > 0) {
-        totalGames = parseInt(response.rows[0][1]);
-      }
-      
-      document.getElementById('total-games').textContent = numberWithCommas(totalGames);
-    }
+	// Query for total games - using GA4 API
+	async function queryTotalGames(startDate, endDate, filterString) {
+	  try {
+		const request = {
+		  property: `properties/${GA4_PROPERTY_ID}`,
+		  dateRanges: [{
+			startDate: startDate,
+			endDate: endDate
+		  }],
+		  dimensions: [{name: 'eventName'}],
+		  metrics: [{name: 'eventCount'}],
+		  dimensionFilter: {
+			filter: {
+			  fieldName: 'eventName',
+			  stringFilter: {
+				value: 'game_start',
+				matchType: 'EXACT'
+			  }
+			}
+		  }
+		};
+		
+		const response = await gapi.client.analyticsdata.properties.runReport(request);
+		
+		let totalGames = 0;
+		if (response.result && response.result.rows && response.result.rows.length > 0) {
+		  totalGames = parseInt(response.result.rows[0].metricValues[0].value);
+		}
+		
+		document.getElementById('total-games').textContent = numberWithCommas(totalGames);
+	  } catch (error) {
+		console.error('Error querying total games:', error);
+		throw error;
+	  }
+	}
     
     // Query for unique users
     async function queryUniqueUsers(startDate, endDate, filterString) {
@@ -1442,58 +1451,55 @@
 	  try {
 		showLoading();
 		
-		// Lade die API-Bibliothek
+		// Load the client library
 		await new Promise((resolve, reject) => {
 		  gapi.load('client', {
 			callback: resolve,
 			onerror: (error) => {
-			  console.error("Fehler beim Laden der API-Bibliothek:", error);
+			  console.error("Error loading API library:", error);
 			  reject(error);
 			}
 		  });
 		});
 		
-		// Initialisiere den API-Client (ohne Auth, da wir GIS verwenden)
+		// Initialize the client with your API key and the GA4 Data API
 		await gapi.client.init({
 		  apiKey: GA4_API_KEY,
 		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta']
 		});
 		
-		console.log("Google API Client erfolgreich initialisiert");
+		// Load the analytics module
+		await gapi.client.load('analyticsdata', 'v1beta');
 		
-		// GIS-Button dynamisch einrichten
+		console.log("Google API Client successfully initialized");
+		
+		// Set up GIS button
 		const gisButton = document.getElementById('g_id_onload');
 		gisButton.setAttribute('data-client_id', GA4_CLIENT_ID);
 		
-		// Abmelde-Button einrichten
+		// Set up sign-out button
 		document.getElementById('sign-out-button').addEventListener('click', () => {
-		  // Token entfernen
 		  sessionStorage.removeItem('gis_token');
-		  
-		  // UI zurücksetzen
 		  document.getElementById('dashboard-content').classList.add('hidden');
 		  document.getElementById('sign-out-button').classList.add('hidden');
-		  
-		  // Seite neu laden um GIS-Button zurückzusetzen
 		  window.location.reload();
 		});
 		
-		// Prüfe auf ein existierendes Token
+		// Check for existing token
 		const existingToken = sessionStorage.getItem('gis_token');
 		if (existingToken) {
 		  try {
 			const decodedToken = jwt_decode(existingToken);
-			// Prüfe, ob das Token abgelaufen ist
-			const expiryTime = decodedToken.exp * 1000; // in Millisekunden
+			const expiryTime = decodedToken.exp * 1000;
 			if (Date.now() < expiryTime) {
-			  console.log("Existierendes gültiges Token gefunden, verwende es");
+			  console.log("Existing valid token found, using it");
 			  onSignInSuccess();
 			} else {
-			  console.log("Token abgelaufen, Benutzer muss sich neu anmelden");
+			  console.log("Token expired, user must sign in again");
 			  sessionStorage.removeItem('gis_token');
 			}
 		  } catch (error) {
-			console.error("Fehler beim Überprüfen des Tokens:", error);
+			console.error("Error checking token:", error);
 			sessionStorage.removeItem('gis_token');
 		  }
 		}
@@ -1502,12 +1508,6 @@
 	  } catch (error) {
 		console.error('Google API initialization error:', error);
 		showError('Failed to initialize Google API: ' + (error.message || JSON.stringify(error)));
-		
-		// Fallback auf Demo-Daten
-		document.getElementById('dashboard-content').classList.remove('hidden');
-		loadDemoData();
-		showStatus('Verwende Demo-Daten (API-Initialisierung fehlgeschlagen)');
-		
 		hideLoading();
 	  }
 	}

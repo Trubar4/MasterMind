@@ -1,5 +1,5 @@
 // App version - increment this when making changes
-window.APP_VERSION = '3.1.0';
+window.APP_VERSION = '3.1.1';
 
 // Make sure analytics is defined before any other script tries to use it
 window.analytics = window.analytics || {
@@ -2185,7 +2185,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Initialize analytics with your tracking ID
-  window.analytics.initialize('G-W35Z46N2NT'); // Replace with your actual tracking ID
+  window.analytics.initialize('G-W35Z46N2NT');
   addAnalyticsTranslations();
   addAnalyticsSettings();
   initializeEnhancedAnalytics(); // Add this line

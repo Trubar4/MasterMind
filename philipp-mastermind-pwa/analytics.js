@@ -1,4 +1,4 @@
-// analytics.js - User tracking module for Mastermind
+// analytics.js - Enhanced with GA4 integration for Mastermind
 
 class MastermindAnalytics {
   constructor(options = {}) {
@@ -19,73 +19,73 @@ class MastermindAnalytics {
     this._initializeUserData();
   }
 
-  // Initialize the analytics system with Google Analytics or other service
-	initialize(trackingId) {
-	  if (trackingId) {
-		this.trackingId = trackingId;
-	  }
-	  
-	  if (!this.trackingId) {
-		this._debug('Analytics initialized in local-only mode (no tracking ID provided)');
-		this.initialized = true;
-		return;
-	  }
-	  
-	  // Load Google Analytics (GA4)
-	  try {
-		const script = document.createElement('script');
-		script.async = true;
-		script.src = `https://www.googletagmanager.com/gtag/js?id=${this.trackingId}`;
-		document.head.appendChild(script);
+  // Initialize the analytics system with Google Analytics
+  initialize(trackingId) {
+    if (trackingId) {
+      this.trackingId = trackingId;
+    }
+    
+    if (!this.trackingId) {
+      this._debug('Analytics initialized in local-only mode (no tracking ID provided)');
+      this.initialized = true;
+      return;
+    }
+    
+    // Load Google Analytics (GA4)
+    try {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${this.trackingId}`;
+      document.head.appendChild(script);
 
-		window.dataLayer = window.dataLayer || [];
-		window.gtag = function() {
-		  window.dataLayer.push(arguments);
-		};
-		
-		window.gtag('js', new Date());
-		window.gtag('config', this.trackingId, {
-		  'send_page_view': false,
-		  'user_id': this.userData.userId
-		});
-		
-		this.initialized = true;
-		this._debug('Analytics initialized with tracking ID: ' + this.trackingId);
-		
-		// Start scheduled flushing of events
-		this._scheduleFlush();
-		
-		// Get browser info
-		const browserInfo = this._detectBrowserInfo();
-		
-		// Track session start with enhanced data
-		window.gtag('event', 'session_start', {
-		  'app_version': window.APP_VERSION || '3.1.0',
-		  'screen_size': `${window.innerWidth}x${window.innerHeight}`,
-		  'language': document.documentElement.lang || 'unknown',
-		  'user_type': this._getUserType(),
-		  'browser': browserInfo.browser,
-		  'browser_version': browserInfo.browserVersion,
-		  'os': browserInfo.os,
-		  'device_type': browserInfo.deviceType,
-		  'session_id': this.sessionId,
-		  'user_id': this.userData.userId
-		});
-		
-		// Add event listeners for session tracking
-		window.addEventListener('beforeunload', () => {
-		  window.gtag('event', 'session_end', {
-			'duration': this._getSessionDuration(),
-			'session_id': this.sessionId
-		  });
-		  this.flush(true);
-		});
-		
-	  } catch (error) {
-		console.error('Failed to initialize analytics:', error);
-		this.initialized = false;
-	  }
-	}
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function() {
+        window.dataLayer.push(arguments);
+      };
+      
+      window.gtag('js', new Date());
+      window.gtag('config', this.trackingId, {
+        'send_page_view': false,
+        'user_id': this.userData.userId
+      });
+      
+      this.initialized = true;
+      this._debug('GA4 initialized with tracking ID: ' + this.trackingId);
+      
+      // Start scheduled flushing of events
+      this._scheduleFlush();
+      
+      // Get browser info
+      const browserInfo = this._detectBrowserInfo();
+      
+      // Track session start with enhanced data
+      window.gtag('event', 'session_start', {
+        'app_version': window.APP_VERSION || '3.1.1',
+        'screen_size': `${window.innerWidth}x${window.innerHeight}`,
+        'language': document.documentElement.lang || 'unknown',
+        'user_type': this._getUserType(),
+        'browser': browserInfo.browser,
+        'browser_version': browserInfo.browserVersion,
+        'os': browserInfo.os,
+        'device_type': browserInfo.deviceType,
+        'session_id': this.sessionId,
+        'user_id': this.userData.userId
+      });
+      
+      // Add event listeners for session tracking
+      window.addEventListener('beforeunload', () => {
+        window.gtag('event', 'session_end', {
+          'duration': this._getSessionDuration(),
+          'session_id': this.sessionId
+        });
+        this.flush(true);
+      });
+      
+    } catch (error) {
+      console.error('Failed to initialize GA4:', error);
+      this.initialized = false;
+    }
+  }
 
   // Track an event
   trackEvent(category, action, params = {}) {
@@ -145,6 +145,18 @@ class MastermindAnalytics {
       }
     }
     
+    // Send event directly to GA4
+    if (this.initialized && window.gtag) {
+      window.gtag('event', 'game_start', {
+        'game_id': gameId,
+        'game_count': this.gameCount,
+        'device_id': this.userData.uniqueId,
+        'mode': gameOptions.mode,
+        'code_length': gameOptions.codeLength,
+        'language': gameOptions.language
+      });
+    }
+    
     return this.trackEvent('game', 'start', {
       gameId: gameId,
       gameCount: this.gameCount,
@@ -175,8 +187,19 @@ class MastermindAnalytics {
       }
     }
     
+    // Send event directly to GA4
+    if (this.initialized && window.gtag) {
+      window.gtag('event', 'game_end', {
+        'result': result, // 'win', 'loss', 'abandoned'
+        'attempts': attempts,
+        'duration': gameDuration,
+        'give_up': giveUp,
+        'device_id': this.userData.uniqueId
+      });
+    }
+    
     return this.trackEvent('game', 'end', {
-      result: result, // 'win', 'loss', 'abandoned'
+      result: result,
       attempts: attempts,
       duration: gameDuration,
       giveUp: giveUp,
@@ -186,16 +209,42 @@ class MastermindAnalytics {
 
   // Track user interactions with the game
   trackInteraction(interactionType, details = {}) {
+    // Send event directly to GA4
+    if (this.initialized && window.gtag) {
+      window.gtag('event', interactionType, {
+        ...details,
+        'device_id': this.userData.uniqueId
+      });
+    }
+    
     return this.trackEvent('interaction', interactionType, details);
   }
 
   // Track errors
   trackError(errorType, errorDetails = {}) {
+    // Send error event directly to GA4
+    if (this.initialized && window.gtag) {
+      window.gtag('event', 'error', {
+        'error_type': errorType,
+        ...errorDetails,
+        'device_id': this.userData.uniqueId
+      });
+    }
+    
     return this.trackEvent('error', errorType, errorDetails);
   }
 
   // Track performance metrics
   trackPerformance(metricName, value, details = {}) {
+    // Send performance event directly to GA4
+    if (this.initialized && window.gtag) {
+      window.gtag('event', 'performance_' + metricName, {
+        'value': value,
+        ...details,
+        'device_id': this.userData.uniqueId
+      });
+    }
+    
     return this.trackEvent('performance', metricName, {
       value: value,
       ...details
@@ -203,40 +252,40 @@ class MastermindAnalytics {
   }
 
   // Flush events to analytics service
-	flush(immediate = false) {
-	  if (!this.initialized || this.eventQueue.length === 0) return;
-	  
-	  this._debug(`Flushing ${this.eventQueue.length} events${immediate ? ' (immediate)' : ''}`);
-	  
-	  // Clone and clear the queue
-	  const eventsToSend = [...this.eventQueue];
-	  this.eventQueue = [];
-	  
-	  // Clear the scheduled flush if immediate
-	  if (immediate && this.flushTimeoutId) {
-		clearTimeout(this.flushTimeoutId);
-		this.flushTimeoutId = null;
-	  }
-	  
-	  // Send events to Google Analytics
-	  if (this.trackingId && window.gtag) {
-		eventsToSend.forEach(event => {
-		  // Convert our event format to GA4 format
-		  window.gtag('event', `${event.category}_${event.action}`, {
-			...event.params,
-			'session_id': event.sessionId,
-			'timestamp': event.timestamp,
-			'user_id': this.userData.userId,
-			'device_id': this.userData.uniqueId
-		  });
-		});
-	  }
-	  
-	  // Schedule the next flush if not immediate
-	  if (!immediate) {
-		this._scheduleFlush();
-	  }
-	}
+  flush(immediate = false) {
+    if (!this.initialized || this.eventQueue.length === 0) return;
+    
+    this._debug(`Flushing ${this.eventQueue.length} events${immediate ? ' (immediate)' : ''}`);
+    
+    // Clone and clear the queue
+    const eventsToSend = [...this.eventQueue];
+    this.eventQueue = [];
+    
+    // Clear the scheduled flush if immediate
+    if (immediate && this.flushTimeoutId) {
+      clearTimeout(this.flushTimeoutId);
+      this.flushTimeoutId = null;
+    }
+    
+    // Send events to Google Analytics
+    if (this.trackingId && window.gtag) {
+      eventsToSend.forEach(event => {
+        // Directly send using proper GA4 format
+        window.gtag('event', `${event.category}_${event.action}`, {
+          ...event.params,
+          'session_id': event.sessionId,
+          'timestamp': event.timestamp,
+          'user_id': this.userData.userId,
+          'device_id': this.userData.uniqueId
+        });
+      });
+    }
+    
+    // Schedule the next flush if not immediate
+    if (!immediate) {
+      this._scheduleFlush();
+    }
+  }
 
   // Export analytics data
   exportData() {

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mastermind Analytics Dashboard</title>
+  <!-- Google Analytics Embed API -->
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+  (function(w,d,s,g,js,fs){
+    g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(f){this.q.push(f);}};
+    js=d.createElement(s);fs=d.getElementsByTagName(s)[0];
+    js.src='https://apis.google.com/js/platform.js';
+    fs.parentNode.insertBefore(js,fs);js.onload=function(){g.load('analytics');};
+  }(window,document,'script'));
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+      color: #333;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 15px;
+    }
+    .card-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    #auth-button {
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #auth-button:hover {
+      background-color: #3367D6;
+    }
+    #view-selector {
+      margin-top: 20px;
+    }
+    .date-range-selector {
+      margin: 10px 0;
+    }
+    .loading-message {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      color: #666;
+    }
+    .chart {
+      height: 300px;
+      width: 100%;
+    }
+    #active-users {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Mastermind Analytics Dashboard</h1>
+      <div id="auth-container"></div>
+    </div>
+    
+    <div id="embed-api-auth-container"></div>
+    <div id="view-selector-container"></div>
+    <div class="date-range-selector" id="date-range-selector-1-container"></div>
+    
+    <div class="dashboard">
+      <div class="card">
+        <div class="card-header">Active Users</div>
+        <div id="active-users"></div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">Sessions Over Time</div>
+        <div id="chart-1-container" class="chart"></div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">Top Events</div>
+        <div id="chart-2-container" class="chart"></div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">Device Category</div>
+        <div id="chart-3-container" class="chart"></div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">User Activity</div>
+        <div id="chart-4-container" class="chart"></div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">Session Duration</div>
+        <div id="chart-5-container" class="chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Replace with your Google Analytics property ID
+    const GA_PROPERTY_ID = '486860865';
+
+    gapi.analytics.ready(function() {
+      // Step 1: Authorize the user with a client ID
+      // Replace CLIENT_ID with your actual OAuth client ID
+      const CLIENT_ID = '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com';
+      
+      // Authorize user
+      gapi.analytics.auth.authorize({
+        container: 'embed-api-auth-container',
+        clientid: CLIENT_ID,
+      });
+
+      // Step 2: Create a view selector
+      const viewSelector = new gapi.analytics.ViewSelector({
+        container: 'view-selector-container'
+      });
+      
+      // Step 3: Create a date range selector
+      const dateRangeSelector1 = new gapi.analytics.DateRangeSelector({
+        container: 'date-range-selector-1-container'
+      });
+      
+      // Step 4: Create the dashboard once the user is authenticated
+      gapi.analytics.auth.on('success', function() {
+        document.getElementById('embed-api-auth-container').style.display = 'none';
+        
+        // Force specific view if you know your view ID
+        viewSelector.execute();
+
+        // Set up report for active users
+        const activeUsers = new gapi.analytics.report.Data({
+          query: {
+            'ids': 'ga:' + GA_PROPERTY_ID,
+            'metrics': 'ga:activeUsers',
+            'dimensions': 'ga:country',
+            'start-date': '30daysAgo',
+            'end-date': 'today'
+          }
+        });
+        
+        activeUsers.on('success', function(response) {
+          const totalUsers = response.totalsForAllResults['ga:activeUsers'];
+          document.getElementById('active-users').textContent = totalUsers;
+        });
+        
+        activeUsers.execute();
+        
+        // Sessions over time
+        const report1 = new gapi.analytics.report.Data({
+          query: {
+            'ids': 'ga:' + GA_PROPERTY_ID,
+            'metrics': 'ga:sessions',
+            'dimensions': 'ga:date',
+            'start-date': '30daysAgo',
+            'end-date': 'today'
+          }
+        });
+        
+        report1.on('success', function(response) {
+          const chart1 = new gapi.analytics.googleCharts.DataChart({
+            reportType: 'LINE',
+            container: 'chart-1-container',
+            data: response,
+            options: {
+              width: '100%'
+            }
+          });
+          chart1.execute();
+        });
+        
+        report1.execute();
+        
+        // Top events
+        const report2 = new gapi.analytics.report.Data({
+          query: {
+            'ids': 'ga:' + GA_PROPERTY_ID,
+            'metrics': 'ga:totalEvents',
+            'dimensions': 'ga:eventCategory,ga:eventAction',
+            'start-date': '30daysAgo',
+            'end-date': 'today',
+            'sort': '-ga:totalEvents',
+            'max-results': 10
+          }
+        });
+        
+        report2.on('success', function(response) {
+          const chart2 = new gapi.analytics.googleCharts.DataChart({
+            reportType: 'TABLE',
+            container: 'chart-2-container',
+            data: response,
+            options: {
+              width: '100%'
+            }
+          });
+          chart2.execute();
+        });
+        
+        report2.execute();
+        
+        // Device category
+        const report3 = new gapi.analytics.report.Data({
+          query: {
+            'ids': 'ga:' + GA_PROPERTY_ID,
+            'metrics': 'ga:sessions',
+            'dimensions': 'ga:deviceCategory',
+            'start-date': '30daysAgo',
+            'end-date': 'today'
+          }
+        });
+        
+        report3.on('success', function(response) {
+          const chart3 = new gapi.analytics.googleCharts.DataChart({
+            reportType: 'PIE',
+            container: 'chart-3-container',
+            data: response,
+            options: {
+              width: '100%',
+              pieHole: 0.4
+            }
+          });
+          chart3.execute();
+        });
+        
+        report3.execute();
+        
+        // User activity
+        const report4 = new gapi.analytics.report.Data({
+          query: {
+            'ids': 'ga:' + GA_PROPERTY_ID,
+            'metrics': 'ga:sessions,ga:pageviews',
+            'dimensions': 'ga:date',
+            'start-date': '30daysAgo',
+            'end-date': 'today'
+          }
+        });
+        
+        report4.on('success', function(response) {
+          const chart4 = new gapi.analytics.googleCharts.DataChart({
+            reportType: 'COLUMN',
+            container: 'chart-4-container',
+            data: response,
+            options: {
+              width: '100%'
+            }
+          });
+          chart4.execute();
+        });
+        
+        report4.execute();
+        
+        // Session duration
+        const report5 = new gapi.analytics.report.Data({
+          query: {
+            'ids': 'ga:' + GA_PROPERTY_ID,
+            'metrics': 'ga:avgSessionDuration',
+            'dimensions': 'ga:date',
+            'start-date': '30daysAgo',
+            'end-date': 'today'
+          }
+        });
+        
+        report5.on('success', function(response) {
+          const chart5 = new gapi.analytics.googleCharts.DataChart({
+            reportType: 'LINE',
+            container: 'chart-5-container',
+            data: response,
+            options: {
+              width: '100%'
+            }
+          });
+          chart5.execute();
+        });
+        
+        report5.execute();
+        
+        // Connect the date selector to the reports
+        dateRangeSelector1.on('change', function(data) {
+          // Update date range for all reports
+          const newDateRange = {
+            'start-date': data['start-date'],
+            'end-date': data['end-date']
+          };
+          
+          activeUsers.set(newDateRange).execute();
+          report1.set(newDateRange).execute();
+          report2.set(newDateRange).execute();
+          report3.set(newDateRange).execute();
+          report4.set(newDateRange).execute();
+          report5.set(newDateRange).execute();
+        });
+        
+        // Display the view selector
+        viewSelector.on('change', function(ids) {
+          // Update the view ID for all reports
+          const newIds = {
+            'ids': ids
+          };
+          
+          activeUsers.set(newIds).execute();
+          report1.set(newIds).execute();
+          report2.set(newIds).execute();
+          report3.set(newIds).execute();
+          report4.set(newIds).execute();
+          report5.set(newIds).execute();
+        });
+      });
+    });
+  </script>
+</body>
+</html>

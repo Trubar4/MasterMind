@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mastermind Analytics Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Simple Analytics script - no tracking on the dashboard itself -->
   <script>window.sa_event=window.sa_event||function(){var a=[].slice.call(arguments);window.sa_event.q?window.sa_event.q.push(a):window.sa_event.q=[a]};</script>
   <style>
@@ -51,6 +51,16 @@
       background: #f9f9f9;
       border-radius: 6px;
     }
+    .sa-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .sa-chart-container {
+      height: 300px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
@@ -70,21 +80,64 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h5 class="card-title mb-0">Simple Analytics Dashboard</h5>
+            <h5 class="card-title mb-0">Game Popularity</h5>
           </div>
           <div class="card-body">
-            <!-- Embedding Simple Analytics dashboard -->
-            <div class="ratio ratio-16x9">
-              <iframe id="sa-iframe" src="https://simpleanalytics.com/trubar4.github.io?embed=true" scrolling="no" frameborder="0" loading="lazy"></iframe>
+            <div id="sa-stats-container">
+              <div class="sa-stats">
+                <div class="stat-card">
+                  <div id="sa-pageviews" class="stat-value">-</div>
+                  <div class="stat-label">Total Pageviews</div>
+                </div>
+                <div class="stat-card">
+                  <div id="sa-visitors" class="stat-value">-</div>
+                  <div class="stat-label">Unique Visitors</div>
+                </div>
+                <div class="stat-card">
+                  <div id="sa-game-starts" class="stat-value">-</div>
+                  <div class="stat-label">Game Starts</div>
+                </div>
+                <div class="stat-card">
+                  <div id="sa-referrers" class="stat-value">-</div>
+                  <div class="stat-label">Referrers</div>
+                </div>
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Daily Visits</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="sa-chart-container">
+                        <canvas id="sa-visits-chart"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="sa-no-data" class="no-data">
+                <p>No Simple Analytics data available.</p>
+                <p>This could be because:</p>
+                <ul class="text-start">
+                  <li>Your Simple Analytics account is not set up yet</li>
+                  <li>Your site hasn't received any visitors</li>
+                  <li>You need to check your API credentials</li>
+                </ul>
+                <p>Check the following:</p>
+                <ol class="text-start">
+                  <li>Make sure you've added the Simple Analytics script to your game's HTML file</li>
+                  <li>Verify that your domain is correctly set up in Simple Analytics</li>
+                  <li>Play a few games to generate some data</li>
+                </ol>
+                <p>To see direct statistics, you can also visit your <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">Simple Analytics Dashboard</a> directly.</p>
+              </div>
             </div>
             
             <div class="alert alert-info mt-3">
-              <p><strong>Setup Instructions:</strong></p>
-              <ol>
-                <li>Sign up for Simple Analytics at <a href="https://simpleanalytics.com/" target="_blank">simpleanalytics.com</a></li>
-                <li>Your domain is set to: <strong>trubar4.github.io</strong> - this looks correct!</li>
-                <li>Make sure you've verified your domain in Simple Analytics dashboard</li>
-              </ol>
+              <p><strong>Note:</strong> Due to privacy protections in Simple Analytics, some features require a business plan to access via API. The direct dashboard at <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">simpleanalytics.com/trubar4.github.io</a> will show more complete data.</p>
             </div>
           </div>
         </div>
@@ -195,8 +248,109 @@
       loadLocalAnalytics();
       
       // Setup event listeners
-      document.getElementById('refresh-btn').addEventListener('click', loadLocalAnalytics);
+      document.getElementById('refresh-btn').addEventListener('click', function() {
+        loadLocalAnalytics();
+        loadSimpleAnalytics();
+      });
       document.getElementById('export-btn').addEventListener('click', exportAnalyticsData);
+      
+      // Load Simple Analytics data - Note: this uses public stats API
+      // Many features require a paid plan, so this is limited
+      loadSimpleAnalytics();
+      
+      function loadSimpleAnalytics() {
+        // Show message until we confirm data is available
+        document.getElementById('sa-no-data').style.display = 'block';
+        
+        // Try to load basic stats
+        fetch('https://simpleanalytics.com/trubar4.github.io.json')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Hide no data message
+            document.getElementById('sa-no-data').style.display = 'none';
+            
+            // Display basic stats
+            document.getElementById('sa-pageviews').textContent = numberWithCommas(data.pageviews || 0);
+            document.getElementById('sa-visitors').textContent = numberWithCommas(data.visitors || 0);
+            
+            // If available, show events data
+            if (data.events && Array.isArray(data.events)) {
+              const gameStarts = data.events.find(e => e.event === 'game_start');
+              document.getElementById('sa-game-starts').textContent = numberWithCommas(gameStarts ? gameStarts.count : 0);
+            }
+            
+            // If available, show referrers count
+            if (data.referrers && Array.isArray(data.referrers)) {
+              document.getElementById('sa-referrers').textContent = data.referrers.length || 0;
+            }
+            
+            // If graph data is available
+            if (data.graph && Array.isArray(data.graph)) {
+              createVisitsChart(data.graph);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching Simple Analytics data:', error);
+            document.getElementById('sa-no-data').style.display = 'block';
+          });
+      }
+      
+      function createVisitsChart(graphData) {
+        const ctx = document.getElementById('sa-visits-chart').getContext('2d');
+        
+        // Extract dates and visitor counts
+        const labels = graphData.map(day => formatDate(day.date));
+        const visitorData = graphData.map(day => day.visitors);
+        const pageviewData = graphData.map(day => day.pageviews);
+        
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Visitors',
+                data: visitorData,
+                borderColor: '#6200EE',
+                backgroundColor: 'rgba(98, 0, 238, 0.1)',
+                tension: 0.4,
+                fill: true
+              },
+              {
+                label: 'Pageviews',
+                data: pageviewData,
+                borderColor: '#03DAC6',
+                backgroundColor: 'rgba(3, 218, 198, 0.1)',
+                tension: 0.4,
+                fill: true
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      function formatDate(dateStr) {
+        // Convert YYYY-MM-DD to MM/DD
+        const parts = dateStr.split('-');
+        return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : dateStr;
+      }
       
       // Load analytics data from localStorage
       function loadLocalAnalytics() {
@@ -407,6 +561,10 @@
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return minutes + 'm ' + (remainingSeconds > 0 ? remainingSeconds + 's' : '');
+      }
+      
+      function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       }
       
       function exportAnalyticsData() {

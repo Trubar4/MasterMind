@@ -61,6 +61,17 @@
       height: 300px;
       margin-bottom: 20px;
     }
+    .api-key-form {
+      margin-bottom: 15px;
+      padding: 15px;
+      background-color: #f0f7ff;
+      border-radius: 6px;
+    }
+    .api-key-form input {
+      width: 300px;
+      padding: 6px 10px;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -80,9 +91,21 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h5 class="card-title mb-0">Game Popularity</h5>
+            <h5 class="card-title mb-0">Simple Analytics Dashboard</h5>
           </div>
           <div class="card-body">
+            <!-- API Key Input -->
+            <div class="api-key-form" id="api-key-form">
+              <label for="api-key">Enter your Simple Analytics API Key:</label>
+              <div class="d-flex align-items-center mt-2">
+                <input type="password" id="api-key" class="form-control" placeholder="sa_api_key_xxxxxxxxxxxx" />
+                <button id="save-api-key" class="btn btn-primary">Save</button>
+              </div>
+              <div class="form-text mt-2">
+                Your API key is stored securely in your browser's local storage.
+              </div>
+            </div>
+            
             <div id="sa-stats-container">
               <div class="sa-stats">
                 <div class="stat-card">
@@ -120,24 +143,9 @@
               
               <div id="sa-no-data" class="no-data">
                 <p>No Simple Analytics data available.</p>
-                <p>This could be because:</p>
-                <ul class="text-start">
-                  <li>Your Simple Analytics account is not set up yet</li>
-                  <li>Your site hasn't received any visitors</li>
-                  <li>You need to check your API credentials</li>
-                </ul>
-                <p>Check the following:</p>
-                <ol class="text-start">
-                  <li>Make sure you've added the Simple Analytics script to your game's HTML file</li>
-                  <li>Verify that your domain is correctly set up in Simple Analytics</li>
-                  <li>Play a few games to generate some data</li>
-                </ol>
+                <p>Please enter your API key and click "Save" to fetch your analytics data.</p>
                 <p>To see direct statistics, you can also visit your <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">Simple Analytics Dashboard</a> directly.</p>
               </div>
-            </div>
-            
-            <div class="alert alert-info mt-3">
-              <p><strong>Note:</strong> Due to privacy protections in Simple Analytics, some features require a business plan to access via API. The direct dashboard at <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">simpleanalytics.com/trubar4.github.io</a> will show more complete data.</p>
             </div>
           </div>
         </div>
@@ -244,69 +252,171 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize
+      // Check for saved API key
+      const savedApiKey = localStorage.getItem('sa_api_key');
+      if (savedApiKey) {
+        document.getElementById('api-key').value = savedApiKey;
+        document.getElementById('api-key-form').style.display = 'none';
+        // Load Simple Analytics data with the saved API key
+        loadSimpleAnalytics(savedApiKey);
+      }
+      
+      // Initialize local analytics
       loadLocalAnalytics();
       
       // Setup event listeners
       document.getElementById('refresh-btn').addEventListener('click', function() {
         loadLocalAnalytics();
-        loadSimpleAnalytics();
+        const apiKey = localStorage.getItem('sa_api_key');
+        if (apiKey) {
+          loadSimpleAnalytics(apiKey);
+        } else {
+          document.getElementById('api-key-form').style.display = 'block';
+        }
       });
+      
+      document.getElementById('save-api-key').addEventListener('click', function() {
+        const apiKey = document.getElementById('api-key').value.trim();
+        if (apiKey) {
+          localStorage.setItem('sa_api_key', apiKey);
+          document.getElementById('api-key-form').style.display = 'none';
+          loadSimpleAnalytics(apiKey);
+        } else {
+          alert('Please enter a valid API key');
+        }
+      });
+      
       document.getElementById('export-btn').addEventListener('click', exportAnalyticsData);
       
-      // Load Simple Analytics data - Note: this uses public stats API
-      // Many features require a paid plan, so this is limited
-      loadSimpleAnalytics();
-      
-      function loadSimpleAnalytics() {
+      // Load Simple Analytics data using API key
+      function loadSimpleAnalytics(apiKey) {
         // Show message until we confirm data is available
         document.getElementById('sa-no-data').style.display = 'block';
         
         // Try to load basic stats
-        fetch('https://simpleanalytics.com/trubar4.github.io.json')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
+        fetch('https://api.simpleanalytics.io/v1/websites/trubar4.github.io/stats', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            if (response.status === 401) {
+              throw new Error('API key is invalid or expired');
             }
-            return response.json();
-          })
-          .then(data => {
-            // Hide no data message
-            document.getElementById('sa-no-data').style.display = 'none';
-            
-            // Display basic stats
-            document.getElementById('sa-pageviews').textContent = numberWithCommas(data.pageviews || 0);
-            document.getElementById('sa-visitors').textContent = numberWithCommas(data.visitors || 0);
-            
-            // If available, show events data
-            if (data.events && Array.isArray(data.events)) {
-              const gameStarts = data.events.find(e => e.event === 'game_start');
-              document.getElementById('sa-game-starts').textContent = numberWithCommas(gameStarts ? gameStarts.count : 0);
-            }
-            
-            // If available, show referrers count
-            if (data.referrers && Array.isArray(data.referrers)) {
-              document.getElementById('sa-referrers').textContent = data.referrers.length || 0;
-            }
-            
-            // If graph data is available
-            if (data.graph && Array.isArray(data.graph)) {
-              createVisitsChart(data.graph);
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching Simple Analytics data:', error);
-            document.getElementById('sa-no-data').style.display = 'block';
-          });
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Hide no data message
+          document.getElementById('sa-no-data').style.display = 'none';
+          
+          // Display basic stats
+          document.getElementById('sa-pageviews').textContent = numberWithCommas(data.pageviews || 0);
+          document.getElementById('sa-visitors').textContent = numberWithCommas(data.visitors || 0);
+          
+          // Load events data in a separate request
+          loadEventsData(apiKey);
+          
+          // Load timeline data for the chart
+          loadTimelineData(apiKey);
+        })
+        .catch(error => {
+          console.error('Error fetching Simple Analytics data:', error);
+          document.getElementById('sa-no-data').style.display = 'block';
+          document.getElementById('sa-no-data').innerHTML = `
+            <p>Error loading Simple Analytics data: ${error.message}</p>
+            <p>If your API key is invalid, please click the Refresh button and enter a new API key.</p>
+            <p>You can still view your analytics directly at <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">simpleanalytics.com/trubar4.github.io</a></p>
+          `;
+          
+          // Show the API key form again if the key was invalid
+          if (error.message.includes('API key')) {
+            document.getElementById('api-key-form').style.display = 'block';
+            localStorage.removeItem('sa_api_key');
+          }
+        });
       }
       
-      function createVisitsChart(graphData) {
+      function loadEventsData(apiKey) {
+        fetch('https://api.simpleanalytics.io/v1/websites/trubar4.github.io/events', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey
+          }
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to load events data');
+          return response.json();
+        })
+        .then(data => {
+          if (data.events && Array.isArray(data.events)) {
+            // Look for game_start events
+            const gameStarts = data.events.find(e => e.event === 'game_start');
+            document.getElementById('sa-game-starts').textContent = numberWithCommas(gameStarts ? gameStarts.count : 0);
+            
+            // Count unique referrers
+            const referrersCount = data.events.reduce((acc, event) => {
+              if (event.referrers && Array.isArray(event.referrers)) {
+                return acc + event.referrers.length;
+              }
+              return acc;
+            }, 0);
+            document.getElementById('sa-referrers').textContent = numberWithCommas(referrersCount);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading events data:', error);
+          // Set default values if event data fails to load
+          document.getElementById('sa-game-starts').textContent = '-';
+          document.getElementById('sa-referrers').textContent = '-';
+        });
+      }
+      
+      function loadTimelineData(apiKey) {
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        const startDate = formatDateForApi(thirtyDaysAgo);
+        const endDate = formatDateForApi(today);
+        
+        fetch(`https://api.simpleanalytics.io/v1/websites/trubar4.github.io/stats?start=${startDate}&end=${endDate}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey
+          }
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to load timeline data');
+          return response.json();
+        })
+        .then(data => {
+          if (data.timeline && Array.isArray(data.timeline)) {
+            createVisitsChart(data.timeline);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading timeline data:', error);
+        });
+      }
+      
+      function formatDateForApi(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      function createVisitsChart(timelineData) {
         const ctx = document.getElementById('sa-visits-chart').getContext('2d');
         
         // Extract dates and visitor counts
-        const labels = graphData.map(day => formatDate(day.date));
-        const visitorData = graphData.map(day => day.visitors);
-        const pageviewData = graphData.map(day => day.pageviews);
+        const labels = timelineData.map(day => formatDate(day.date));
+        const visitorData = timelineData.map(day => day.visitors);
+        const pageviewData = timelineData.map(day => day.pageviews);
         
         new Chart(ctx, {
           type: 'line',

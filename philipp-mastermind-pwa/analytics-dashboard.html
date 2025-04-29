@@ -61,16 +61,8 @@
       height: 300px;
       margin-bottom: 20px;
     }
-    .api-key-form {
-      margin-bottom: 15px;
-      padding: 15px;
-      background-color: #f0f7ff;
-      border-radius: 6px;
-    }
-    .api-key-form input {
-      width: 300px;
-      padding: 6px 10px;
-      margin-right: 10px;
+    .open-simple-btn {
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -93,59 +85,25 @@
           <div class="card-header">
             <h5 class="card-title mb-0">Simple Analytics Dashboard</h5>
           </div>
-          <div class="card-body">
-            <!-- API Key Input -->
-            <div class="api-key-form" id="api-key-form">
-              <label for="api-key">Enter your Simple Analytics API Key:</label>
-              <div class="d-flex align-items-center mt-2">
-                <input type="password" id="api-key" class="form-control" placeholder="sa_api_key_xxxxxxxxxxxx" />
-                <button id="save-api-key" class="btn btn-primary">Save</button>
-              </div>
-              <div class="form-text mt-2">
-                Your API key is stored securely in your browser's local storage.
-              </div>
+          <div class="card-body text-center">
+            <p>Due to CORS security restrictions, Simple Analytics data cannot be fetched directly from your dashboard.</p>
+            <p>To view your Simple Analytics data, please use one of these options:</p>
+            
+            <div class="d-flex justify-content-center gap-3 mb-4">
+              <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank" class="btn btn-primary">
+                Open Simple Analytics Dashboard
+              </a>
             </div>
             
-            <div id="sa-stats-container">
-              <div class="sa-stats">
-                <div class="stat-card">
-                  <div id="sa-pageviews" class="stat-value">-</div>
-                  <div class="stat-label">Total Pageviews</div>
-                </div>
-                <div class="stat-card">
-                  <div id="sa-visitors" class="stat-value">-</div>
-                  <div class="stat-label">Unique Visitors</div>
-                </div>
-                <div class="stat-card">
-                  <div id="sa-game-starts" class="stat-value">-</div>
-                  <div class="stat-label">Game Starts</div>
-                </div>
-                <div class="stat-card">
-                  <div id="sa-referrers" class="stat-value">-</div>
-                  <div class="stat-label">Referrers</div>
-                </div>
-              </div>
-              
-              <div class="row mb-4">
-                <div class="col-md-12">
-                  <div class="card">
-                    <div class="card-header">
-                      <h6 class="mb-0">Daily Visits</h6>
-                    </div>
-                    <div class="card-body">
-                      <div class="sa-chart-container">
-                        <canvas id="sa-visits-chart"></canvas>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div id="sa-no-data" class="no-data">
-                <p>No Simple Analytics data available.</p>
-                <p>Please enter your API key and click "Save" to fetch your analytics data.</p>
-                <p>To see direct statistics, you can also visit your <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">Simple Analytics Dashboard</a> directly.</p>
-              </div>
+            <div class="alert alert-info">
+              <p><strong>Note about CORS restrictions:</strong></p>
+              <p>Web browsers prevent websites from making direct API requests to different domains for security reasons. This is called CORS (Cross-Origin Resource Sharing) protection.</p>
+              <p>To overcome this limitation, you have a few options:</p>
+              <ol class="text-start">
+                <li>Use the direct Simple Analytics dashboard (recommended)</li>
+                <li>Create a small server-side proxy on your own domain (advanced)</li>
+                <li>Use the local analytics data shown below (already working)</li>
+              </ol>
             </div>
           </div>
         </div>
@@ -246,221 +204,73 @@
         </div>
       </div>
     </div>
+    
+    <!-- Game Event Summary Section -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Game Events Summary</h5>
+          </div>
+          <div class="card-body">
+            <div id="events-container">
+              <div class="row mb-4">
+                <div class="col-md-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Game Events Timeline</h6>
+                    </div>
+                    <div class="card-body">
+                      <div class="chart-container">
+                        <canvas id="events-timeline-chart"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Event Types</h6>
+                    </div>
+                    <div class="card-body">
+                      <canvas id="event-types-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Event Categories</h6>
+                    </div>
+                    <div class="card-body">
+                      <canvas id="event-categories-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Check for saved API key
-      const savedApiKey = localStorage.getItem('sa_api_key');
-      if (savedApiKey) {
-        document.getElementById('api-key').value = savedApiKey;
-        document.getElementById('api-key-form').style.display = 'none';
-        // Load Simple Analytics data with the saved API key
-        loadSimpleAnalytics(savedApiKey);
-      }
-      
-      // Initialize local analytics
+      // Initialize
       loadLocalAnalytics();
       
       // Setup event listeners
       document.getElementById('refresh-btn').addEventListener('click', function() {
         loadLocalAnalytics();
-        const apiKey = localStorage.getItem('sa_api_key');
-        if (apiKey) {
-          loadSimpleAnalytics(apiKey);
-        } else {
-          document.getElementById('api-key-form').style.display = 'block';
-        }
-      });
-      
-      document.getElementById('save-api-key').addEventListener('click', function() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        if (apiKey) {
-          localStorage.setItem('sa_api_key', apiKey);
-          document.getElementById('api-key-form').style.display = 'none';
-          loadSimpleAnalytics(apiKey);
-        } else {
-          alert('Please enter a valid API key');
-        }
       });
       
       document.getElementById('export-btn').addEventListener('click', exportAnalyticsData);
-      
-      // Load Simple Analytics data using API key
-      function loadSimpleAnalytics(apiKey) {
-        // Show message until we confirm data is available
-        document.getElementById('sa-no-data').style.display = 'block';
-        
-        // Try to load basic stats
-        fetch('https://api.simpleanalytics.io/v1/websites/trubar4.github.io/stats', {
-          headers: {
-            'Content-Type': 'application/json',
-            'Api-Key': apiKey
-          }
-        })
-        .then(response => {
-          if (!response.ok) {
-            if (response.status === 401) {
-              throw new Error('API key is invalid or expired');
-            }
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          // Hide no data message
-          document.getElementById('sa-no-data').style.display = 'none';
-          
-          // Display basic stats
-          document.getElementById('sa-pageviews').textContent = numberWithCommas(data.pageviews || 0);
-          document.getElementById('sa-visitors').textContent = numberWithCommas(data.visitors || 0);
-          
-          // Load events data in a separate request
-          loadEventsData(apiKey);
-          
-          // Load timeline data for the chart
-          loadTimelineData(apiKey);
-        })
-        .catch(error => {
-          console.error('Error fetching Simple Analytics data:', error);
-          document.getElementById('sa-no-data').style.display = 'block';
-          document.getElementById('sa-no-data').innerHTML = `
-            <p>Error loading Simple Analytics data: ${error.message}</p>
-            <p>If your API key is invalid, please click the Refresh button and enter a new API key.</p>
-            <p>You can still view your analytics directly at <a href="https://simpleanalytics.com/trubar4.github.io" target="_blank">simpleanalytics.com/trubar4.github.io</a></p>
-          `;
-          
-          // Show the API key form again if the key was invalid
-          if (error.message.includes('API key')) {
-            document.getElementById('api-key-form').style.display = 'block';
-            localStorage.removeItem('sa_api_key');
-          }
-        });
-      }
-      
-      function loadEventsData(apiKey) {
-        fetch('https://api.simpleanalytics.io/v1/websites/trubar4.github.io/events', {
-          headers: {
-            'Content-Type': 'application/json',
-            'Api-Key': apiKey
-          }
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Failed to load events data');
-          return response.json();
-        })
-        .then(data => {
-          if (data.events && Array.isArray(data.events)) {
-            // Look for game_start events
-            const gameStarts = data.events.find(e => e.event === 'game_start');
-            document.getElementById('sa-game-starts').textContent = numberWithCommas(gameStarts ? gameStarts.count : 0);
-            
-            // Count unique referrers
-            const referrersCount = data.events.reduce((acc, event) => {
-              if (event.referrers && Array.isArray(event.referrers)) {
-                return acc + event.referrers.length;
-              }
-              return acc;
-            }, 0);
-            document.getElementById('sa-referrers').textContent = numberWithCommas(referrersCount);
-          }
-        })
-        .catch(error => {
-          console.error('Error loading events data:', error);
-          // Set default values if event data fails to load
-          document.getElementById('sa-game-starts').textContent = '-';
-          document.getElementById('sa-referrers').textContent = '-';
-        });
-      }
-      
-      function loadTimelineData(apiKey) {
-        const today = new Date();
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(today.getDate() - 30);
-        
-        const startDate = formatDateForApi(thirtyDaysAgo);
-        const endDate = formatDateForApi(today);
-        
-        fetch(`https://api.simpleanalytics.io/v1/websites/trubar4.github.io/stats?start=${startDate}&end=${endDate}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Api-Key': apiKey
-          }
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Failed to load timeline data');
-          return response.json();
-        })
-        .then(data => {
-          if (data.timeline && Array.isArray(data.timeline)) {
-            createVisitsChart(data.timeline);
-          }
-        })
-        .catch(error => {
-          console.error('Error loading timeline data:', error);
-        });
-      }
-      
-      function formatDateForApi(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-      
-      function createVisitsChart(timelineData) {
-        const ctx = document.getElementById('sa-visits-chart').getContext('2d');
-        
-        // Extract dates and visitor counts
-        const labels = timelineData.map(day => formatDate(day.date));
-        const visitorData = timelineData.map(day => day.visitors);
-        const pageviewData = timelineData.map(day => day.pageviews);
-        
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: 'Visitors',
-                data: visitorData,
-                borderColor: '#6200EE',
-                backgroundColor: 'rgba(98, 0, 238, 0.1)',
-                tension: 0.4,
-                fill: true
-              },
-              {
-                label: 'Pageviews',
-                data: pageviewData,
-                borderColor: '#03DAC6',
-                backgroundColor: 'rgba(3, 218, 198, 0.1)',
-                tension: 0.4,
-                fill: true
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  precision: 0
-                }
-              }
-            }
-          }
-        });
-      }
-      
-      function formatDate(dateStr) {
-        // Convert YYYY-MM-DD to MM/DD
-        const parts = dateStr.split('-');
-        return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : dateStr;
-      }
       
       // Load analytics data from localStorage
       function loadLocalAnalytics() {
@@ -484,6 +294,13 @@
           displayBasicStats(user);
           displayGameCharts(user);
           displayRecentGames(user);
+          
+          // Display events analysis
+          if (events && events.length > 0) {
+            displayEventsTimeline(events);
+            displayEventTypes(events);
+            displayEventCategories(events);
+          }
           
         } catch (error) {
           console.error('Error loading analytics data:', error);
@@ -666,15 +483,199 @@
         });
       }
       
+      function displayEventsTimeline(events) {
+        // Group events by day
+        const eventsByDay = {};
+        
+        events.forEach(event => {
+          const date = new Date(event.timestamp);
+          const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+          
+          if (!eventsByDay[dateStr]) {
+            eventsByDay[dateStr] = {
+              gameStarts: 0,
+              gameEnds: 0,
+              interactions: 0
+            };
+          }
+          
+          if (event.category === 'game' && event.action === 'start') {
+            eventsByDay[dateStr].gameStarts++;
+          } else if (event.category === 'game' && event.action === 'end') {
+            eventsByDay[dateStr].gameEnds++;
+          } else if (event.category === 'interaction') {
+            eventsByDay[dateStr].interactions++;
+          }
+        });
+        
+        // Sort dates and prepare chart data
+        const sortedDates = Object.keys(eventsByDay).sort();
+        const chartLabels = sortedDates.map(date => {
+          const parts = date.split('-');
+          return `${parts[1]}/${parts[2]}`; // MM/DD format
+        });
+        
+        const gameStartData = sortedDates.map(date => eventsByDay[date].gameStarts);
+        const gameEndData = sortedDates.map(date => eventsByDay[date].gameEnds);
+        const interactionData = sortedDates.map(date => eventsByDay[date].interactions);
+        
+        // Create the chart
+        const ctx = document.getElementById('events-timeline-chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [
+              {
+                label: 'Game Starts',
+                data: gameStartData,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                tension: 0.4,
+                fill: true
+              },
+              {
+                label: 'Game Ends',
+                data: gameEndData,
+                borderColor: '#F44336',
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                tension: 0.4,
+                fill: true
+              },
+              {
+                label: 'Interactions',
+                data: interactionData,
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                tension: 0.4,
+                fill: true
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      function displayEventTypes(events) {
+        // Count event actions
+        const actionCounts = {};
+        
+        events.forEach(event => {
+          const action = event.action;
+          if (!actionCounts[action]) {
+            actionCounts[action] = 0;
+          }
+          actionCounts[action]++;
+        });
+        
+        // Convert to chart data
+        const labels = Object.keys(actionCounts);
+        const data = Object.values(actionCounts);
+        
+        // Generate random colors for each action
+        const backgroundColors = labels.map(() => {
+          return `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;
+        });
+        
+        // Create the chart
+        const ctx = document.getElementById('event-types-chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: backgroundColors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right'
+              }
+            }
+          }
+        });
+      }
+      
+      function displayEventCategories(events) {
+        // Count event categories
+        const categoryCounts = {};
+        
+        events.forEach(event => {
+          const category = event.category;
+          if (!categoryCounts[category]) {
+            categoryCounts[category] = 0;
+          }
+          categoryCounts[category]++;
+        });
+        
+        // Convert to chart data
+        const labels = Object.keys(categoryCounts);
+        const data = Object.values(categoryCounts);
+        
+        // Define colors for each category
+        const categoryColors = {
+          'game': '#4CAF50',
+          'interaction': '#2196F3',
+          'error': '#F44336',
+          'performance': '#FFC107'
+        };
+        
+        const backgroundColors = labels.map(category => 
+          categoryColors[category] || `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`
+        );
+        
+        // Create the chart
+        const ctx = document.getElementById('event-categories-chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Event Count',
+              data: data,
+              backgroundColor: backgroundColors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              }
+            }
+          }
+        });
+      }
+      
       function formatTime(seconds) {
         if (seconds < 60) return seconds + 's';
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return minutes + 'm ' + (remainingSeconds > 0 ? remainingSeconds + 's' : '');
-      }
-      
-      function numberWithCommas(x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       }
       
       function exportAnalyticsData() {

@@ -4,13 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mastermind Analytics Dashboard</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-	<!-- Google API Client Library -->
-	<script src="https://apis.google.com/js/api.js"></script>
-	<!-- Google Identity Services -->
-	<script src="https://accounts.google.com/gsi/client"></script>
-	<!-- JWT Decoder für Token-Parsing -->
-	<script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,50 +16,16 @@
       max-width: 1200px;
       margin: 0 auto;
     }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #ddd;
-    }
-    .header h1 {
-      margin: 0;
-      color: #333;
-    }
-    .date-range {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-      gap: 20px;
-    }
     .card {
-      background: white;
-      border-radius: 8px;
+      margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      padding: 15px;
-    }
-    .card-header {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #333;
-    }
-    .stat-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
     }
     .stat-card {
       background: #f9f9f9;
       border-radius: 6px;
       padding: 15px;
       text-align: center;
+      height: 100%;
     }
     .stat-value {
       font-size: 28px;
@@ -82,1960 +42,397 @@
       height: 300px;
       width: 100%;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      background: #f9f9f9;
+      border-radius: 6px;
     }
-    table th, table td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-    table th {
-      background-color: #f9f9f9;
-      font-weight: bold;
-    }
-    .color-sample {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      margin-right: 5px;
-      vertical-align: middle;
-    }
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    button {
-      background-color: #6200EE;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #5000c9;
-    }
-    .filter {
-      background-color: white;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-    }
-    #auth-button {
-      margin-bottom: 20px;
-    }
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(255, 255, 255, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #6200EE;
-      border-radius: 50%;
-      animation: spin 2s linear infinite;
-    }
-    .error-message {
-      background-color: #ffebee;
-      color: #c62828;
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      display: none;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .hidden {
-      display: none !important;
-    }
-    .status-message {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 4px;
-      background-color: #e8f5e9;
-      color: #2e7d32;
-    }
-	#auth-container {
-	  margin-bottom: 20px;
-	}
-	#sign-in-button {
-	  background-color: #4285F4;
-	  color: white;
-	  border: none;
-	  padding: 10px 16px;
-	  border-radius: 4px;
-	  cursor: pointer;
-	  font-weight: bold;
-	}
-	#sign-in-button:hover {
-	  background-color: #3367D6;
-	}
-	#sign-out-button {
-	  margin-left: 10px;
-	  background-color: #757575;
-	}
-	.g_id_signin {
-	  margin-bottom: 15px;
-	}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Philipp's Mastermind Analytics</h1>
-	<div id="auth-container">
-	  <!-- Google Identity Services Button -->
-	<div id="g_id_onload"
-		 data-client_id="82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com"
-		 data-context="signin"
-		 data-callback="handleCredentialResponse"
-		 data-scope="https://www.googleapis.com/auth/analytics.readonly">
-	</div>
-	  <div class="g_id_signin" data-type="standard"></div>
-	  <button id="sign-out-button" class="hidden">Sign Out</button>
-	</div>
-    </div>
-
-    <div id="error-message" class="error-message"></div>
-    <div id="status-message" class="status-message hidden"></div>
-
-    <div id="dashboard-content" class="hidden">
-      <div class="date-range">
-        <label for="start-date">From:</label>
-        <input type="date" id="start-date">
-        <label for="end-date">To:</label>
-        <input type="date" id="end-date">
-        <button id="apply-date">Apply</button>
-      </div>
-
-      <div class="controls">
+    <header class="mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1>Philipp's Mastermind Analytics</h1>
         <div>
-          <button id="refresh-data">Refresh Data</button>
-          <button id="export-data">Export CSV</button>
-        </div>
-        <div>
-          <select id="filter-mode" class="filter">
-            <option value="all">All Game Modes</option>
-            <option value="both">2 Player</option>
-            <option value="codemakerMode">Computer as Breaker</option>
-            <option value="codebreakerMode">Computer as Maker</option>
-          </select>
-          <select id="filter-code-length" class="filter">
-            <option value="all">All Code Lengths</option>
-            <option value="4">4 Circles</option>
-            <option value="5">5 Circles</option>
-          </select>
+          <button id="refresh-btn" class="btn btn-primary">Refresh Data</button>
         </div>
       </div>
+      <p class="text-muted">Powered by Simple Analytics</p>
+    </header>
 
-      <div class="dashboard">
-        <!-- Overview Stats -->
+    <div class="row">
+      <!-- Simple Analytics Stats -->
+      <div class="col-12">
         <div class="card">
-          <div class="card-header">Overview</div>
-          <div class="stat-container">
-            <div class="stat-card">
-              <div class="stat-value" id="total-games">0</div>
-              <div class="stat-label">Games Played</div>
+          <div class="card-header">
+            <h5 class="card-title mb-0">Simple Analytics Dashboard</h5>
+          </div>
+          <div class="card-body">
+            <!-- Embedding Simple Analytics dashboard -->
+            <div class="ratio ratio-16x9">
+              <iframe id="sa-iframe" src="https://simpleanalytics.com/your-domain.com?embed=true" scrolling="no" frameborder="0" loading="lazy"></iframe>
+              <div id="no-data-message" class="no-data">
+                <p>No local analytics data available.</p>
+                <p>Play a few games to generate data.</p>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-value" id="total-users">0</div>
-              <div class="stat-label">Unique Users</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="avg-session">0m</div>
-              <div class="stat-label">Avg. Session</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="completion-rate">0%</div>
-              <div class="stat-label">Completion Rate</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Game Performance -->
-        <div class="card">
-          <div class="card-header">Game Performance</div>
-          <div class="stat-container">
-            <div class="stat-card">
-              <div class="stat-value" id="win-rate">0%</div>
-              <div class="stat-label">Win Rate</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="avg-attempts">0</div>
-              <div class="stat-label">Avg. Attempts</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="give-up-rate">0%</div>
-              <div class="stat-label">Give Up Rate</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value" id="avg-time">0s</div>
-              <div class="stat-label">Avg. Game Time</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Games Over Time Chart -->
-        <div class="card">
-          <div class="card-header">Games Played Over Time</div>
-          <div class="chart-container">
-            <canvas id="games-over-time"></canvas>
-          </div>
-        </div>
-
-        <!-- Game Mode Preference -->
-        <div class="card">
-          <div class="card-header">Game Mode Preference</div>
-          <div class="chart-container">
-            <canvas id="mode-preference"></canvas>
-          </div>
-        </div>
-
-        <!-- Language Distribution -->
-        <div class="card">
-          <div class="card-header">Language Distribution</div>
-          <div class="chart-container">
-            <canvas id="language-distribution"></canvas>
-          </div>
-        </div>
-
-        <!-- Code Length Preference -->
-        <div class="card">
-          <div class="card-header">Code Length Preference</div>
-          <div class="chart-container">
-            <canvas id="length-preference"></canvas>
-          </div>
-        </div>
-
-        <!-- Color Usage -->
-        <div class="card">
-          <div class="card-header">Color Usage</div>
-          <div class="chart-container">
-            <canvas id="color-usage"></canvas>
-          </div>
-        </div>
-
-        <!-- Win Rate by Attempts -->
-        <div class="card">
-          <div class="card-header">Win Rate by Attempts</div>
-          <div class="chart-container">
-            <canvas id="win-by-attempts"></canvas>
-          </div>
-        </div>
-
-        <!-- Recent Game Sessions -->
-        <div class="card">
-          <div class="card-header">Recent Game Sessions</div>
-          <table id="recent-games">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Mode</th>
-                <th>Result</th>
-                <th>Attempts</th>
-                <th>Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Data will be inserted here dynamically -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Device Distribution -->
-        <div class="card">
-          <div class="card-header">Device Distribution</div>
-          <div class="chart-container">
-            <canvas id="device-distribution"></canvas>
-          </div>
-        </div>
-        
-        <!-- Error Rates -->
-        <div class="card">
-          <div class="card-header">Error Rates</div>
-          <div class="chart-container">
-            <canvas id="error-rates"></canvas>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="loading-overlay" class="loading-overlay">
-    <div class="loading-spinner"></div>
-  </div>
-
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Configuration - Update these values with your actual GA4 info
-	const GA4_PROPERTY_ID = '486860865'; // Deine GA4 Property ID
-	const GA4_CLIENT_ID = '82857070912-7n6f5ekb5161f02mupl5d1d7b5j3656f.apps.googleusercontent.com'; // Deine OAuth client ID (behalte diese)
-	//const GA4_API_KEY = 'AIzaSyAf2h1mThchuKUO-MIMPweiV__KeqeJ1Co'; // Your API key
-	const GA4_API_KEY = 'AIzaSyBNP0qJzO_f-7O2ZZ9MiS4vgiidzXxAvvs'; // Your API key
-	
-    
-    // Define scope for Google Analytics API access
-	const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
-    
-    // Store chart instances for later reference
-    const chartInstances = {};
-    
-    // Utility function to format numbers with commas
-    function numberWithCommas(x) {
-      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-    
-    // Utility function to format seconds into minutes and seconds
-    function formatTime(seconds) {
-      if (seconds < 60) return seconds + 's';
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      return minutes + 'm ' + (remainingSeconds > 0 ? remainingSeconds + 's' : '');
-    }
-    
-    // Display error message
-    function showError(message) {
-      const errorElement = document.getElementById('error-message');
-      errorElement.textContent = message;
-      errorElement.style.display = 'block';
-      hideLoading();
-    }
-    
-    // Display status message
-    function showStatus(message) {
-      const statusElement = document.getElementById('status-message');
-      statusElement.textContent = message;
-      statusElement.classList.remove('hidden');
-      setTimeout(() => {
-        statusElement.classList.add('hidden');
-      }, 5000);
-    }
-    
-    // Show loading overlay
-    function showLoading() {
-      document.getElementById('loading-overlay').style.display = 'flex';
-    }
-    
-    // Hide loading overlay
-    function hideLoading() {
-      document.getElementById('loading-overlay').style.display = 'none';
-    }
-    
-    // Initialize date inputs with default values (last 30 days)
-    function initializeDateRange() {
-      const today = new Date();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(today.getDate() - 30);
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize
+      loadLocalAnalytics();
       
-      const formatDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
+      // Setup event listeners
+      document.getElementById('refresh-btn').addEventListener('click', loadLocalAnalytics);
+      document.getElementById('export-btn').addEventListener('click', exportAnalyticsData);
       
-      document.getElementById('start-date').value = formatDate(thirtyDaysAgo);
-      document.getElementById('end-date').value = formatDate(today);
-    }
-    
-    // Initialize charts with default empty data
-    function initializeCharts() {
-	  // Destroy existing charts if they exist
-	  Object.keys(chartInstances).forEach(key => {
-		if (chartInstances[key]) {
-		  chartInstances[key].destroy();
-		}
-	  });
-      // Games Over Time Chart
-      const gamesOverTimeCtx = document.getElementById('games-over-time').getContext('2d');
-      chartInstances.gamesOverTime = new Chart(gamesOverTimeCtx, {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Games',
-            data: [],
-            borderColor: '#6200EE',
-            backgroundColor: 'rgba(98, 0, 238, 0.1)',
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
+      // Load analytics data from localStorage
+      function loadLocalAnalytics() {
+        try {
+          // Try to get analytics data
+          const analyticsData = localStorage.getItem('mastermind_analytics');
+          const userData = localStorage.getItem('mastermind_user');
+          
+          if (!analyticsData || !userData) {
+            showNoDataMessage(true);
+            return;
           }
+          
+          const events = JSON.parse(analyticsData);
+          const user = JSON.parse(userData);
+          
+          // Hide no data message
+          showNoDataMessage(false);
+          
+          // Process and display the data
+          displayBasicStats(user);
+          displayGameCharts(user);
+          displayRecentGames(user);
+          
+        } catch (error) {
+          console.error('Error loading analytics data:', error);
+          showNoDataMessage(true);
         }
-      });
-      
-      // Mode Preference Chart
-      const modePreferenceCtx = document.getElementById('mode-preference').getContext('2d');
-      chartInstances.modePreference = new Chart(modePreferenceCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['2 Player', 'Computer as Breaker', 'Computer as Maker'],
-          datasets: [{
-            data: [0, 0, 0],
-            backgroundColor: ['#4CAF50', '#2196F3', '#FF9800']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right'
-            }
-          }
-        }
-      });
-      
-      // Language Distribution Chart
-      const languageCtx = document.getElementById('language-distribution').getContext('2d');
-      chartInstances.languageDistribution = new Chart(languageCtx, {
-        type: 'pie',
-        data: {
-          labels: ['English', 'German'],
-          datasets: [{
-            data: [0, 0],
-            backgroundColor: ['#3F51B5', '#E91E63']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right'
-            }
-          }
-        }
-      });
-      
-      // Code Length Preference Chart
-      const lengthCtx = document.getElementById('length-preference').getContext('2d');
-      chartInstances.lengthPreference = new Chart(lengthCtx, {
-        type: 'bar',
-        data: {
-          labels: ['4 Circles', '5 Circles'],
-          datasets: [{
-            label: 'Games',
-            data: [0, 0],
-            backgroundColor: '#9C27B0'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-      
-      // Color Usage Chart
-      const colorCtx = document.getElementById('color-usage').getContext('2d');
-      chartInstances.colorUsage = new Chart(colorCtx, {
-        type: 'bar',
-        data: {
-          labels: ['Red', 'Yellow', 'Orange', 'Pink', 'Blue', 'Green', 'Gray', 'Black'],
-          datasets: [{
-            label: 'Usage Count',
-            data: [0, 0, 0, 0, 0, 0, 0, 0],
-            backgroundColor: [
-              '#FF0000', '#FFFF00', '#FFC000', '#F36DED', 
-              '#0070C0', '#00B050', '#A6A6A6', '#000000'
-            ]
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-      
-      // Win Rate by Attempts Chart
-      const winByAttemptsCtx = document.getElementById('win-by-attempts').getContext('2d');
-      chartInstances.winByAttempts = new Chart(winByAttemptsCtx, {
-        type: 'line',
-        data: {
-          labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-          datasets: [{
-            label: 'Win Rate',
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#00BCD4',
-            backgroundColor: 'rgba(0, 188, 212, 0.2)',
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100,
-              ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
-              }
-            }
-          },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.parsed.y + '%';
-                }
-              }
-            }
-          }
-        }
-      });
-      
-      // Device Distribution Chart
-      const deviceCtx = document.getElementById('device-distribution').getContext('2d');
-      chartInstances.deviceDistribution = new Chart(deviceCtx, {
-        type: 'pie',
-        data: {
-          labels: ['Desktop', 'Mobile', 'Tablet'],
-          datasets: [{
-            data: [0, 0, 0],
-            backgroundColor: ['#607D8B', '#FF5722', '#795548']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right'
-            }
-          }
-        }
-      });
-      
-      // Error Rates Chart
-      const errorCtx = document.getElementById('error-rates').getContext('2d');
-      chartInstances.errorRates = new Chart(errorCtx, {
-        type: 'bar',
-        data: {
-          labels: ['Game Logic', 'Network', 'Input', 'Rendering', 'Other'],
-          datasets: [{
-            label: 'Error Count',
-            data: [0, 0, 0, 0, 0],
-            backgroundColor: '#F44336'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          }
-        }
-      });
-    }
-    
-    // Fetch analytics data
-	async function fetchAnalyticsData() {
-	  try {
-		showLoading();
-		
-		// Get date range values
-		const startDate = document.getElementById('start-date').value || '30daysAgo';
-		const endDate = document.getElementById('end-date').value || 'today';
-		
-		// Get filter values
-		const modeFilter = document.getElementById('filter-mode').value;
-		const codeLengthFilter = document.getElementById('filter-code-length').value;
-        
-		// Query for total games
-		await queryTotalGames(startDate, endDate, modeFilter, codeLengthFilter);
-
-		// Query for unique users
-		await queryUniqueUsers(startDate, endDate);
-
-		// Query for session metrics
-		await querySessionMetrics(startDate, endDate);
-
-		// Query for game performance
-		await queryGamePerformance(startDate, endDate, modeFilter, codeLengthFilter);
-
-		// Query for games over time
-		await queryGamesOverTime(startDate, endDate, modeFilter, codeLengthFilter);
-        
-        // Query for mode preference
-        await queryModePreference(startDate, endDate);
-        
-        // Query for language distribution
-        await queryLanguageDistribution(startDate, endDate);
-        
-        // Query for code length preference
-        await queryCodeLengthPreference(startDate, endDate);
-        
-        // Query for color usage
-        await queryColorUsage(startDate, endDate);
-        
-        // Query for win rate by attempts
-        await queryWinRateByAttempts(startDate, endDate);
-        
-        // Query for recent game sessions
-        await queryRecentSessions(startDate, endDate);
-        
-        // Query for device distribution
-        await queryDeviceDistribution(startDate, endDate);
-        
-        // Query for error rates
-        await queryErrorRates(startDate, endDate);
-        
-		showStatus('Analytics data updated successfully');
-		hideLoading();
-	  } catch (error) {
-		console.error('Error fetching analytics data:', error);
-		showError('Failed to fetch analytics data. Loading demo data instead.');
-		
-		// Load demo data if real data fails
-		loadDemoData();
-		
-		hideLoading();
-	  }
-	}
-    
-	// Query for total games - using GA4 API
-	async function queryTotalGames(startDate, endDate, modeFilter, codeLengthFilter) {
-	  try {
-		prepareApiCall(); // Add this line to get the token
-
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: '30daysAgo',
-			  endDate: 'today'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'activeUsers'
-			}
-		  ]
-		};		
-		<!-- const request = { -->
-		  <!-- property: `properties/${GA4_PROPERTY_ID}`, -->
-		  <!-- dateRanges: [ -->
-			<!-- { -->
-			  <!-- startDate: startDate, -->
-			<!-- } -->
-			  <!-- endDate: endDate -->
-		  <!-- ], -->
-		  <!-- dimensions: [ -->
-			<!-- { -->
-			  <!-- name: 'eventName' -->
-			<!-- } -->
-		  <!-- ], -->
-		  <!-- metrics: [ -->
-			<!-- { -->
-			  <!-- name: 'eventCount' -->
-			<!-- } -->
-		  <!-- ], -->
-		  <!-- dimensionFilter: { -->
-			<!-- filter: { -->
-			  <!-- fieldName: 'eventName', -->
-			  <!-- stringFilter: { -->
-				<!-- value: 'game_start', -->
-				<!-- matchType: 'EXACT' -->
-			  <!-- } -->
-			<!-- } -->
-		  <!-- } -->
-		<!-- }; -->
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let totalGames = 0;
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  totalGames = parseInt(response.result.rows[0].metricValues[0].value);
-		}
-		
-		document.getElementById('total-games').textContent = numberWithCommas(totalGames);
-	  } catch (error) {
-		console.error('Error querying total games:', error);
-		throw error;
-	  }
-	}
-    
-    // Query for unique users
-	async function queryUniqueUsers(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'totalUsers'
-			}
-		  ]
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let totalUsers = 0;
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  totalUsers = parseInt(response.result.rows[0].metricValues[0].value);
-		}
-		
-		document.getElementById('total-users').textContent = numberWithCommas(totalUsers);
-	  } catch (error) {
-		console.error('Error querying unique users:', error);
-		throw error;
-	  }
-	}
-    
-    // Query for session metrics
-	async function querySessionMetrics(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'averageSessionDuration'
-			},
-			{
-			  name: 'bounceRate'
-			}
-		  ]
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  const avgSessionDuration = Math.round(parseFloat(response.result.rows[0].metricValues[0].value));
-		  const bounceRate = parseFloat(response.result.rows[0].metricValues[1].value);
-		  const completionRate = 100 - bounceRate;
-		  
-		  document.getElementById('avg-session').textContent = formatTime(avgSessionDuration);
-		  document.getElementById('completion-rate').textContent = completionRate.toFixed(1) + '%';
-		}
-	  } catch (error) {
-		console.error('Error querying session metrics:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for game performance
-	async function queryGamePerformance(startDate, endDate, modeFilter, codeLengthFilter) {
-	  try {
-		prepareApiCall();
-		
-		let dimensionFilter = {
-		  filter: {
-			fieldName: 'eventName',
-			stringFilter: {
-			  value: 'game_end',
-			  matchType: 'EXACT'
-			}
-		  }
-		};
-		
-		// Add mode filter if specified
-		if (modeFilter !== 'all') {
-		  dimensionFilter = {
-			andGroup: {
-			  expressions: [
-				dimensionFilter,
-				{
-				  filter: {
-					fieldName: 'customEvent:mode',
-					stringFilter: {
-					  value: modeFilter,
-					  matchType: 'EXACT'
-					}
-				  }
-				}
-			  ]
-			}
-		  };
-		}
-		
-		// Add code length filter if specified
-		if (codeLengthFilter !== 'all') {
-		  const filter = {
-			filter: {
-			  fieldName: 'customEvent:codeLength',
-			  stringFilter: {
-				value: codeLengthFilter,
-				matchType: 'EXACT'
-			  }
-			}
-		  };
-		  
-		  if (dimensionFilter.andGroup) {
-			dimensionFilter.andGroup.expressions.push(filter);
-		  } else {
-			dimensionFilter = {
-			  andGroup: {
-				expressions: [dimensionFilter, filter]
-			  }
-			};
-		  }
-		}
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'eventName'
-			},
-			{
-			  name: 'customEvent:result'
-			},
-			{
-			  name: 'customEvent:attempts'
-			},
-			{
-			  name: 'customEvent:duration'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: dimensionFilter
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let wins = 0;
-		let giveUps = 0;
-		let totalGames = 0;
-		let totalAttempts = 0;
-		let totalDuration = 0;
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const result = row.dimensionValues[1].value;
-			const attempts = parseInt(row.dimensionValues[2].value) || 0;
-			const duration = parseInt(row.dimensionValues[3].value) || 0;
-			const count = parseInt(row.metricValues[0].value);
-			
-			totalGames += count;
-			
-			if (result === 'win') {
-			  wins += count;
-			} else if (result === 'giveUp' || result === 'abandoned') {
-			  giveUps += count;
-			}
-			
-			totalAttempts += attempts * count;
-			totalDuration += duration * count;
-		  }
-		}
-		
-		// Calculate metrics
-		const winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0;
-		const giveUpRate = totalGames > 0 ? (giveUps / totalGames) * 100 : 0;
-		const avgAttempts = totalGames > 0 ? totalAttempts / totalGames : 0;
-		const avgTime = totalGames > 0 ? totalDuration / totalGames : 0;
-		
-		// Update UI
-		document.getElementById('win-rate').textContent = winRate.toFixed(1) + '%';
-		document.getElementById('give-up-rate').textContent = giveUpRate.toFixed(1) + '%';
-		document.getElementById('avg-attempts').textContent = avgAttempts.toFixed(1);
-		document.getElementById('avg-time').textContent = formatTime(Math.round(avgTime));
-	  } catch (error) {
-		console.error('Error querying game performance:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for games over time
-	async function queryGamesOverTime(startDate, endDate, modeFilter, codeLengthFilter) {
-	  try {
-		prepareApiCall();
-		
-		let dimensionFilter = {
-		  filter: {
-			fieldName: 'eventName',
-			stringFilter: {
-			  value: 'game_start',
-			  matchType: 'EXACT'
-			}
-		  }
-		};
-		
-		// Add filters if specified
-		if (modeFilter !== 'all' || codeLengthFilter !== 'all') {
-		  const expressions = [dimensionFilter];
-		  
-		  if (modeFilter !== 'all') {
-			expressions.push({
-			  filter: {
-				fieldName: 'customEvent:mode',
-				stringFilter: {
-				  value: modeFilter,
-				  matchType: 'EXACT'
-				}
-			  }
-			});
-		  }
-		  
-		  if (codeLengthFilter !== 'all') {
-			expressions.push({
-			  filter: {
-				fieldName: 'customEvent:codeLength',
-				stringFilter: {
-				  value: codeLengthFilter,
-				  matchType: 'EXACT'
-				}
-			  }
-			});
-		  }
-		  
-		  dimensionFilter = {
-			andGroup: {
-			  expressions: expressions
-			}
-		  };
-		}
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'date'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: dimensionFilter,
-		  orderBys: [
-			{
-			  dimension: {
-				dimensionName: 'date'
-			  }
-			}
-		  ]
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		const labels = [];
-		const data = [];
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  response.result.rows.forEach(row => {
-			// Format the date from YYYYMMDD to MM/DD
-			const dateStr = row.dimensionValues[0].value;
-			const month = dateStr.substr(4, 2);
-			const day = dateStr.substr(6, 2);
-			const formattedDate = `${month}/${day}`;
-			
-			labels.push(formattedDate);
-			data.push(parseInt(row.metricValues[0].value));
-		  });
-		}
-		
-		// Update the chart
-		chartInstances.gamesOverTime.data.labels = labels;
-		chartInstances.gamesOverTime.data.datasets[0].data = data;
-		chartInstances.gamesOverTime.update();
-	  } catch (error) {
-		console.error('Error querying games over time:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for mode preference
-	async function queryModePreference(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'customEvent:mode'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'game_start',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let bothCount = 0;
-		let codemakerCount = 0;
-		let codebreakerCount = 0;
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const mode = row.dimensionValues[0].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			if (mode === 'both') {
-			  bothCount += count;
-			} else if (mode === 'codemakerMode') {
-			  codemakerCount += count;
-			} else if (mode === 'codebreakerMode') {
-			  codebreakerCount += count;
-			}
-		  }
-		}
-		
-		// Update the chart
-		chartInstances.modePreference.data.datasets[0].data = [bothCount, codemakerCount, codebreakerCount];
-		chartInstances.modePreference.update();
-	  } catch (error) {
-		console.error('Error querying mode preference:', error);
-		throw error;
-	  }
-	}
-		
-	// Query for language distribution
-	async function queryLanguageDistribution(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'language'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'game_start',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let englishCount = 0;
-		let germanCount = 0;
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const language = row.dimensionValues[0].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			if (language === 'en' || language.startsWith('en-')) {
-			  englishCount += count;
-			} else if (language === 'de' || language.startsWith('de-')) {
-			  germanCount += count;
-			}
-		  }
-		}
-		
-		// Update the chart
-		chartInstances.languageDistribution.data.datasets[0].data = [englishCount, germanCount];
-		chartInstances.languageDistribution.update();
-	  } catch (error) {
-		console.error('Error querying language distribution:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for code length preference
-	async function queryCodeLengthPreference(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'customEvent:codeLength'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'game_start',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let fourCodeCount = 0;
-		let fiveCodeCount = 0;
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const codeLength = row.dimensionValues[0].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			if (codeLength === '4') {
-			  fourCodeCount += count;
-			} else if (codeLength === '5') {
-			  fiveCodeCount += count;
-			}
-		  }
-		}
-		
-		// Update the chart
-		chartInstances.lengthPreference.data.datasets[0].data = [fourCodeCount, fiveCodeCount];
-		chartInstances.lengthPreference.update();
-	  } catch (error) {
-		console.error('Error querying code length preference:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for color usage
-	async function queryColorUsage(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'customEvent:color'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'color_select',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		const colorCounts = [0, 0, 0, 0, 0, 0, 0, 0]; // Red, Yellow, Orange, Pink, Blue, Green, Gray, Black
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const color = row.dimensionValues[0].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			// Parse color from event dimension
-			if (color === '#FF0000') colorCounts[0] += count; // Red
-			else if (color === '#FFFF00') colorCounts[1] += count; // Yellow
-			else if (color === '#FFC000') colorCounts[2] += count; // Orange
-			else if (color === '#F36DED') colorCounts[3] += count; // Pink
-			else if (color === '#0070C0') colorCounts[4] += count; // Blue
-			else if (color === '#00B050') colorCounts[5] += count; // Green
-			else if (color === '#A6A6A6') colorCounts[6] += count; // Gray
-			else if (color === '#000000') colorCounts[7] += count; // Black
-		  }
-		}
-		
-		// Update the chart
-		chartInstances.colorUsage.data.datasets[0].data = colorCounts;
-		chartInstances.colorUsage.update();
-	  } catch (error) {
-		console.error('Error querying color usage:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for win rate by attempts
-	async function queryWinRateByAttempts(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'customEvent:attempts'
-			},
-			{
-			  name: 'customEvent:result'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'game_end',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		// Initialize arrays to store attempts data
-		const winsByAttempt = Array(10).fill(0);
-		const totalByAttempt = Array(10).fill(0);
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const attempts = parseInt(row.dimensionValues[0].value);
-			const result = row.dimensionValues[1].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			if (attempts > 0 && attempts <= 10) {
-			  totalByAttempt[attempts - 1] += count;
-			  
-			  // Check if this was a win
-			  if (result === 'win') {
-				winsByAttempt[attempts - 1] += count;
-			  }
-			}
-		  }
-		}
-		
-		// Calculate win rates for each attempt count
-		const winRates = winsByAttempt.map((wins, i) => 
-		  totalByAttempt[i] > 0 ? (wins / totalByAttempt[i]) * 100 : 0
-		);
-		
-		// Update the chart
-		chartInstances.winByAttempts.data.datasets[0].data = winRates;
-		chartInstances.winByAttempts.update();
-	  } catch (error) {
-		console.error('Error querying win rate by attempts:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for recent game sessions
-	async function queryRecentSessions(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'date'
-			},
-			{
-			  name: 'customEvent:mode'
-			},
-			{
-			  name: 'customEvent:result'
-			},
-			{
-			  name: 'customEvent:attempts'
-			},
-			{
-			  name: 'customEvent:duration'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'game_end',
-				matchType: 'EXACT'
-			  }
-			}
-		  },
-		  orderBys: [
-			{
-			  desc: true,
-			  dimension: {
-				dimensionName: 'date'
-			  }
-			}
-		  ],
-		  limit: 20
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		const tableBody = document.querySelector('#recent-games tbody');
-		tableBody.innerHTML = ''; // Clear existing rows
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const date = row.dimensionValues[0].value;
-			const mode = row.dimensionValues[1].value;
-			const result = row.dimensionValues[2].value;
-			const attempts = row.dimensionValues[3].value;
-			const duration = parseInt(row.dimensionValues[4].value) || 0;
-			
-			// Format date as MM/DD/YYYY
-			const formattedDate = `${date.substr(4, 2)}/${date.substr(6, 2)}/${date.substr(0, 4)}`;
-			
-			// Format mode
-			let modeDisplay = 'Unknown';
-			if (mode === 'both') modeDisplay = '2 Player';
-			else if (mode === 'codemakerMode') modeDisplay = 'Computer as Breaker';
-			else if (mode === 'codebreakerMode') modeDisplay = 'Computer as Maker';
-			
-			// Format result
-			let resultDisplay = 'Unknown';
-			if (result === 'win') resultDisplay = 'Win';
-			else if (result === 'loss') resultDisplay = 'Loss';
-			else if (result === 'abandoned' || result === 'giveUp') resultDisplay = 'Abandoned';
-			
-			// Create table row
-			const tr = document.createElement('tr');
-			tr.innerHTML = `
-			  <td>${formattedDate}</td>
-			  <td>${modeDisplay}</td>
-			  <td>${resultDisplay}</td>
-			  <td>${attempts || '-'}</td>
-			  <td>${formatTime(duration)}</td>
-			`;
-			
-			tableBody.appendChild(tr);
-		  }
-		}
-		
-		// Add empty row if no data
-		if (tableBody.children.length === 0) {
-		  const tr = document.createElement('tr');
-		  tr.innerHTML = '<td colspan="5" style="text-align: center;">No recent games found</td>';
-		  tableBody.appendChild(tr);
-		}
-	  } catch (error) {
-		console.error('Error querying recent sessions:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for device distribution
-	async function queryDeviceDistribution(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'deviceCategory'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'activeUsers'
-			}
-		  ]
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		let desktopCount = 0;
-		let mobileCount = 0;
-		let tabletCount = 0;
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const deviceType = row.dimensionValues[0].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			if (deviceType === 'desktop') {
-			  desktopCount = count;
-			} else if (deviceType === 'mobile') {
-			  mobileCount = count;
-			} else if (deviceType === 'tablet') {
-			  tabletCount = count;
-			}
-		  }
-		}
-		
-		// Update the chart
-		chartInstances.deviceDistribution.data.datasets[0].data = [desktopCount, mobileCount, tabletCount];
-		chartInstances.deviceDistribution.update();
-	  } catch (error) {
-		console.error('Error querying device distribution:', error);
-		throw error;
-	  }
-	}
-    
-	// Query for error rates
-	async function queryErrorRates(startDate, endDate) {
-	  try {
-		prepareApiCall();
-		
-		const request = {
-		  property: `properties/${GA4_PROPERTY_ID}`,
-		  dateRanges: [
-			{
-			  startDate: startDate,
-			  endDate: endDate
-			}
-		  ],
-		  dimensions: [
-			{
-			  name: 'customEvent:errorType'
-			}
-		  ],
-		  metrics: [
-			{
-			  name: 'eventCount'
-			}
-		  ],
-		  dimensionFilter: {
-			filter: {
-			  fieldName: 'eventName',
-			  stringFilter: {
-				value: 'error',
-				matchType: 'EXACT'
-			  }
-			}
-		  }
-		};
-		
-		const response = await gapi.client.analyticsdata.properties.runReport(request);
-		
-		const errorCounts = [0, 0, 0, 0, 0]; // Game Logic, Network, Input, Rendering, Other
-		
-		if (response.result && response.result.rows && response.result.rows.length > 0) {
-		  for (const row of response.result.rows) {
-			const errorType = row.dimensionValues[0].value;
-			const count = parseInt(row.metricValues[0].value);
-			
-			if (errorType.includes('javascript') || errorType.includes('logic')) {
-			  errorCounts[0] += count; // Game Logic
-			} else if (errorType.includes('network')) {
-			  errorCounts[1] += count; // Network
-			} else if (errorType.includes('input')) {
-			  errorCounts[2] += count; // Input
-			} else if (errorType.includes('render')) {
-			  errorCounts[3] += count; // Rendering
-			} else {
-			  errorCounts[4] += count; // Other
-			}
-		  }
-		}
-		
-		// Update the chart
-		chartInstances.errorRates.data.datasets[0].data = errorCounts;
-		chartInstances.errorRates.update();
-	  } catch (error) {
-		console.error('Error querying error rates:', error);
-		throw error;
-	  }
-	}
-    
-    // Export data to CSV
-    async function exportDataToCSV() {
-      showLoading();
-      
-      // Collect all current data
-      const exportData = {
-        overview: {
-          'Total Games': document.getElementById('total-games').textContent,
-          'Unique Users': document.getElementById('total-users').textContent,
-          'Average Session Duration': document.getElementById('avg-session').textContent,
-          'Completion Rate': document.getElementById('completion-rate').textContent
-        },
-        performance: {
-          'Win Rate': document.getElementById('win-rate').textContent,
-          'Average Attempts': document.getElementById('avg-attempts').textContent,
-          'Give Up Rate': document.getElementById('give-up-rate').textContent,
-          'Average Game Time': document.getElementById('avg-time').textContent
-        }
-      };
-      
-      // Create CSV content
-      let csvContent = 'data:text/csv;charset=utf-8,';
-      
-      // Add overview section
-      csvContent += 'OVERVIEW\r\n';
-      csvContent += 'Metric,Value\r\n';
-      for (const [key, value] of Object.entries(exportData.overview)) {
-        csvContent += `${key},${value}\r\n`;
       }
-      csvContent += '\r\n';
       
-      // Add performance section
-      csvContent += 'PERFORMANCE\r\n';
-      csvContent += 'Metric,Value\r\n';
-      for (const [key, value] of Object.entries(exportData.performance)) {
-        csvContent += `${key},${value}\r\n`;
+      function showNoDataMessage(show) {
+        const noDataMsg = document.getElementById('no-data-message');
+        if (noDataMsg) {
+          noDataMsg.style.display = show ? 'block' : 'none';
+        }
       }
-      csvContent += '\r\n';
       
-      // Add games over time
-      if (chartInstances.gamesOverTime.data.labels.length > 0) {
-        csvContent += 'GAMES OVER TIME\r\n';
-        csvContent += 'Date,Games\r\n';
-        chartInstances.gamesOverTime.data.labels.forEach((label, i) => {
-          csvContent += `${label},${chartInstances.gamesOverTime.data.datasets[0].data[i]}\r\n`;
+      function displayBasicStats(userData) {
+        if (!userData.gameHistory || userData.gameHistory.length === 0) {
+          return;
+        }
+        
+        const stats = calculateStats(userData.gameHistory);
+        
+        // Update UI
+        document.getElementById('total-games').textContent = stats.totalGames;
+        document.getElementById('win-rate').textContent = stats.winRate + '%';
+        document.getElementById('avg-attempts').textContent = stats.avgAttempts;
+        document.getElementById('avg-time').textContent = formatTime(stats.avgDuration);
+      }
+      
+      function calculateStats(gameHistory) {
+        const totalGames = gameHistory.length;
+        let wins = 0;
+        let totalAttempts = 0;
+        let totalDuration = 0;
+        let completedGames = 0;
+        
+        gameHistory.forEach(game => {
+          if (game.result === 'win') wins++;
+          
+          if (game.attempts && game.duration) {
+            totalAttempts += game.attempts;
+            totalDuration += game.duration;
+            completedGames++;
+          }
         });
-        csvContent += '\r\n';
+        
+        return {
+          totalGames,
+          winRate: totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0,
+          avgAttempts: completedGames > 0 ? (totalAttempts / completedGames).toFixed(1) : 0,
+          avgDuration: completedGames > 0 ? Math.round(totalDuration / completedGames) : 0
+        };
       }
       
-      // Add mode preference
-      csvContent += 'MODE PREFERENCE\r\n';
-      csvContent += 'Mode,Count\r\n';
-      chartInstances.modePreference.data.labels.forEach((label, i) => {
-        csvContent += `${label},${chartInstances.modePreference.data.datasets[0].data[i]}\r\n`;
-      });
-      csvContent += '\r\n';
+      function displayGameCharts(userData) {
+        if (!userData.gameHistory || userData.gameHistory.length === 0) {
+          return;
+        }
+        
+        const gameHistory = userData.gameHistory;
+        
+        // Count game modes
+        const modes = {};
+        const codeLengths = {};
+        
+        gameHistory.forEach(game => {
+          if (game.options && game.options.mode) {
+            const mode = game.options.mode;
+            modes[mode] = (modes[mode] || 0) + 1;
+          }
+          
+          if (game.options && game.options.codeLength) {
+            const length = game.options.codeLength;
+            codeLengths[length] = (codeLengths[length] || 0) + 1;
+          }
+        });
+        
+        // Create mode chart
+        const modeCtx = document.getElementById('mode-chart').getContext('2d');
+        const modeChart = new Chart(modeCtx, {
+          type: 'pie',
+          data: {
+            labels: [
+              '2 Player', 
+              'Computer as Breaker', 
+              'Computer as Maker'
+            ],
+            datasets: [{
+              data: [
+                modes['both'] || 0,
+                modes['codemakerMode'] || 0,
+                modes['codebreakerMode'] || 0
+              ],
+              backgroundColor: ['#4CAF50', '#2196F3', '#FF9800']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right'
+              }
+            }
+          }
+        });
+        
+        // Create code length chart
+        const lengthCtx = document.getElementById('length-chart').getContext('2d');
+        const lengthChart = new Chart(lengthCtx, {
+          type: 'bar',
+          data: {
+            labels: ['4 Circles', '5 Circles'],
+            datasets: [{
+              label: 'Games',
+              data: [
+                codeLengths['4'] || 0,
+                codeLengths['5'] || 0
+              ],
+              backgroundColor: '#9C27B0'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0
+                }
+              }
+            }
+          }
+        });
+      }
       
-      // Add language distribution
-      csvContent += 'LANGUAGE DISTRIBUTION\r\n';
-      csvContent += 'Language,Count\r\n';
-      chartInstances.languageDistribution.data.labels.forEach((label, i) => {
-        csvContent += `${label},${chartInstances.languageDistribution.data.datasets[0].data[i]}\r\n`;
-      });
-      csvContent += '\r\n';
+      function displayRecentGames(userData) {
+        if (!userData.gameHistory || userData.gameHistory.length === 0) {
+          return;
+        }
+        
+        const tbody = document.getElementById('recent-games-tbody');
+        tbody.innerHTML = '';
+        
+        // Get the most recent 10 games
+        const recentGames = [...userData.gameHistory]
+          .sort((a, b) => (b.startTime || 0) - (a.startTime || 0))
+          .slice(0, 10);
+        
+        recentGames.forEach(game => {
+          const row = document.createElement('tr');
+          
+          // Format date
+          const date = game.startTime ? new Date(game.startTime) : new Date();
+          const dateStr = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+          
+          // Format mode
+          let modeStr = 'Unknown';
+          if (game.options && game.options.mode) {
+            if (game.options.mode === 'both') modeStr = '2 Player';
+            else if (game.options.mode === 'codemakerMode') modeStr = 'Computer as Breaker';
+            else if (game.options.mode === 'codebreakerMode') modeStr = 'Computer as Maker';
+          }
+          
+          // Format result
+          let resultStr = 'Unknown';
+          if (game.result === 'win') resultStr = 'Win';
+          else if (game.result === 'loss') resultStr = 'Loss';
+          else if (game.result === 'abandoned') resultStr = 'Abandoned';
+          
+          row.innerHTML = `
+            <td>${dateStr}</td>
+            <td>${modeStr}</td>
+            <td>${resultStr}</td>
+            <td>${game.attempts || '-'}</td>
+            <td>${game.duration ? formatTime(game.duration) : '-'}</td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+      }
       
-      // Create a download link and trigger click
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', 'mastermind_analytics.csv');
-      document.body.appendChild(link);
+      function formatTime(seconds) {
+        if (seconds < 60) return seconds + 's';
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return minutes + 'm ' + (remainingSeconds > 0 ? remainingSeconds + 's' : '');
+      }
       
-      link.click();
-      document.body.removeChild(link);
-      
-      hideLoading();
-      showStatus('Data exported successfully');
-    }
-    
-	function handleCredentialResponse(response) {
-	  console.log("GIS response received:", response);
-	  
-	  // Extract token from the response
-	  const token = response.credential;
-	  
-	  // Decode the token to get user information
-	  try {
-		const decodedToken = jwt_decode(token);
-		console.log("Decoded token:", decodedToken);
-		
-		// Store the token for API access
-		sessionStorage.setItem('gis_token', token);
-		
-		// Show user info if needed
-		const userEmail = decodedToken.email;
-		const userName = decodedToken.name;
-		console.log(`Logged in as: ${userName} (${userEmail})`);
-		
-		// Check if the token has the scope we need
-		if (decodedToken.scope && decodedToken.scope.includes('https://www.googleapis.com/auth/analytics.readonly')) {
-		  console.log("Token has analytics.readonly scope");
-		} else {
-		  console.warn("Token does NOT have analytics.readonly scope - this may cause authentication issues");
-		}
-		
-		// Initialize the dashboard after successful login
-		onSignInSuccess();
-	  } catch (error) {
-		console.error("Error decoding token:", error);
-		showError("Login failed: " + error.message);
-	  }
-	}
-	
-	// Try this alternative authentication method
-	async function initializeGoogleAPIAlternative() {
-	  try {
-		showLoading();
-		
-		// Load the GAPI client
-		await new Promise((resolve, reject) => {
-		  gapi.load('client:auth2', {
-			callback: resolve,
-			onerror: reject
-		  });
-		});
-		
-		// Initialize the client with API key and scope
-		await gapi.client.init({
-		  apiKey: GA4_API_KEY,
-		  clientId: GA4_CLIENT_ID,
-		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta'],
-		  scope: 'https://www.googleapis.com/auth/analytics.readonly'
-		});
-		
-		// Check if user is already signed in
-		if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-		  console.log("User already signed in with GAPI");
-		  onSignInSuccess();
-		} else {
-		  // Show sign-in button (using GAPI auth instead of GIS)
-		  document.getElementById('auth-container').innerHTML = `
-			<button id="gapi-sign-in" class="sign-in-button">Sign in with Google (GAPI)</button>
-			<button id="sign-out-button" class="hidden">Sign Out</button>
-		  `;
-		  
-		  document.getElementById('gapi-sign-in').addEventListener('click', () => {
-			gapi.auth2.getAuthInstance().signIn().then(() => {
-			  onSignInSuccess();
-			}).catch(error => {
-			  showError("GAPI sign-in failed: " + error.message);
-			});
-		  });
-		}
-		
-		console.log("Google API Client successfully initialized");
-		hideLoading();
-	  } catch (error) {
-		console.error('Google API initialization error:', error);
-		showError('Failed to initialize Google API: ' + error.message);
-		hideLoading();
-	  }
-	}
-
-	// Initialisiert die Google API
-	async function initializeGoogleAPI() {
-	  try {
-		showLoading();
-		
-		// Load the GAPI client
-		await new Promise((resolve, reject) => {
-		  gapi.load('client', {
-			callback: resolve,
-			onerror: reject
-		  });
-		});
-		
-		// Initialize the client with the discovery document
-		await gapi.client.init({
-		  discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta']
-		});
-		
-		console.log("Google API Client successfully initialized");
-		hideLoading();
-	  } catch (error) {
-		console.error('Google API initialization error:', error);
-		showError('Failed to initialize Google API: ' + error.message);
-		hideLoading();
-	  }
-	}
-
-	// Handle successful sign-in
-	function onSignInSuccess() {
-	  document.getElementById('dashboard-content').classList.remove('hidden');
-	  document.getElementById('sign-out-button').classList.remove('hidden');
-	  
-	  initializeDateRange();
-	  initializeCharts();
-	  
-	  // Fetch real analytics data instead of loading demo data
-	  fetchAnalyticsData();
-	  
-	  // Add event listeners for interactive elements
-	  document.getElementById('apply-date').addEventListener('click', fetchAnalyticsData);
-	  document.getElementById('refresh-data').addEventListener('click', fetchAnalyticsData);
-	  document.getElementById('export-data').addEventListener('click', exportDataToCSV);
-	  document.getElementById('filter-mode').addEventListener('change', fetchAnalyticsData);
-	  document.getElementById('filter-code-length').addEventListener('change', fetchAnalyticsData);
-	}
-
-	// Load demo data for initial display
-	function loadDemoData() {
-	  // Set overview statistics
-	  document.getElementById('total-games').textContent = '1,250';
-	  document.getElementById('total-users').textContent = '450';
-	  document.getElementById('avg-session').textContent = '5m 30s';
-	  document.getElementById('completion-rate').textContent = '85.7%';
-	  
-	  // Set game performance statistics
-	  document.getElementById('win-rate').textContent = '62.5%';
-	  document.getElementById('avg-attempts').textContent = '5.8';
-	  document.getElementById('give-up-rate').textContent = '18.3%';
-	  document.getElementById('avg-time').textContent = '3m 45s';
-	  
-	  // Update time series chart
-	  const timeLabels = [];
-	  const timeData = [];
-	  const today = new Date();
-	  
-	  for (let i = 30; i > 0; i--) {
-		const date = new Date();
-		date.setDate(today.getDate() - i);
-		const month = String(date.getMonth() + 1).padStart(2, '0');
-		const day = String(date.getDate()).padStart(2, '0');
-		timeLabels.push(`${month}/${day}`);
-		timeData.push(Math.floor(Math.random() * 45) + 5);
-	  }
-	  
-	  chartInstances.gamesOverTime.data.labels = timeLabels;
-	  chartInstances.gamesOverTime.data.datasets[0].data = timeData;
-	  chartInstances.gamesOverTime.update();
-	  
-	  // Update mode preference chart
-	  chartInstances.modePreference.data.datasets[0].data = [45, 30, 25];
-	  chartInstances.modePreference.update();
-	  
-	  // Update language distribution chart
-	  chartInstances.languageDistribution.data.datasets[0].data = [70, 30];
-	  chartInstances.languageDistribution.update();
-	  
-	  // Update code length preference chart
-	  chartInstances.lengthPreference.data.datasets[0].data = [65, 35];
-	  chartInstances.lengthPreference.update();
-	  
-	  // Update color usage chart
-	  chartInstances.colorUsage.data.datasets[0].data = [120, 95, 85, 75, 110, 90, 60, 70];
-	  chartInstances.colorUsage.update();
-	  
-	  // Update win rate by attempts chart
-	  chartInstances.winByAttempts.data.datasets[0].data = [90, 75, 65, 50, 40, 30, 25, 20, 15, 10];
-	  chartInstances.winByAttempts.update();
-	  
-	  // Update device distribution chart
-	  chartInstances.deviceDistribution.data.datasets[0].data = [55, 35, 10];
-	  chartInstances.deviceDistribution.update();
-	  
-	  // Update error rates chart
-	  chartInstances.errorRates.data.datasets[0].data = [12, 8, 5, 3, 4];
-	  chartInstances.errorRates.update();
-	  
-	  // Update recent games table
-	  const sampleGames = [
-		{ date: '04/20/2025', mode: '2 Player', result: 'Win', attempts: 5, duration: '2m 45s' },
-		{ date: '04/19/2025', mode: 'Computer as Maker', result: 'Win', attempts: 7, duration: '4m 12s' },
-		{ date: '04/19/2025', mode: '2 Player', result: 'Loss', attempts: 10, duration: '5m 30s' },
-		{ date: '04/18/2025', mode: 'Computer as Breaker', result: 'Win', attempts: 4, duration: '2m 15s' },
-		{ date: '04/17/2025', mode: 'Computer as Maker', result: 'Abandoned', attempts: 3, duration: '1m 45s' },
-		{ date: '04/16/2025', mode: '2 Player', result: 'Win', attempts: 6, duration: '3m 10s' },
-		{ date: '04/15/2025', mode: 'Computer as Breaker', result: 'Loss', attempts: 10, duration: '6m 05s' },
-		{ date: '04/15/2025', mode: 'Computer as Maker', result: 'Win', attempts: 5, duration: '3m 30s' },
-		{ date: '04/14/2025', mode: '2 Player', result: 'Win', attempts: 3, duration: '1m 50s' },
-		{ date: '04/13/2025', mode: 'Computer as Breaker', result: 'Win', attempts: 8, duration: '4m 40s' }
-	  ];
-	  
-	  const tableBody = document.querySelector('#recent-games tbody');
-	  tableBody.innerHTML = ''; // Clear existing rows
-	  
-	  for (const game of sampleGames) {
-		const tr = document.createElement('tr');
-		tr.innerHTML = `
-		  <td>${game.date}</td>
-		  <td>${game.mode}</td>
-		  <td>${game.result}</td>
-		  <td>${game.attempts}</td>
-		  <td>${game.duration}</td>
-		`;
-		
-		tableBody.appendChild(tr);
-	  }
-	}
-		
-	function prepareApiCall() {
-	  // First try using the session token
-	  const token = sessionStorage.getItem('gis_token');
-	  
-	  if (token) {
-		// Try using the GIS token
-		gapi.client.setToken({
-		  access_token: token
-		});
-		console.log("Using GIS token for API call");
-	  } else if (gapi.auth2 && gapi.auth2.getAuthInstance() && gapi.auth2.getAuthInstance().isSignedIn.get()) {
-		// Fallback to using GAPI auth
-		const currentUser = gapi.auth2.getAuthInstance().currentUser.get();
-		const authResponse = currentUser.getAuthResponse();
-		gapi.client.setToken({
-		  access_token: authResponse.access_token
-		});
-		console.log("Using GAPI token for API call");
-	  } else {
-		throw new Error('Authentication token not found');
-	  }
-	}
-	
-	function signOut() {
-	  sessionStorage.removeItem('gis_token');
-	  document.getElementById('dashboard-content').classList.add('hidden');
-	  document.getElementById('sign-out-button').classList.add('hidden');
-	  
-	  // Reset Google Sign-In button
-	  const googleDiv = document.querySelector('.g_id_signin');
-	  googleDiv.innerHTML = '';
-	  google.accounts.id.renderButton(googleDiv, { 
-		theme: 'outline', 
-		size: 'large'
-	  });
-	  
-	  showStatus('Signed out successfully');
-	}
-
-	// Add this line in your init function
-	document.getElementById('sign-out-button').addEventListener('click', signOut);
-    
-    // Initialize the application
-	function init() {
-	  try {
-		showLoading();
-		
-		// Timeout for when initialization takes too long
-		setTimeout(() => {
-		  if (document.getElementById('loading-overlay').style.display === 'flex') {
-			hideLoading();
-			showError('Timeout: API initialization took too long. Please try refreshing the page.');
-		  }
-		}, 10000);  // 10 second timeout
-		
-		// Initialize the API
-		initializeGoogleAPI();
-	  } catch (error) {
-		console.error('Initialization error:', error);
-		showError('Failed to initialize application: ' + error.message);
-	  }
-	}
-    
-    // Start the application when the page loads
-    window.addEventListener('load', init);
+      function exportAnalyticsData() {
+        try {
+          const analyticsData = localStorage.getItem('mastermind_analytics');
+          const userData = localStorage.getItem('mastermind_user');
+          
+          if (!analyticsData && !userData) {
+            alert('No analytics data available to export.');
+            return;
+          }
+          
+          const exportData = {
+            analytics: analyticsData ? JSON.parse(analyticsData) : [],
+            user: userData ? JSON.parse(userData) : {}
+          };
+          
+          // Create download link
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData));
+          const downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href", dataStr);
+          downloadAnchorNode.setAttribute("download", "mastermind_analytics.json");
+          document.body.appendChild(downloadAnchorNode);
+          downloadAnchorNode.click();
+          downloadAnchorNode.remove();
+        } catch (error) {
+          console.error('Error exporting analytics data:', error);
+          alert('Failed to export analytics data.');
+        }
+      }
+    });
   </script>
-</body>
-</html>
+            
+            <div class="alert alert-info mt-3">
+              <p><strong>Setup Instructions:</strong></p>
+              <ol>
+                <li>Sign up for Simple Analytics at <a href="https://simpleanalytics.com/" target="_blank">simpleanalytics.com</a></li>
+                <li>Replace "your-domain.com" in the iframe src with your actual domain</li>
+                <li>Make sure your GitHub Pages site is properly set up</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Local Data Stats -->
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Local Analytics Data</h5>
+            <button id="export-btn" class="btn btn-sm btn-outline-primary">Export Data</button>
+          </div>
+          <div class="card-body">
+            <div id="local-data-container">
+              <!-- Local analytics data will be displayed here -->
+              <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="total-games" class="stat-value">0</div>
+                    <div class="stat-label">Total Games</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="win-rate" class="stat-value">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="avg-attempts" class="stat-value">0</div>
+                    <div class="stat-label">Avg. Attempts</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="avg-time" class="stat-value">0s</div>
+                    <div class="stat-label">Avg. Game Time</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Game Mode Preference</h6>
+                    </div>
+                    <div class="card-body">
+                      <canvas id="mode-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Code Length Preference</h6>
+                    </div>
+                    <div class="card-body">
+                      <canvas id="length-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h6 class="mb-0">Recent Games</h6>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Mode</th>
+                          <th>Result</th>
+                          <th>Attempts</th>
+                          <th>Duration</th>
+                        </tr>
+                      </thead>
+                      <tbody id="recent-games-tbody">
+                        <!-- Game data will be inserted here -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>

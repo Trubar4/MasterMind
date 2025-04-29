@@ -1,8 +1,7 @@
-// analytics.js - Enhanced with GA4 integration for Mastermind
+// analytics.js - Enhanced with Simple Analytics integration for Mastermind
 
 class MastermindAnalytics {
   constructor(options = {}) {
-    this.trackingId = options.trackingId || null;
     this.enabled = options.enabled !== false;
     this.debugMode = options.debugMode || false;
     this.sessionStartTime = Date.now();
@@ -19,72 +18,43 @@ class MastermindAnalytics {
     this._initializeUserData();
   }
 
-  // Initialize the analytics system with Google Analytics
-  initialize(trackingId) {
-    if (trackingId) {
-      this.trackingId = trackingId;
+  // Initialize the analytics system
+  initialize(websiteId) {
+    if (websiteId) {
+      this.websiteId = websiteId;
     }
     
-    if (!this.trackingId) {
-      this._debug('Analytics initialized in local-only mode (no tracking ID provided)');
-      this.initialized = true;
-      return;
-    }
+    this._debug('Analytics initialized');
+    this.initialized = true;
     
-    // Load Google Analytics (GA4)
-    try {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${this.trackingId}`;
-      document.head.appendChild(script);
-
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function() {
-        window.dataLayer.push(arguments);
-      };
-      
-      window.gtag('js', new Date());
-      window.gtag('config', this.trackingId, {
-        'send_page_view': false,
-        'user_id': this.userData.userId
+    // Schedule periodic flushing of events
+    this._scheduleFlush();
+    
+    // Get browser info
+    const browserInfo = this._detectBrowserInfo();
+    
+    // Track session start with enhanced data
+    this._sendEvent('session_start', {
+      'app_version': window.APP_VERSION || '3.1.2',
+      'screen_size': `${window.innerWidth}x${window.innerHeight}`,
+      'language': document.documentElement.lang || 'unknown',
+      'user_type': this._getUserType(),
+      'browser': browserInfo.browser,
+      'browser_version': browserInfo.browserVersion,
+      'os': browserInfo.os,
+      'device_type': browserInfo.deviceType,
+      'session_id': this.sessionId,
+      'user_id': this.userData.userId
+    });
+    
+    // Add event listeners for session tracking
+    window.addEventListener('beforeunload', () => {
+      this._sendEvent('session_end', {
+        'duration': this._getSessionDuration(),
+        'session_id': this.sessionId
       });
-      
-      this.initialized = true;
-      this._debug('GA4 initialized with tracking ID: ' + this.trackingId);
-      
-      // Start scheduled flushing of events
-      this._scheduleFlush();
-      
-      // Get browser info
-      const browserInfo = this._detectBrowserInfo();
-      
-      // Track session start with enhanced data
-      window.gtag('event', 'session_start', {
-        'app_version': window.APP_VERSION || '3.1.1',
-        'screen_size': `${window.innerWidth}x${window.innerHeight}`,
-        'language': document.documentElement.lang || 'unknown',
-        'user_type': this._getUserType(),
-        'browser': browserInfo.browser,
-        'browser_version': browserInfo.browserVersion,
-        'os': browserInfo.os,
-        'device_type': browserInfo.deviceType,
-        'session_id': this.sessionId,
-        'user_id': this.userData.userId
-      });
-      
-      // Add event listeners for session tracking
-      window.addEventListener('beforeunload', () => {
-        window.gtag('event', 'session_end', {
-          'duration': this._getSessionDuration(),
-          'session_id': this.sessionId
-        });
-        this.flush(true);
-      });
-      
-    } catch (error) {
-      console.error('Failed to initialize GA4:', error);
-      this.initialized = false;
-    }
+      this.flush(true);
+    });
   }
 
   // Track an event
@@ -145,17 +115,15 @@ class MastermindAnalytics {
       }
     }
     
-    // Send event directly to GA4
-    if (this.initialized && window.gtag) {
-      window.gtag('event', 'game_start', {
-        'game_id': gameId,
-        'game_count': this.gameCount,
-        'device_id': this.userData.uniqueId,
-        'mode': gameOptions.mode,
-        'code_length': gameOptions.codeLength,
-        'language': gameOptions.language
-      });
-    }
+    // Send event to Simple Analytics
+    this._sendEvent('game_start', {
+      'game_id': gameId,
+      'game_count': this.gameCount,
+      'device_id': this.userData.uniqueId,
+      'mode': gameOptions.mode,
+      'code_length': gameOptions.codeLength,
+      'language': gameOptions.language
+    });
     
     return this.trackEvent('game', 'start', {
       gameId: gameId,
@@ -187,16 +155,14 @@ class MastermindAnalytics {
       }
     }
     
-    // Send event directly to GA4
-    if (this.initialized && window.gtag) {
-      window.gtag('event', 'game_end', {
-        'result': result, // 'win', 'loss', 'abandoned'
-        'attempts': attempts,
-        'duration': gameDuration,
-        'give_up': giveUp,
-        'device_id': this.userData.uniqueId
-      });
-    }
+    // Send event to Simple Analytics
+    this._sendEvent('game_end', {
+      'result': result, // 'win', 'loss', 'abandoned'
+      'attempts': attempts,
+      'duration': gameDuration,
+      'give_up': giveUp,
+      'device_id': this.userData.uniqueId
+    });
     
     return this.trackEvent('game', 'end', {
       result: result,
@@ -209,41 +175,30 @@ class MastermindAnalytics {
 
   // Track user interactions with the game
   trackInteraction(interactionType, details = {}) {
-    // Send event directly to GA4
-    if (this.initialized && window.gtag) {
-      window.gtag('event', interactionType, {
-        ...details,
-        'device_id': this.userData.uniqueId
-      });
-    }
+    // Send event to Simple Analytics
+    this._sendEvent('interaction_' + interactionType, details);
     
     return this.trackEvent('interaction', interactionType, details);
   }
 
   // Track errors
   trackError(errorType, errorDetails = {}) {
-    // Send error event directly to GA4
-    if (this.initialized && window.gtag) {
-      window.gtag('event', 'error', {
-        'error_type': errorType,
-        ...errorDetails,
-        'device_id': this.userData.uniqueId
-      });
-    }
+    // Send event to Simple Analytics
+    this._sendEvent('error', {
+      'error_type': errorType,
+      ...errorDetails
+    });
     
     return this.trackEvent('error', errorType, errorDetails);
   }
 
   // Track performance metrics
   trackPerformance(metricName, value, details = {}) {
-    // Send performance event directly to GA4
-    if (this.initialized && window.gtag) {
-      window.gtag('event', 'performance_' + metricName, {
-        'value': value,
-        ...details,
-        'device_id': this.userData.uniqueId
-      });
-    }
+    // Send event to Simple Analytics
+    this._sendEvent('performance_' + metricName, {
+      'value': value,
+      ...details
+    });
     
     return this.trackEvent('performance', metricName, {
       value: value,
@@ -267,11 +222,13 @@ class MastermindAnalytics {
       this.flushTimeoutId = null;
     }
     
-    // Send events to Google Analytics
-    if (this.trackingId && window.gtag) {
+    // Send events to Simple Analytics (in batches if needed)
+    // Note: Simple Analytics doesn't have a batch API, so we'll send them sequentially
+    // Only send if Simple Analytics is loaded
+    if (window.sa_event) {
       eventsToSend.forEach(event => {
-        // Directly send using proper GA4 format
-        window.gtag('event', `${event.category}_${event.action}`, {
+        const eventName = `${event.category}_${event.action}`;
+        this._sendEvent(eventName, {
           ...event.params,
           'session_id': event.sessionId,
           'timestamp': event.timestamp,
@@ -284,6 +241,26 @@ class MastermindAnalytics {
     // Schedule the next flush if not immediate
     if (!immediate) {
       this._scheduleFlush();
+    }
+  }
+
+  // Helper method to send event to Simple Analytics
+  _sendEvent(eventName, params = {}) {
+    // Check if Simple Analytics is available
+    if (typeof window.sa_event === 'function') {
+      try {
+        window.sa_event(eventName, params);
+      } catch (e) {
+        console.error('Error sending event to Simple Analytics:', e);
+      }
+    } else if (typeof window.sa === 'object' && typeof window.sa.custom === 'function') {
+      try {
+        window.sa.custom(eventName, params);
+      } catch (e) {
+        console.error('Error sending event to Simple Analytics:', e);
+      }
+    } else {
+      this._debug('Simple Analytics not available, event not sent:', eventName);
     }
   }
 

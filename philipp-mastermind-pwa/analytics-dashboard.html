@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mastermind Analytics Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">  
-  <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+  <!-- Simple Analytics script - no tracking on the dashboard itself -->
+  <script>window.sa_event=window.sa_event||function(){var a=[].slice.call(arguments);window.sa_event.q?window.sa_event.q.push(a):window.sa_event.q=[a]};</script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -75,6 +76,106 @@
             <!-- Embedding Simple Analytics dashboard -->
             <div class="ratio ratio-16x9">
               <iframe id="sa-iframe" src="https://simpleanalytics.com/trubar4.github.io?embed=true" scrolling="no" frameborder="0" loading="lazy"></iframe>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+              <p><strong>Setup Instructions:</strong></p>
+              <ol>
+                <li>Sign up for Simple Analytics at <a href="https://simpleanalytics.com/" target="_blank">simpleanalytics.com</a></li>
+                <li>Your domain is set to: <strong>trubar4.github.io</strong> - this looks correct!</li>
+                <li>Make sure you've verified your domain in Simple Analytics dashboard</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Local Data Stats -->
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Local Analytics Data</h5>
+            <button id="export-btn" class="btn btn-sm btn-outline-primary">Export Data</button>
+          </div>
+          <div class="card-body">
+            <div id="local-data-container">
+              <!-- Local analytics data will be displayed here -->
+              <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="total-games" class="stat-value">0</div>
+                    <div class="stat-label">Total Games</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="win-rate" class="stat-value">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="avg-attempts" class="stat-value">0</div>
+                    <div class="stat-label">Avg. Attempts</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="stat-card">
+                    <div id="avg-time" class="stat-value">0s</div>
+                    <div class="stat-label">Avg. Game Time</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Game Mode Preference</h6>
+                    </div>
+                    <div class="card-body">
+                      <canvas id="mode-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-header">
+                      <h6 class="mb-0">Code Length Preference</h6>
+                    </div>
+                    <div class="card-body">
+                      <canvas id="length-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h6 class="mb-0">Recent Games</h6>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Mode</th>
+                          <th>Result</th>
+                          <th>Attempts</th>
+                          <th>Duration</th>
+                        </tr>
+                      </thead>
+                      <tbody id="recent-games-tbody">
+                        <!-- Game data will be inserted here -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              
               <div id="no-data-message" class="no-data">
                 <p>No local analytics data available.</p>
                 <p>Play a few games to generate data.</p>
@@ -338,102 +439,5 @@
       }
     });
   </script>
-            
-            <div class="alert alert-info mt-3">
-              <p><strong>Setup Instructions:</strong></p>
-              <ol>
-                <li>Sign up for Simple Analytics at <a href="https://simpleanalytics.com/" target="_blank">simpleanalytics.com</a></li>
-                <li>Replace "your-domain.com" in the iframe src with your actual domain</li>
-                <li>Make sure your GitHub Pages site is properly set up</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <!-- Local Data Stats -->
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Local Analytics Data</h5>
-            <button id="export-btn" class="btn btn-sm btn-outline-primary">Export Data</button>
-          </div>
-          <div class="card-body">
-            <div id="local-data-container">
-              <!-- Local analytics data will be displayed here -->
-              <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
-                <div class="col">
-                  <div class="stat-card">
-                    <div id="total-games" class="stat-value">0</div>
-                    <div class="stat-label">Total Games</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="stat-card">
-                    <div id="win-rate" class="stat-value">0%</div>
-                    <div class="stat-label">Win Rate</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="stat-card">
-                    <div id="avg-attempts" class="stat-value">0</div>
-                    <div class="stat-label">Avg. Attempts</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="stat-card">
-                    <div id="avg-time" class="stat-value">0s</div>
-                    <div class="stat-label">Avg. Game Time</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="row mb-4">
-                <div class="col-md-6">
-                  <div class="card">
-                    <div class="card-header">
-                      <h6 class="mb-0">Game Mode Preference</h6>
-                    </div>
-                    <div class="card-body">
-                      <canvas id="mode-chart"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="card">
-                    <div class="card-header">
-                      <h6 class="mb-0">Code Length Preference</h6>
-                    </div>
-                    <div class="card-body">
-                      <canvas id="length-chart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="card mb-4">
-                <div class="card-header">
-                  <h6 class="mb-0">Recent Games</h6>
-                </div>
-                <div class="card-body">
-                  <div class="table-responsive">
-                    <table class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Mode</th>
-                          <th>Result</th>
-                          <th>Attempts</th>
-                          <th>Duration</th>
-                        </tr>
-                      </thead>
-                      <tbody id="recent-games-tbody">
-                        <!-- Game data will be inserted here -->
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
+</body>
+</html>
